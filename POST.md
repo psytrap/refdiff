@@ -102,15 +102,6 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
           </div>
         </div>
       </td>
-    </tr>
-    <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-    </tr>
-    <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">&lt;references-def&gt;</div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">&lt;references-def&gt;</div></td>
-    </tr>
   </tbody>
 </table>
 </div>
