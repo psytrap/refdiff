@@ -16,23 +16,50 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📝 **[POST.md](POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
 
-## Tooling: RefDiff Engine (`refdiff.py`)
+## Tooling: RefDiff (The Ref-Differentiator)
 
-A zero-dependency Python 3 prototype engine that isolates prose edits from citation metadata changes:
+RefDiff eliminates "template camouflage" by decoupling human prose edits from citation metadata changes across both the web and the command line.
+
+### 1. Wikipedia User Script / Gadget (`refdiff.js`)
+
+A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It operates directly on Wikipedia's native 2-column diff table (`table.diff`), preserving 100% of revision metadata headers, line numbers (`Line 101:`), and context rows:
+
+* **Instant Installation:** Add this one line to your `Special:MyPage/common.js` on English Wikipedia (or any MediaWiki wiki):
+  ```javascript
+  // [[File:refdiff.js]] - Decoupled citation diffs for Special:Diff
+  mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
+  ```
+* Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey.
+* Fully supports Vector 2022 Light and Dark Modes with a 1-click toggle: `[ Decoupled (RefDiff) | Standard Wikidiff ]`.
+
+### 2. Standalone Python Engine & Git Driver (`refdiff.py`)
+
+A zero-dependency Python 3 engine (stdlib only) that calculates granular word-level diffs on both prose and citation tags:
 
 ```bash
-# Compare two wikitext revisions in terminal
-python3 refdiff.py tests/fixtures/venus_v1.wiki tests/fixtures/venus_v2.wiki
+# Fetch and diff live Wikipedia revisions directly by URL
+python3 refdiff.py "https://en.wikipedia.org/w/index.php?title=Solar_System&diff=1372329011"
+
+# Compare local wikitext revisions in terminal
+python3 refdiff.py old.wiki new.wiki
 
 # Show compact diffstat summary
-python3 refdiff.py --stat tests/fixtures/venus_v1.wiki tests/fixtures/venus_v2.wiki
+python3 refdiff.py --stat old.wiki new.wiki
 
-# Emit structured JSON payload (for gadgets & CI)
-python3 refdiff.py --json tests/fixtures/venus_v1.wiki tests/fixtures/venus_v2.wiki
+# Emit structured JSON payload (for CI / bots)
+python3 refdiff.py --json old.wiki new.wiki
 
 # Run unit test suite
 python3 -m unittest discover tests
 ```
+
+### 3. Git External Diff Driver (`git-refdiff`)
+Use RefDiff natively inside Git repositories for wikitext and documentation:
+```bash
+git config diff.wikitext.command "python3 /path/to/einzelnachweise/refdiff.py"
+echo "*.wiki diff=wikitext" >> .gitattributes
+```
+
 
 ### Key Pillars
 1. **Readable Wikitext, References Still Nearby:** Sentences stay free of template clutter, yet full citations remain conveniently close within the same section.

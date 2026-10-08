@@ -1,3 +1,20 @@
+// ==UserScript==
+// @name         RefDiff
+// @namespace    https://github.com/m-k/einzelnachweise
+// @version      1.1.0
+// @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
+// @author       RefDiff Contributors
+// @match        https://*.wikipedia.org/*diff=*
+// @match        https://*.wikipedia.org/*oldid=*
+// @match        https://*.wikipedia.org/wiki/Special:Diff/*
+// @match        https://*.wikimedia.org/*diff=*
+// @match        https://*.wiktionary.org/*diff=*
+// @match        https://*.wikiquote.org/*diff=*
+// @grant        none
+// @run-at       document-end
+// @license      MIT
+// ==/UserScript==
+
 /**
  * RefDiff.js - The Ref-Differentiator
  * ------------------------------------------------------------------------------
@@ -6,10 +23,6 @@
  * context lines, diff hunks) while decoupling citation templates from prose lines.
  *
  * Repository: https://github.com/m-k/einzelnachweise
- *
- * @version 1.1.0
- * @author RefDiff Contributors
- * @license MIT
  */
 
 (function () {
@@ -49,6 +62,17 @@
       color: #ffd043;
       background: rgba(255, 208, 67, 0.2);
     }
+    @media (prefers-color-scheme: dark) {
+      html.skin-theme-clientpref-os .ref-badge,
+      body.skin-theme-clientpref-os .ref-badge {
+        color: #6da2ff;
+      }
+      html.skin-theme-clientpref-os .ref-badge-mod,
+      body.skin-theme-clientpref-os .ref-badge-mod {
+        color: #ffd043;
+        background: rgba(255, 208, 67, 0.2);
+      }
+    }
     .refdiff-mode-bar {
       margin: 8px 0 10px 0;
       font-size: 13px;
@@ -67,8 +91,85 @@
 
   function extractName(attrsStr) {
     if (!attrsStr) return null;
-    const m = attrsStr.match(/name\s*=\s*(?:&quot;|"|'|&apos;)(.*?)(?:&quot;|"|'|&apos;)|name\s*=\s*([^\s"'>]+)/i);
-    return m ? (m[1] || m[2]) : null;
+    const clean = attrsStr.replace(/<[^>]+>/g, '');
+    const m = clean.match(/name\s*=\s*(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;)|name\s*=\s*([^\s"'>&]+)/i);
+    return m ? (m[1] || m[2]).trim() : null;
+  }
+
+  function pairReferences(delRefs, addRefs) {
+    const pairs = [];
+    const matchedDel = new Set();
+    const matchedAdd = new Set();
+
+    const cleanContent = (r) => {
+      if (!r) return '';
+      return (r.content || r.raw || '').replace(/<[^>]+>/g, '').trim();
+    };
+
+    // Pass 1: Match by explicit name
+    for (let i = 0; i < delRefs.length; i++) {
+      const d = delRefs[i];
+      const dName = extractName(d.attrs);
+      if (!dName) continue;
+      for (let j = 0; j < addRefs.length; j++) {
+        if (matchedAdd.has(j)) continue;
+        const a = addRefs[j];
+        const aName = extractName(a.attrs);
+        if (aName && aName.toLowerCase() === dName.toLowerCase()) {
+          matchedDel.add(i);
+          matchedAdd.add(j);
+          pairs.push({ d, a, name: dName });
+          break;
+        }
+      }
+    }
+
+    // Pass 2: Match identical references (same clean content)
+    for (let i = 0; i < delRefs.length; i++) {
+      if (matchedDel.has(i)) continue;
+      const d = delRefs[i];
+      const dClean = cleanContent(d);
+      if (!dClean) continue;
+      for (let j = 0; j < addRefs.length; j++) {
+        if (matchedAdd.has(j)) continue;
+        const a = addRefs[j];
+        if (cleanContent(a) === dClean) {
+          matchedDel.add(i);
+          matchedAdd.add(j);
+          pairs.push({ d, a, name: extractName(d.attrs) || extractName(a.attrs) });
+          break;
+        }
+      }
+    }
+
+    // Pass 3: Pair remaining in positional order
+    const remainingDel = [];
+    for (let i = 0; i < delRefs.length; i++) {
+      if (!matchedDel.has(i)) remainingDel.push(delRefs[i]);
+    }
+    const remainingAdd = [];
+    for (let j = 0; j < addRefs.length; j++) {
+      if (!matchedAdd.has(j)) remainingAdd.push(addRefs[j]);
+    }
+
+    const commonCount = Math.min(remainingDel.length, remainingAdd.length);
+    for (let k = 0; k < commonCount; k++) {
+      const d = remainingDel[k];
+      const a = remainingAdd[k];
+      pairs.push({ d, a, name: extractName(d.attrs) || extractName(a.attrs) });
+    }
+
+    for (let k = commonCount; k < remainingDel.length; k++) {
+      const d = remainingDel[k];
+      pairs.push({ d, a: null, name: extractName(d.attrs) });
+    }
+
+    for (let k = commonCount; k < remainingAdd.length; k++) {
+      const a = remainingAdd[k];
+      pairs.push({ d: null, a, name: extractName(a.attrs) });
+    }
+
+    return pairs;
   }
 
   function applyDecoupling(table) {
@@ -79,8 +180,9 @@
       origTableHtml = table.innerHTML;
     }
 
-    // Match HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine
-    const refRegex = /&lt;ref\b([^&]*?)(?:\/&gt;|&gt;(.*?)&lt;\/ref&gt;)/gis;
+    // Match HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
+    // Handles self-closing tags and opening/closing tags with attributes containing HTML entities.
+    const refRegex = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;([\s\S]*?)&lt;\/ref&gt;)/gi;
 
     const changeRows = Array.from(table.querySelectorAll('tr')).filter(
       r => r.querySelector('.diff-deletedline, .diff-addedline') && !r.classList.contains('refdiff-cit-row')
@@ -114,39 +216,37 @@
 
       if (delRefs.length === 0 && addRefs.length === 0) continue;
 
+      const pairs = pairReferences(delRefs, addRefs);
       const modifiedCits = [];
       let newDelHtml = delDiv.innerHTML;
       let newAddHtml = addDiv.innerHTML;
 
-      const maxLen = Math.max(delRefs.length, addRefs.length);
-      for (let i = 0; i < maxLen; i++) {
-        const d = delRefs[i];
-        const a = addRefs[i];
-
-        let refName = (d && extractName(d.attrs)) || (a && extractName(a.attrs));
-        let label = refName || `ref${citCounter++}`;
+      for (const pair of pairs) {
+        const d = pair.d;
+        const a = pair.a;
+        const label = pair.name || `ref${citCounter++}`;
 
         if (d && a) {
-          const isMod = a.hasChange || (d.raw.replace(/<[^>]+>/g, '') !== a.raw.replace(/<[^>]+>/g, ''));
+          const isMod = a.hasChange || (d.raw.replace(/<[^>]+>/g, '').trim() !== a.raw.replace(/<[^>]+>/g, '').trim());
           if (isMod) {
             totalModified++;
             modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
-            const badge = `<span class="ref-badge-mod" title="Citation metadata modified">[~${label}~]</span>`;
+            const badge = `<span class="ref-badge-mod" title="Citation metadata modified: [~${label}~]">[~${label}~]</span>`;
             newDelHtml = newDelHtml.replace(d.raw, badge);
             newAddHtml = newAddHtml.replace(a.raw, badge);
           } else {
-            const badge = `<span class="ref-badge">[${label}]</span>`;
+            const badge = `<span class="ref-badge" title="Citation: [${label}]">[${label}]</span>`;
             newDelHtml = newDelHtml.replace(d.raw, badge);
             newAddHtml = newAddHtml.replace(a.raw, badge);
           }
         } else if (a && !d) {
           totalAdded++;
-          const badge = `<ins class="diffchange diffchange-inline">{+ [${label}] +}</ins>`;
+          const badge = `<ins class="diffchange diffchange-inline" title="Added citation: ${label}">{+ [${label}] +}</ins>`;
           newAddHtml = newAddHtml.replace(a.raw, badge);
           modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
         } else if (d && !a) {
           totalRemoved++;
-          const badge = `<del class="diffchange diffchange-inline">[- [${label}] -]</del>`;
+          const badge = `<del class="diffchange diffchange-inline" title="Removed citation: ${label}">[- [${label}] -]</del>`;
           newDelHtml = newDelHtml.replace(d.raw, badge);
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
         }
@@ -195,6 +295,11 @@
     if (!table || !origTableHtml) return;
     table.innerHTML = origTableHtml;
     isDecoupled = false;
+
+    const statsEl = document.getElementById('refdiff-stats-note');
+    if (statsEl) {
+      statsEl.textContent = '';
+    }
   }
 
   function init() {

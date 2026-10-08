@@ -198,16 +198,52 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ---
 
-## 8. Development Roadmap
+## 8. Development Roadmap & Status
 
-* [ ] **Phase 1: Standalone Core Parser (Python CLI)**
-  * Implement `refdiff` Python package using `mwparserfromhell`.
-  * Support CLI input (`refdiff old.wiki new.wiki`) with terminal ANSI output.
-* [ ] **Phase 2: Git Diff Driver (`git-refdiff`)**
-  * Package as a standard Git filter driver for repository documentation.
-* [ ] **Phase 3: MediaWiki User Script (`RefDiff.js`)**
-  * Publish to `User:YourName/RefDiff.js` on English Wikipedia.
-  * Provide a 1-click toggle on `Special:Diff`.
-  * Beta test with English Wikipedia recent-changes patrollers and GA/FA reviewers.
+* [x] **Phase 1: Standalone Core Parser (Python CLI)**
+  * Implemented zero-dependency `refdiff.py` using Python 3 standard library (`re`, `difflib`, `urllib`).
+  * Supports CLI input (`refdiff.py old.wiki new.wiki`), live Wikipedia diff fetching (`refdiff.py <URL>` or `--diff <ID>`), `--stat`, and `--json`.
+* [x] **Phase 2: Git Diff Driver (`git-refdiff`)**
+  * Auto-detects Git external diff driver invocations (`git diff` / `git log -p`) via symlink or `.gitconfig`.
+* [x] **Phase 3: MediaWiki User Script / Gadget (`refdiff.js`)**
+  * Zero-loss in-place DOM manipulation directly on MediaWiki's native diff table (`table.diff`).
+  * Preserves 100% of revision metadata headers, line numbers (`Line 101:`), and context lines.
+  * Compatible with English Wikipedia Vector 2022 (Light and Dark Mode), Tampermonkey/Violentmonkey, and `common.js`.
 * [ ] **Phase 4: Upstream Phabricator Feature Request**
-  * Submit RFC to Wikimedia Phabricator for native Parsoid/Diff integration.
+  * Submit RFC to Wikimedia Phabricator for native Parsoid/`wikidiff2` integration.
+
+---
+
+## 9. Quick Start & Installation
+
+### Option A: Install as Wikipedia User Script (Gadget)
+Add the following line to your `Special:MyPage/common.js` on English Wikipedia (or any MediaWiki wiki):
+
+```javascript
+// [[File:refdiff.js]] - Decoupled citation diffs for Special:Diff
+mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
+```
+
+Alternatively, install `refdiff.js` directly in Tampermonkey, Violentmonkey, or Greasemonkey.
+
+### Option B: Terminal CLI & Live Wikipedia Diff Fetching
+```bash
+# Compare local wikitext revisions
+python3 refdiff.py old.wiki new.wiki
+
+# Fetch and diff live Wikipedia revisions directly by URL
+python3 refdiff.py "https://en.wikipedia.org/w/index.php?title=Solar_System&diff=1372329011"
+
+# Or by revision ID
+python3 refdiff.py --diff 1372329011
+
+# Compact diffstat summary
+python3 refdiff.py --stat old.wiki new.wiki
+```
+
+### Option C: Configure as Git Diff Driver
+```bash
+git config diff.wikitext.command "python3 /path/to/einzelnachweise/refdiff.py"
+echo "*.wiki diff=wikitext" >> .gitattributes
+```
+
