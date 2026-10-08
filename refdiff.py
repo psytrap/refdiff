@@ -62,7 +62,8 @@ class Citation:
     name: Optional[str] = None       # name="..." attribute
     group: Optional[str] = None      # group="..." attribute
     details: Optional[str] = None    # details="..." sub-referencing attribute
-    raw_content: str = ""            # Raw content inside <ref>...</ref> (undecoded)
+    raw_content: str = ""            # Content inside <ref>...</ref>
+    full_tag: str = ""               # Full encapsulating <ref ...>...</ref> tag
     section: str = ""                # Section title
     is_definition: bool = False      # Defined inside <references hidden>
     order_in_section: int = 0        # 1-based order in current section
@@ -195,6 +196,7 @@ class WikitextParser:
                         group=attrs.get('group'),
                         details=attrs.get('details'),
                         raw_content=content,
+                        full_tag=ref_m.group(0).strip(),
                         section=title,
                         is_definition=True
                     )
@@ -228,6 +230,7 @@ class WikitextParser:
                         group=attrs.get('group'),
                         details=attrs.get('details'),
                         raw_content=content,
+                        full_tag=m.group(0).strip(),
                         section=title,
                         is_definition=False,
                         order_in_section=order_in_section
@@ -235,6 +238,8 @@ class WikitextParser:
                     section_citations[ref_id] = cit
                     all_citations[ref_id] = cit
                 else:
+                    # Associate existing citation with current section
+                    section_citations[ref_id] = all_citations[ref_id]
                     # Update details if specified on reuse
                     if attrs.get('details') and not all_citations[ref_id].details:
                         all_citations[ref_id].details = attrs.get('details')
@@ -394,12 +399,12 @@ class RefDiffEngine:
                 c_old = old_cits[k]
                 c_new = new_cits[k]
 
-                # Check if raw content or details attribute changed
-                content_changed = (c_old.raw_content.strip() != c_new.raw_content.strip())
-                details_changed = ((c_old.details or "") != (c_new.details or ""))
+                # Check if full encapsulating tag changed
+                tag_old = (c_old.full_tag or c_old.raw_content).strip()
+                tag_new = (c_new.full_tag or c_new.raw_content).strip()
 
-                if content_changed or details_changed:
-                    raw_diff = cls.diff_raw_content(c_old.raw_content, c_new.raw_content)
+                if tag_old != tag_new:
+                    raw_diff = cls.diff_raw_content(tag_old, tag_new)
                     modified.append((c_old, c_new, raw_diff))
 
         return CitationDelta(added=added, removed=removed, modified=modified)
@@ -408,18 +413,18 @@ class RefDiffEngine:
     def compare_documents(cls, old_doc: ParsedDocument, new_doc: ParsedDocument) -> Tuple[List[SectionDiff], Dict[str, int], Dict[str, str]]:
         """Coordinates section-by-section decoupled comparison."""
         
-        # Build 1-based human badge label map (e.g. schmidt2020 -> "1")
+        # Build 1-based human badge label map (e.g. schmidt2020 -> "ref1")
         ref_label_map: Dict[str, str] = {}
         counter = 1
         for sec in new_doc.sections:
             for ref_id in sec.citations:
                 if ref_id not in ref_label_map:
-                    ref_label_map[ref_id] = str(counter)
+                    ref_label_map[ref_id] = f"ref{counter}"
                     counter += 1
         for sec in old_doc.sections:
             for ref_id in sec.citations:
                 if ref_id not in ref_label_map:
-                    ref_label_map[ref_id] = str(counter)
+                    ref_label_map[ref_id] = f"ref{counter}"
                     counter += 1
 
         old_sec_map = {s.title: s for s in old_doc.sections}
@@ -515,7 +520,7 @@ class TerminalFormatter:
                 if t.badge_status == 'equal':
                     out.append(f"{Colors.CYAN}{badge}{Colors.RESET}")
                 elif t.badge_status == 'modified':
-                    out.append(f"{Colors.BOLD}{Colors.YELLOW}[*{t.ref_label}*]{Colors.RESET}")
+                    out.append(f"{Colors.BOLD}{Colors.YELLOW}{badge}{Colors.RESET}")
                 elif t.badge_status == 'delete':
                     out.append(f"{Colors.RED}[- {badge} -]{Colors.RESET}")
                 elif t.badge_status == 'insert':
@@ -562,7 +567,7 @@ class TerminalFormatter:
             else:
                 lines.append(f"  {Colors.DIM}(No prose wording changes){Colors.RESET}")
 
-            # 2. Citation Pane (Raw Diff on <ref> Span Content)
+            # 2. Citation Pane (Raw Diff on Full Encapsulating <ref> Tag)
             lines.append(f"\n{Colors.BOLD}[ CITATIONS ]{Colors.RESET}")
             if not has_cit_changes:
                 lines.append(f"  {Colors.DIM}(No citation changes in this section){Colors.RESET}\n")
@@ -571,22 +576,21 @@ class TerminalFormatter:
                 # Added
                 for cit in delta.added:
                     lbl = f"[{ref_label_map.get(cit.ref_id, cit.ref_id)}]"
-                    name_suffix = f" ({cit.name})" if cit.name and cit.name != ref_label_map.get(cit.ref_id) else ""
-                    lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}{name_suffix}:{Colors.RESET}")
-                    lines.append(f"     {Colors.GREEN}{{+ {cit.raw_content} +}}{Colors.RESET}")
+                    lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}:{Colors.RESET}")
+                    tag_str = (cit.full_tag or cit.raw_content).strip()
+                    lines.append(f"     {Colors.GREEN}{{+ {tag_str} +}}{Colors.RESET}")
 
                 # Removed
                 for cit in delta.removed:
                     lbl = f"[{ref_label_map.get(cit.ref_id, cit.ref_id)}]"
-                    name_suffix = f" ({cit.name})" if cit.name and cit.name != ref_label_map.get(cit.ref_id) else ""
-                    lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}{name_suffix}:{Colors.RESET}")
-                    lines.append(f"     {Colors.RED}[- {cit.raw_content} -]{Colors.RESET}")
+                    lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}:{Colors.RESET}")
+                    tag_str = (cit.full_tag or cit.raw_content).strip()
+                    lines.append(f"     {Colors.RED}[- {tag_str} -]{Colors.RESET}")
 
-                # Modified (Raw Diff)
+                # Modified (Raw Diff on full encapsulating tag)
                 for c_old, c_new, raw_diff in delta.modified:
                     num = ref_label_map.get(c_new.ref_id, c_new.ref_id)
-                    name_suffix = f" ({c_new.name})" if c_new.name and c_new.name != num else ""
-                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED [*{num}*]{name_suffix}:{Colors.RESET}")
+                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED [{num}]:{Colors.RESET}")
                     rendered_diff = cls.render_tokens(raw_diff)
                     lines.append(f"     {rendered_diff}")
 
@@ -616,7 +620,7 @@ class StatFormatter:
             if s.citation_delta.removed:
                 cit_details.append(f"-{len(s.citation_delta.removed)} removed")
             if s.citation_delta.modified:
-                mods = [f"[*{ref_label_map.get(c_new.ref_id, c_new.ref_id)}*]" for _, c_new, _ in s.citation_delta.modified]
+                mods = [f"[{ref_label_map.get(c_new.ref_id, c_new.ref_id)}]" for _, c_new, _ in s.citation_delta.modified]
                 cit_details.append(f"{len(s.citation_delta.modified)} modified ({', '.join(mods)})")
 
             cit_str = f"Refs: {', '.join(cit_details)}" if cit_details else "Refs: 0 changed"
