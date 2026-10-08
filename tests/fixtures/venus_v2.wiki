@@ -1,0 +1,8 @@
+== Geology ==
+The surface of Venus is dominated by intense volcanism<ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=45–52 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>. Radar imaging reveals thousands of volcanic structures, creating a runaway greenhouse effect across the planet<ref name="nasa2018">{{Cite web |author=NASA |title=Venus Exploration |year=2018 |url=https://nasa.gov/venus}}</ref>.
+
+== Atmosphere ==
+The atmosphere consists mostly of carbon dioxide<ref name="nasa-factsheet">{{Cite web |title=Venus Fact Sheet |url=https://nssdc.gsfc.nasa.gov/planetary/factsheet/venusfact.html}}</ref>.
+
+== Surface Conditions ==
+Atmospheric pressure at the surface is ninety times that of Earth<ref name="esa-press">{{Cite book |author=ESA |title=Venus Surface |year=2015}}</ref><ref name="esa2022">{{Cite journal |author=Müller, H. et al. |title=Venus Express Atmospheric Density Profiles |journal=Planetary Science Review |year=2022 |doi=10.1016/j.pss.2022.105412}}</ref>.

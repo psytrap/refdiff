@@ -1,0 +1,6 @@
+== Climate History ==
+Early Venus may have possessed liquid water oceans<ref name="way2016" /> before a catastrophic greenhouse event took place.
+
+<references hidden>
+<ref name="way2016">{{Cite journal |author=Way, M. J. |title=Was Venus the First Habitable World? |journal=GRL |year=2016 |volume=43 |pages=8376–8382}}</ref>
+</references>

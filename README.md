@@ -16,6 +16,24 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📝 **[POST.md](POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
 
+## Tooling: RefDiff Engine (`refdiff.py`)
+
+A zero-dependency Python 3 prototype engine that isolates prose edits from citation metadata changes:
+
+```bash
+# Compare two wikitext revisions in terminal
+python3 refdiff.py tests/fixtures/venus_v1.wiki tests/fixtures/venus_v2.wiki
+
+# Show compact diffstat summary
+python3 refdiff.py --stat tests/fixtures/venus_v1.wiki tests/fixtures/venus_v2.wiki
+
+# Emit structured JSON payload (for gadgets & CI)
+python3 refdiff.py --json tests/fixtures/venus_v1.wiki tests/fixtures/venus_v2.wiki
+
+# Run unit test suite
+python3 -m unittest discover tests
+```
+
 ### Key Pillars
 1. **Readable Wikitext, References Still Nearby:** Sentences stay free of template clutter, yet full citations remain conveniently close within the same section.
 2. **Focused Diffs:** Text edits and citation updates produce strictly isolated, minimal diff hunks.

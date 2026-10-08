@@ -1,0 +1,7 @@
+== Climate History ==
+Early Venus may have maintained shallow liquid water oceans<ref name="way2016" /><ref name="turbet2021" /> before an irreversible greenhouse event took place.
+
+<references hidden>
+<ref name="way2016">{{Cite journal |author=Way, M. J. |title=Was Venus the First Habitable World? |journal=GRL |year=2016 |volume=43 |pages=8376–8382}}</ref>
+<ref name="turbet2021">{{Cite journal |author=Turbet, M. |title=Day-night cloud asymmetry prevents early Venus ocean |journal=Nature |year=2021 |volume=598 |pages=276–280}}</ref>
+</references>
