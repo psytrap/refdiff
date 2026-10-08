@@ -1,25 +1,29 @@
-# Ref-Differentiator: Architecture & Tool Design Specification
+# RefDiff: Architecture & Tool Design Specification
+*Subtitled: The Ref-Differentiator*
 
 A dedicated diff-decoupling engine and visualization tool that eliminates "template camouflage" by separating prose edits from citation metadata changes.
 
-* **Project Name:** `Ref-Differentiator`
-* **Short Aliases:** `refdiff`, `RefDiff.js`, `git-refdiff`
+* **Tool Name:** `RefDiff`
+* **CLI & Executable:** `refdiff` (Git driver: `git-refdiff`)
+* **Browser Gadget:** `RefDiff.js` (for MediaWiki `Special:Diff`)
+* **Conceptual Subtitle:** *Ref-Differentiator*
 * **Repository Role:** Companion quality-control and diff-inspection tool for the Section-Scoped References (`<references hidden>`) ecosystem.
 
 ---
 
 ## 1. Naming & Concept Rationale
 
-The name **`Ref-Differentiator`** carries a deliberate triple meaning:
+**`RefDiff`** (conceptually described as the **Ref-Differentiator**) carries a deliberate triple meaning:
 1. **Differentiating Prose from Citations:** It functionally decouples two fundamentally orthogonal layers—factual assertions (prose) and evidentiary support (citations).
 2. **Diffing References in Isolation:** It calculates dedicated, granular diffs for bibliographic metadata (e.g. highlighting that only `|pages=45` changed to `|pages=52`) without dragging the surrounding paragraph into the diff hunk.
-3. **The Spiritual Successor to *References Segregator*:** While PleaseStand's 2011 *References Segregator* attempted to help *writers* in the edit window, *Ref-Differentiator* solves the far more critical problem for *reviewers* on diff pages.
+3. **The Spiritual Successor to *References Segregator*:** While PleaseStand's 2011 *References Segregator* attempted to help *writers* in the edit window, *RefDiff* solves the far more critical problem for *reviewers* on diff pages.
 
 ### Canonical Identifiers
-* **Full Name:** `Ref-Differentiator`
-* **User Script / Gadget:** `RefDifferentiator.js` (for MediaWiki `Special:Diff`)
-* **CLI / Git Driver:** `git-refdiff` / `ref-diff` (for terminal & local repositories)
-* **Python Engine:** `ref_differentiator` (core algorithm package)
+* **Full Tool Name:** `RefDiff`
+* **Conceptual Subtitle:** `Ref-Differentiator`
+* **User Script / Gadget:** `RefDiff.js` (for MediaWiki `Special:Diff`)
+* **CLI Executable / Git Driver:** `refdiff` / `git-refdiff` (for terminal & local repositories)
+* **Python Engine:** `refdiff` (core algorithm package)
 
 ---
 
@@ -45,13 +49,13 @@ Line 42:
 
 ## 3. High-Level Architecture: The Decoupled Diff View
 
-`Ref-Differentiator` takes two revisions of wikitext (Old vs. New) and projects them into two specialized, synchronized views:
+`RefDiff` takes two revisions of wikitext (Old vs. New) and projects them into two specialized, synchronized views:
 
 ```
                       RAW REVISION A vs. REVISION B
                                     │
                                     ▼
-                     [Ref-Differentiator Engine]
+                             [RefDiff Engine]
                                     │
           ┌─────────────────────────┴─────────────────────────┐
           ▼                                                   ▼
@@ -73,7 +77,7 @@ Line 42:
 
 ## 4. Implementation Targets
 
-### Target A: MediaWiki User Script / Gadget (`RefDifferentiator.js`)
+### Target A: MediaWiki User Script / Gadget (`RefDiff.js`)
 * **Runtime:** Runs in the browser via `common.js` on English Wikipedia and other wikis.
 * **Trigger:** Activates automatically on `Special:Diff` or when clicking a "Decouple Diffs" toggle button in the revision header.
 * **Mechanism:**
@@ -156,7 +160,7 @@ The tool compares `RefMapA` against `RefMapB`:
 <div style="background: #0d1117; padding: 20px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #c9d1d9; border: 1px solid #30363d; margin: 16px 0;">
 
 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding-bottom: 10px; margin-bottom: 15px;">
-  <span style="font-weight: bold; color: #58a6ff;">🔍 Ref-Differentiator View</span>
+  <span style="font-weight: bold; color: #58a6ff;">🔍 RefDiff View (Ref-Differentiator)</span>
   <div>
     <span style="background: #1f6feb; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">Prose Diff</span>
     <span style="background: #238636; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-size: 11px;">1 Source Modified</span>
@@ -188,25 +192,25 @@ The tool compares `RefMapA` against `RefMapB`:
 
 ## 7. Synergy with `<references hidden>`
 
-`Ref-Differentiator` and the native `<references hidden>` proposal form a powerful, bidirectional ecosystem:
+`RefDiff` and the native `<references hidden>` proposal form a powerful, bidirectional ecosystem:
 
 1. **When an article adopts `<references hidden>`:**
    * The wikitext is already separated in database storage.
-   * `Ref-Differentiator` renders instantly with 0 parsing overhead, simply highlighting the prose hunk and the `<references hidden>` hunk as distinct logical cards.
+   * `RefDiff` renders instantly with 0 parsing overhead, simply highlighting the prose hunk and the `<references hidden>` hunk as distinct logical cards.
 2. **When an article still uses legacy inline citations:**
-   * `Ref-Differentiator` acts as a **virtual decoupling lens**: it parses the tangled inline wikitext in real-time on `Special:Diff`, presenting the reviewer with the same immaculate decoupled diff without requiring the article to have been converted.
+   * `RefDiff` acts as a **virtual decoupling lens**: it parses the tangled inline wikitext in real-time on `Special:Diff`, presenting the reviewer with the same immaculate decoupled diff without requiring the article to have been converted.
 
 ---
 
 ## 8. Development Roadmap
 
 * [ ] **Phase 1: Standalone Core Parser (Python CLI)**
-  * Implement `ref_differentiator` Python package using `mwparserfromhell`.
+  * Implement `refdiff` Python package using `mwparserfromhell`.
   * Support CLI input (`refdiff old.wiki new.wiki`) with terminal ANSI output.
 * [ ] **Phase 2: Git Diff Driver (`git-refdiff`)**
   * Package as a standard Git filter driver for repository documentation.
-* [ ] **Phase 3: MediaWiki User Script (`RefDifferentiator.js`)**
-  * Publish to `User:YourName/RefDifferentiator.js` on English Wikipedia.
+* [ ] **Phase 3: MediaWiki User Script (`RefDiff.js`)**
+  * Publish to `User:YourName/RefDiff.js` on English Wikipedia.
   * Provide a 1-click toggle on `Special:Diff`.
   * Beta test with English Wikipedia recent-changes patrollers and GA/FA reviewers.
 * [ ] **Phase 4: Upstream Phabricator Feature Request**

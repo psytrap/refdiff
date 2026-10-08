@@ -111,8 +111,8 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **100% Backward-Compatible Output:** Because the legacy parser receives pure standard LDR wikitext, all three unpatched failure modes (stray `<ol>`, premature citation buffer drain, and parameter error banners) are completely eliminated without touching MediaWiki core files.
   * **Export & Mirror Protection:** Specified that Wikimedia database dumps (`pages-articles.xml.bz2`) and export filters (`Special:Export`, Kiwix) transpile to standard LDR on export, safeguarding downstream mirrors and offline readers.
   * Documented as Pathway D in `CONCEPT.md` and integrated into Section 5 of `PROPOSAL.md`.
-* **Tool Design Specification: `Ref-Differentiator` (`REF_DIFFERENTIATOR.md`):**
+* **Tool Design Specification: `RefDiff` (`REFDIFF.md`):**
   * Identified the critical ecosystem gap: while authoring tools (like PleaseStand's 2011 *References Segregator*) focused solely on the edit window, **the diff review experience has been completely unaddressed**, leading to "template camouflage" where factual distortions and AI slop hide inside bulky citation diffs.
-  * Authored dedicated tool design specification [REF_DIFFERENTIATOR.md](REF_DIFFERENTIATOR.md) defining the architecture for **`Ref-Differentiator`** (CLI: `git-refdiff`, user script: `RefDifferentiator.js`).
+  * Authored dedicated tool design specification [REFDIFF.md](REFDIFF.md) defining the architecture for **`RefDiff`** (*The Ref-Differentiator*; CLI executable: `refdiff`, Git driver: `git-refdiff`, user script / gadget: `RefDiff.js`).
   * Defined the dual-pane diff projection model: Pane 1 presents a clean **Prose Diff** (human wording changes with clickable reference badges), while Pane 2 presents an isolated **Citation Audit Delta** (granular field changes, e.g. page numbers or URLs).
   * Designed 3 deployment targets: a client-side MediaWiki gadget for live `Special:Diff` on Wikipedia, a standalone Git external diff driver for terminal/CI review, and a long-term upstream `wikidiff2` integration.
