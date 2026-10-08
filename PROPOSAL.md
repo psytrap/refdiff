@@ -39,8 +39,8 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 ```
 
 > [!NOTE]
-> **Tooling-Friendly Alternative (`<references display="no">` / `<references definition="true">`):**  
-> An alternative candidate under discussion is reusing the existing tag with an attribute: `<references display="no">` (or `<references display="none">` / `definition="true"`). Reusing `<references>` leverages existing AST parsers (`mwparserfromhell`, `wikitextparser`), bots (AWB), and regexes that already recognize `<references>...</references>` as a container for definitions (via LDR). Using `display="no"` directly resolves the intuitive question of why a `<references>` tag is in a section by explicitly stating that visual footnote rendering is suppressed.
+> **Tooling-Friendly Alternative (`<references display="none">`):**  
+> An alternative candidate under discussion is reusing the existing tag with the standard CSS display-suppression attribute: `<references display="none">`. Reusing `<references>` leverages existing AST parsers (`mwparserfromhell`, `wikitextparser`), bots (AWB), and regexes that already recognize `<references>...</references>` as a container for definitions (via LDR). Using the standard CSS property-value pair `display="none"` directly resolves the intuitive question of why a `<references>` tag is placed in a section by explicitly stating that visual footnote rendering is suppressed.
 
 ## 3. Concrete Diff Comparison
 
