@@ -1,0 +1,16 @@
+== Planetary Science Test Page ==
+
+=== 1. Sequential Anonymous References ===
+Venus has an orbital period of 224.7 days.<ref>{{Cite web |title=Venus Orbital Data |url=https://planetary.org/venus-orbit |year=2020}}</ref> Its rotation is retrograde and exceptionally slow, taking 243 Earth days for one sidereal rotation.<ref>{{Cite book |author=Harris, A. |title=Planetary Dynamics |year=2018 |pages=50–55 |publisher=Academic Press}}</ref> It has no natural satellites or rings.<ref>{{Cite web |title=Planetary Moons Overview |url=https://nasa.gov/moons |year=2021}}</ref>
+
+=== 2. Named Reference Modified ===
+The surface is dominated by volcanic plains.<ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=45–48 |publisher=Springer}}</ref>
+
+=== 3. New Prose Text and Reference Added ===
+The atmosphere consists of 96.5% carbon dioxide.
+
+=== 4. Reference Added to Existing Text (No Prose Change) ===
+Surface atmospheric pressure is ninety times that of Earth.
+
+=== 5. Reference Removed ===
+Early radar measurements were conducted by Soviet Venera landers.<ref name="venera1982">{{Cite book |author=Moroz, V. I. |title=The Atmosphere of Venus |year=1982 |pages=12–18}}</ref>
