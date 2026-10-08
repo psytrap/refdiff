@@ -41,8 +41,9 @@
 
   const BADGE_STYLES = `
     .ref-badge {
-      font-weight: bold;
-      color: #0645ad;
+      font-weight: normal;
+      color: #72777d;
+      color: var(--color-subtle, #72777d);
       cursor: default;
     }
     .ref-badge-mod {
@@ -55,7 +56,8 @@
     }
     html.skin-theme-clientpref-night .ref-badge,
     body.skin-theme-clientpref-night .ref-badge {
-      color: #6da2ff;
+      color: #8c9196;
+      color: var(--color-subtle, #8c9196);
     }
     html.skin-theme-clientpref-night .ref-badge-mod,
     body.skin-theme-clientpref-night .ref-badge-mod {
@@ -65,7 +67,8 @@
     @media (prefers-color-scheme: dark) {
       html.skin-theme-clientpref-os .ref-badge,
       body.skin-theme-clientpref-os .ref-badge {
-        color: #6da2ff;
+        color: #8c9196;
+        color: var(--color-subtle, #8c9196);
       }
       html.skin-theme-clientpref-os .ref-badge-mod,
       body.skin-theme-clientpref-os .ref-badge-mod {

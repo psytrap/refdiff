@@ -535,7 +535,7 @@ class TerminalFormatter:
             elif t.type == 'ref_badge':
                 flush()
                 if t.badge_status == 'equal':
-                    out.append(f"{Colors.CYAN}⟨{t.ref_label}⟩{Colors.RESET}")
+                    out.append(f"⟨{t.ref_label}⟩")
                 elif t.badge_status == 'modified':
                     out.append(f"{Colors.BOLD}{Colors.YELLOW}⟨~{t.ref_label}~⟩{Colors.RESET}")
                 elif t.badge_status == 'delete':
