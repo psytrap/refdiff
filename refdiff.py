@@ -5,6 +5,9 @@ RefDiff (The Ref-Differentiator)
 A diff-decoupling engine for wikitext that eliminates "template camouflage"
 by separating human prose edits from citation metadata changes.
 
+Performs raw diffs on the contents of <ref> spans without decoding templates
+or introducing new styling.
+
 Usage:
     python3 refdiff.py old.wiki new.wiki
     python3 refdiff.py --stat old.wiki new.wiki
@@ -59,9 +62,7 @@ class Citation:
     name: Optional[str] = None       # name="..." attribute
     group: Optional[str] = None      # group="..." attribute
     details: Optional[str] = None    # details="..." sub-referencing attribute
-    template: Optional[str] = None   # Template name (e.g., Cite book, Cite web)
-    params: Dict[str, str] = field(default_factory=dict)
-    raw_content: str = ""            # Inner content of <ref>...</ref>
+    raw_content: str = ""            # Raw content inside <ref>...</ref> (undecoded)
     section: str = ""                # Section title
     is_definition: bool = False      # Defined inside <references hidden>
     order_in_section: int = 0        # 1-based order in current section
@@ -96,7 +97,7 @@ class DiffToken:
 class CitationDelta:
     added: List[Citation] = field(default_factory=list)
     removed: List[Citation] = field(default_factory=list)
-    modified: List[Tuple[Citation, Citation, Dict[str, Tuple[str, str]]]] = field(default_factory=list)
+    modified: List[Tuple[Citation, Citation, List[DiffToken]]] = field(default_factory=list)
 
 
 @dataclass
@@ -110,11 +111,11 @@ class SectionDiff:
 
 
 # ==============================================================================
-# Wikitext Parser & Tokenizer
+# Wikitext Parser & Tokenizer (Raw Extraction, No Template Decoding)
 # ==============================================================================
 
 class WikitextParser:
-    """Extracts clean prose and structured citation registries from wikitext."""
+    """Extracts clean prose and raw citation content without decoding templates."""
 
     # Matches XML attributes: key="val", key='val', key=val
     ATTR_RE = re.compile(r'([a-zA-Z0-9_\-]+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+))')
@@ -153,111 +154,8 @@ class WikitextParser:
         return attrs
 
     @classmethod
-    def parse_template(cls, text: str) -> Tuple[Optional[str], Dict[str, str]]:
-        """Parses the primary {{Cite ... |...}} template within a citation."""
-        text = text.strip()
-        start = text.find("{{")
-        if start == -1:
-            return None, {}
-
-        # Balanced brace scanner
-        depth = 0
-        end = -1
-        for i in range(start, len(text) - 1):
-            if text[i:i+2] == "{{":
-                depth += 1
-            elif text[i:i+2] == "}}":
-                depth -= 1
-                if depth == 0:
-                    end = i + 2
-                    break
-
-        if end == -1:
-            return None, {}
-
-        inner = text[start+2:end-2].strip()
-
-        # Split top-level pipes while preserving nested templates and wikilinks
-        parts = []
-        current = []
-        d_braces = 0
-        d_brackets = 0
-
-        i = 0
-        while i < len(inner):
-            c2 = inner[i:i+2]
-            if c2 == "{{":
-                d_braces += 1
-                current.append(c2)
-                i += 2
-                continue
-            elif c2 == "}}":
-                d_braces = max(0, d_braces - 1)
-                current.append(c2)
-                i += 2
-                continue
-            elif c2 == "[[":
-                d_brackets += 1
-                current.append(c2)
-                i += 2
-                continue
-            elif c2 == "]]":
-                d_brackets = max(0, d_brackets - 1)
-                current.append(c2)
-                i += 2
-                continue
-            elif inner[i] == "|" and d_braces == 0 and d_brackets == 0:
-                parts.append("".join(current).strip())
-                current = []
-                i += 1
-                continue
-
-            current.append(inner[i])
-            i += 1
-
-        if current:
-            parts.append("".join(current).strip())
-
-        if not parts:
-            return None, {}
-
-        template_name = parts[0].strip()
-        params = {}
-        pos_counter = 1
-
-        for part in parts[1:]:
-            if not part:
-                continue
-            # Look for = at depth 0
-            eq_idx = -1
-            d_b = 0
-            d_k = 0
-            for idx, ch in enumerate(part):
-                if part[idx:idx+2] == "{{":
-                    d_b += 1
-                elif part[idx:idx+2] == "}}":
-                    d_b = max(0, d_b - 1)
-                elif part[idx:idx+2] == "[[":
-                    d_k += 1
-                elif part[idx:idx+2] == "]]":
-                    d_k = max(0, d_k - 1)
-                elif ch == "=" and d_b == 0 and d_k == 0:
-                    eq_idx = idx
-                    break
-
-            if eq_idx != -1:
-                k = part[:eq_idx].strip().lower()
-                v = part[eq_idx+1:].strip()
-                params[k] = v
-            else:
-                params[str(pos_counter)] = part.strip()
-                pos_counter += 1
-
-        return template_name, params
-
-    @classmethod
     def parse_document(cls, wikitext: str, filename: str = "document") -> ParsedDocument:
-        """Parses full wikitext into sections, prose stream, and citation registry."""
+        """Parses full wikitext into sections, prose stream, and raw citation registry."""
         sections: List[Section] = []
         all_citations: Dict[str, Citation] = {}
         anon_counter = 1
@@ -291,14 +189,11 @@ class WikitextParser:
                     content = (ref_m.group('content') or "").strip()
                     ref_name = attrs.get('name')
                     ref_id = ref_name if ref_name else f"anon_{len(all_citations)+1}"
-                    tmpl, params = cls.parse_template(content) if content else (None, {})
                     cit = Citation(
                         ref_id=ref_id,
                         name=ref_name,
                         group=attrs.get('group'),
                         details=attrs.get('details'),
-                        template=tmpl,
-                        params=params,
                         raw_content=content,
                         section=title,
                         is_definition=True
@@ -327,14 +222,11 @@ class WikitextParser:
 
                 # If this inline tag includes a definition body and wasn't defined earlier
                 if ref_id not in all_citations or content:
-                    tmpl, params = cls.parse_template(content) if content else (None, {})
                     cit = Citation(
                         ref_id=ref_id,
                         name=ref_name,
                         group=attrs.get('group'),
                         details=attrs.get('details'),
-                        template=tmpl,
-                        params=params,
                         raw_content=content,
                         section=title,
                         is_definition=False,
@@ -364,18 +256,50 @@ class WikitextParser:
 
 
 # ==============================================================================
-# Diff Engines (Prose & Citation)
+# Diff Engines (Prose & Raw Citation Content)
 # ==============================================================================
 
 class RefDiffEngine:
-    """Computes decoupled diffs: word-level prose diff + key-value citation delta."""
+    """Computes decoupled diffs: word-level prose diff + raw citation content diff."""
 
     SENTINEL_RE = re.compile(r'⟦ref:([^⟧]+)⟧')
     TOKEN_RE = re.compile(r'(⟦ref:[^⟧]+⟧|[a-zA-Z0-9_\u00C0-\u017F]+|\s+|[^\w\s])')
+    RAW_TOKEN_RE = re.compile(r'([a-zA-Z0-9_\u00C0-\u017F]+|\s+|[^\w\s])')
 
     @classmethod
     def tokenize_prose(cls, text: str) -> List[str]:
         return [tok for tok in cls.TOKEN_RE.findall(text) if tok]
+
+    @classmethod
+    def tokenize_raw(cls, text: str) -> List[str]:
+        return [tok for tok in cls.RAW_TOKEN_RE.findall(text) if tok]
+
+    @classmethod
+    def diff_raw_content(cls, old_content: str, new_content: str) -> List[DiffToken]:
+        """Performs raw word-level diff on citation content."""
+        tokens_a = cls.tokenize_raw(old_content)
+        tokens_b = cls.tokenize_raw(new_content)
+
+        matcher = difflib.SequenceMatcher(None, tokens_a, tokens_b)
+        result: List[DiffToken] = []
+
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal':
+                for tok in tokens_a[i1:i2]:
+                    result.append(DiffToken(type='equal', text=tok))
+            elif tag == 'delete':
+                for tok in tokens_a[i1:i2]:
+                    result.append(DiffToken(type='delete', text=tok))
+            elif tag == 'insert':
+                for tok in tokens_b[j1:j2]:
+                    result.append(DiffToken(type='insert', text=tok))
+            elif tag == 'replace':
+                for tok in tokens_a[i1:i2]:
+                    result.append(DiffToken(type='delete', text=tok))
+                for tok in tokens_b[j1:j2]:
+                    result.append(DiffToken(type='insert', text=tok))
+
+        return result
 
     @classmethod
     def diff_prose(cls, old_prose: str, new_prose: str, ref_label_map: Dict[str, str]) -> Tuple[List[DiffToken], int, int]:
@@ -450,10 +374,10 @@ class RefDiffEngine:
 
     @classmethod
     def diff_citations(cls, old_cits: Dict[str, Citation], new_cits: Dict[str, Citation]) -> CitationDelta:
-        """Compares two sets of citations, detecting parameter-level field modifications."""
+        """Compares two sets of citations, performing raw diffs on changed content."""
         added: List[Citation] = []
         removed: List[Citation] = []
-        modified: List[Tuple[Citation, Citation, Dict[str, Tuple[str, str]]]] = []
+        modified: List[Tuple[Citation, Citation, List[DiffToken]]] = []
 
         all_keys = set(old_cits.keys()).union(set(new_cits.keys()))
 
@@ -468,28 +392,14 @@ class RefDiffEngine:
             else:
                 c_old = old_cits[k]
                 c_new = new_cits[k]
-                
-                param_changes: Dict[str, Tuple[str, str]] = {}
 
-                # Check template parameter changes
-                all_params = set(c_old.params.keys()).union(set(c_new.params.keys()))
-                for p in sorted(all_params):
-                    v_old = c_old.params.get(p)
-                    v_new = c_new.params.get(p)
-                    if v_old != v_new:
-                        param_changes[p] = (v_old or "", v_new or "")
+                # Check if raw content or details attribute changed
+                content_changed = (c_old.raw_content.strip() != c_new.raw_content.strip())
+                details_changed = ((c_old.details or "") != (c_new.details or ""))
 
-                # Check sub-referencing details attribute
-                if (c_old.details or "") != (c_new.details or ""):
-                    param_changes["details"] = (c_old.details or "", c_new.details or "")
-
-                # If no template was parsed but raw text changed
-                if not c_old.template and not c_new.template:
-                    if c_old.raw_content.strip() != c_new.raw_content.strip():
-                        param_changes["text"] = (c_old.raw_content.strip(), c_new.raw_content.strip())
-
-                if param_changes:
-                    modified.append((c_old, c_new, param_changes))
+                if content_changed or details_changed:
+                    raw_diff = cls.diff_raw_content(c_old.raw_content, c_new.raw_content)
+                    modified.append((c_old, c_new, raw_diff))
 
         return CitationDelta(added=added, removed=removed, modified=modified)
 
@@ -556,10 +466,11 @@ class RefDiffEngine:
 # ==============================================================================
 
 class TerminalFormatter:
-    """Renders human-readable decoupled diffs with ANSI colors."""
+    """Renders human-readable decoupled diffs with standard ANSI diff styling."""
 
     @classmethod
-    def render_prose(cls, tokens: List[DiffToken]) -> str:
+    def render_tokens(cls, tokens: List[DiffToken]) -> str:
+        """Groups contiguous word deletions and insertions into standard diff spans."""
         out = []
         del_buf = []
         ins_buf = []
@@ -642,47 +553,34 @@ class TerminalFormatter:
             # 1. Prose Diff Pane
             lines.append(f"\n{Colors.BOLD}[ PROSE DIFF ]{Colors.RESET}")
             if s_diff.has_prose_changes:
-                lines.append("  " + cls.render_prose(s_diff.prose_tokens))
+                lines.append("  " + cls.render_tokens(s_diff.prose_tokens))
             else:
                 lines.append(f"  {Colors.DIM}(No prose wording changes){Colors.RESET}")
 
-            # 2. Citation Audit Delta Pane
-            lines.append(f"\n{Colors.BOLD}[ CITATION AUDIT DELTA ]{Colors.RESET}")
+            # 2. Citation Pane (Raw Diff on <ref> Span Content)
+            lines.append(f"\n{Colors.BOLD}[ CITATIONS ]{Colors.RESET}")
             if not has_cit_changes:
                 lines.append(f"  {Colors.DIM}(No citation changes in this section){Colors.RESET}\n")
             else:
                 delta = s_diff.citation_delta
                 # Added
                 for cit in delta.added:
-                    tmpl = f" — {{{{{cit.template}}}}}" if cit.template else ""
                     lbl = f"[{cit.ref_id}]"
-                    lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}{tmpl}{Colors.RESET}")
-                    for k, v in cit.params.items():
-                        lines.append(f"     {Colors.DIM}{k:<12}:{Colors.RESET} {Colors.GREEN}{v}{Colors.RESET}")
+                    lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}:{Colors.RESET}")
+                    lines.append(f"     {Colors.GREEN}{{+ {cit.raw_content} +}}{Colors.RESET}")
 
                 # Removed
                 for cit in delta.removed:
-                    tmpl = f" — {{{{{cit.template}}}}}" if cit.template else ""
                     lbl = f"[{cit.ref_id}]"
-                    lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}{tmpl}{Colors.RESET}")
-                    for k, v in cit.params.items():
-                        lines.append(f"     {Colors.DIM}{k:<12}:{Colors.RESET} {Colors.RED}{v}{Colors.RESET}")
+                    lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}:{Colors.RESET}")
+                    lines.append(f"     {Colors.RED}[- {cit.raw_content} -]{Colors.RESET}")
 
-                # Modified
-                for c_old, c_new, changes in delta.modified:
-                    tmpl = f" — {{{{{c_new.template}}}}}" if c_new.template else ""
+                # Modified (Raw Diff)
+                for c_old, c_new, raw_diff in delta.modified:
                     lbl = f"[{c_new.ref_id}]"
-                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED {lbl}{tmpl}{Colors.RESET}")
-                    
-                    # Show key context parameters (author, title, year) if not modified
-                    for ctx_key in ('author', 'title', 'year', 'journal'):
-                        if ctx_key in c_new.params and ctx_key not in changes:
-                            lines.append(f"     {Colors.DIM}{ctx_key:<12}: {c_new.params[ctx_key]}{Colors.RESET}")
-
-                    # Highlight modified parameters
-                    for p, (v_old, v_new) in changes.items():
-                        lines.append(f"   {Colors.RED}- {p:<10}: {v_old}{Colors.RESET}")
-                        lines.append(f"   {Colors.GREEN}+ {p:<10}: {v_new}{Colors.RESET}")
+                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED {lbl}:{Colors.RESET}")
+                    rendered_diff = cls.render_tokens(raw_diff)
+                    lines.append(f"     {rendered_diff}")
 
                 lines.append("")
 
@@ -710,8 +608,7 @@ class StatFormatter:
             if s.citation_delta.removed:
                 cit_details.append(f"-{len(s.citation_delta.removed)} removed")
             if s.citation_delta.modified:
-                mods = [f"{c_new.ref_id}: {','.join(ch.keys())}" for _, c_new, ch in s.citation_delta.modified]
-                cit_details.append(f"{len(s.citation_delta.modified)} mod ({'; '.join(mods)})")
+                cit_details.append(f"{len(s.citation_delta.modified)} modified")
 
             cit_str = f"Refs: {', '.join(cit_details)}" if cit_details else "Refs: 0 changed"
             prose_str = f"Prose: +{s.words_added} -{s.words_removed} words" if s.has_prose_changes else "Prose: 0 words"
@@ -754,14 +651,13 @@ class JsonFormatter:
                 })
 
             mod_json = []
-            for c_old, c_new, changes in s.citation_delta.modified:
-                unchanged = {k: v for k, v in c_new.params.items() if k not in changes}
+            for c_old, c_new, raw_diff in s.citation_delta.modified:
                 mod_json.append({
                     "ref_id": c_new.ref_id,
                     "name": c_new.name,
-                    "template": c_new.template,
-                    "param_changes": {k: {"old": v[0], "new": v[1]} for k, v in changes.items()},
-                    "unchanged_params": unchanged
+                    "old_raw": c_old.raw_content,
+                    "new_raw": c_new.raw_content,
+                    "raw_diff_tokens": [{"type": t.type, "text": t.text} for t in raw_diff]
                 })
 
             sec_json = {

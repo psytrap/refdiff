@@ -13,28 +13,12 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(attrs.get("details"), "pp. 12–15")
         self.assertEqual(attrs.get("unquoted"), "val")
 
-    def test_parse_template(self):
-        raw = "{{Cite book |author=Schmidt, Rainer |title=[[Venus (planet)|Venus]] Geology |year=2020 |pages=45–48}}"
-        tmpl, params = WikitextParser.parse_template(raw)
-        self.assertEqual(tmpl, "Cite book")
-        self.assertEqual(params.get("author"), "Schmidt, Rainer")
-        self.assertEqual(params.get("title"), "[[Venus (planet)|Venus]] Geology")
-        self.assertEqual(params.get("year"), "2020")
-        self.assertEqual(params.get("pages"), "45–48")
-
-    def test_nested_templates_in_parameters(self):
-        raw = "{{Cite book |title=Planets {{lang|la|Venus}} |pages=10}}"
-        tmpl, params = WikitextParser.parse_template(raw)
-        self.assertEqual(tmpl, "Cite book")
-        self.assertEqual(params.get("title"), "Planets {{lang|la|Venus}}")
-        self.assertEqual(params.get("pages"), "10")
-
     def test_section_and_inline_extraction(self):
         wikitext = (
             "== Geology ==\n"
             "The surface is rocky<ref name=\"s20\">{{Cite book |pages=10}}</ref>.\n"
             "== Climate ==\n"
-            "It is hot<ref name=\"c20\">{{Cite web |url=http://example.com}}</ref>."
+            "It is hot<ref name=\"c20\">See Smith 2020, p. 15</ref>."
         )
         doc = WikitextParser.parse_document(wikitext)
         self.assertEqual(len(doc.sections), 2)
@@ -43,7 +27,9 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(doc.sections[1].title, "Climate")
         self.assertEqual(doc.sections[1].prose, "It is hot⟦ref:c20⟧.")
         self.assertIn("s20", doc.citations)
+        self.assertEqual(doc.citations["s20"].raw_content, "{{Cite book |pages=10}}")
         self.assertIn("c20", doc.citations)
+        self.assertEqual(doc.citations["c20"].raw_content, "See Smith 2020, p. 15")
 
     def test_references_hidden_block(self):
         wikitext = (
@@ -57,9 +43,9 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(doc.sections[0].prose, "Venus is volcanic⟦ref:volc⟧.")
         self.assertIn("volc", doc.citations)
         self.assertTrue(doc.citations["volc"].is_definition)
-        self.assertEqual(doc.citations["volc"].params.get("author"), "Vulcan")
+        self.assertEqual(doc.citations["volc"].raw_content, "{{Cite book |author=Vulcan |year=2021}}")
 
-    def test_diff_engine_parameter_isolation(self):
+    def test_diff_engine_raw_citation_diff(self):
         old_text = "== Test ==\nVenus has volcanism<ref name=\"s1\">{{Cite book |pages=10}}</ref>."
         new_text = "== Test ==\nVenus has volcanism<ref name=\"s1\">{{Cite book |pages=20}}</ref>."
         doc_a = WikitextParser.parse_document(old_text)
@@ -67,14 +53,16 @@ class TestRefDiffParser(unittest.TestCase):
 
         diffs, stats = RefDiffEngine.compare_documents(doc_a, doc_b)
         self.assertEqual(len(diffs), 1)
-        self.assertFalse(diffs[0].has_prose_changes)  # Prose was untouched!
+        self.assertFalse(diffs[0].has_prose_changes)  # Prose wording was untouched!
         self.assertEqual(stats["words_added"], 0)
         self.assertEqual(stats["words_removed"], 0)
         self.assertEqual(stats["cits_modified"], 1)
 
-        mod_cit = diffs[0].citation_delta.modified[0]
-        self.assertEqual(mod_cit[1].ref_id, "s1")
-        self.assertEqual(mod_cit[2]["pages"], ("10", "20"))
+        old_cit, new_cit, raw_diff = diffs[0].citation_delta.modified[0]
+        self.assertEqual(new_cit.ref_id, "s1")
+        rendered_cit = TerminalFormatter.render_tokens(raw_diff)
+        self.assertIn("[- 10 -]", rendered_cit)
+        self.assertIn("{+ 20 +}", rendered_cit)
 
     def test_diff_engine_prose_isolation(self):
         old_text = "== Test ==\nVenus is cold<ref name=\"s1\">{{Cite book |pages=10}}</ref>."
@@ -89,8 +77,8 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(stats["cits_modified"], 0)
 
     def test_json_formatter(self):
-        old_text = "== Test ==\nCold<ref name=\"s1\">{{Cite book |pages=10}}</ref>."
-        new_text = "== Test ==\nHot<ref name=\"s1\">{{Cite book |pages=20}}</ref>."
+        old_text = "== Test ==\nCold<ref name=\"s1\">See page 10</ref>."
+        new_text = "== Test ==\nHot<ref name=\"s1\">See page 20</ref>."
         doc_a = WikitextParser.parse_document(old_text)
         doc_b = WikitextParser.parse_document(new_text)
         diffs, stats = RefDiffEngine.compare_documents(doc_a, doc_b)
@@ -101,6 +89,8 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(data["summary"]["prose_words_added"], 1)
         self.assertEqual(data["summary"]["citations_modified"], 1)
         self.assertEqual(data["sections"][0]["title"], "Test")
+        self.assertEqual(data["sections"][0]["citation_delta"]["modified"][0]["old_raw"], "See page 10")
+        self.assertEqual(data["sections"][0]["citation_delta"]["modified"][0]["new_raw"], "See page 20")
 
 if __name__ == "__main__":
     unittest.main()
