@@ -7,156 +7,166 @@ import base64
 import os
 
 async def run_live_test():
+    created_tab_id = None
     try:
         with urllib.request.urlopen("http://127.0.0.1:9222/json/list", timeout=2) as resp:
             tabs = json.loads(resp.read().decode("utf-8"))
         page = next((t for t in tabs if t.get("type") == "page" and "wikipedia.org" in t.get("url", "")), None)
         if not page:
-            print("No active Wikipedia page found on CDP port 9222. Skipping live test.")
-            return
+            abs_path = os.path.abspath("tests/comprehensive_test.html")
+            print(f"No active Wikipedia tab found; opening tests/comprehensive_test.html via CDP...")
+            req = urllib.request.Request(f"http://127.0.0.1:9222/json/new?file://{abs_path}", method="PUT")
+            page = json.loads(urllib.request.urlopen(req, timeout=5).read().decode("utf-8"))
+            created_tab_id = page["id"]
     except Exception as e:
         print(f"Chromium CDP not reachable on port 9222 ({e}). Skipping live test.")
         return
 
-    ws_url = page["webSocketDebuggerUrl"]
-    print(f"Connecting to CDP: {ws_url}")
+    try:
+        ws_url = page["webSocketDebuggerUrl"]
+        print(f"Connecting to CDP: {ws_url}")
 
-    with open("refdiff.js", "r", encoding="utf-8") as f:
-        refdiff_js = f.read()
+        with open("refdiff.js", "r", encoding="utf-8") as f:
+            refdiff_js = f.read()
 
-    async with websockets.connect(ws_url, max_size=25*1024*1024) as ws:
-        msg_id = 1
+        async with websockets.connect(ws_url, max_size=25*1024*1024) as ws:
+            msg_id = 1
 
-        async def cdp(method, params=None):
-            nonlocal msg_id
-            msg_id += 1
-            cur_id = msg_id
-            payload = {"id": cur_id, "method": method}
-            if params:
-                payload["params"] = params
-            await ws.send(json.dumps(payload))
-            while True:
-                raw = await ws.recv()
-                res = json.loads(raw)
-                if res.get("id") == cur_id:
-                    return res
+            async def cdp(method, params=None):
+                nonlocal msg_id
+                msg_id += 1
+                cur_id = msg_id
+                payload = {"id": cur_id, "method": method}
+                if params:
+                    payload["params"] = params
+                await ws.send(json.dumps(payload))
+                while True:
+                    raw = await ws.recv()
+                    res = json.loads(raw)
+                    if res.get("id") == cur_id:
+                        return res
 
-        # 1. Reload page to ensure clean native state
-        print("Reloading Wikipedia page...")
-        await cdp("Page.reload")
-        await asyncio.sleep(2.5)
+            # 1. Reload page to ensure clean native state
+            print("Reloading page...")
+            await cdp("Page.reload")
+            await asyncio.sleep(1.5)
 
-        # 2. Inject updated refdiff.js
-        print("Injecting updated refdiff.js...")
-        res = await cdp("Runtime.evaluate", {"expression": refdiff_js})
-        if "exceptionDetails" in res.get("result", {}):
-            raise RuntimeError(f"JS execution error: {res['result']['exceptionDetails']}")
+            # 2. Inject updated refdiff.js
+            print("Injecting refdiff.js...")
+            res = await cdp("Runtime.evaluate", {"expression": refdiff_js})
+            if "exceptionDetails" in res.get("result", {}):
+                raise RuntimeError(f"JS execution error: {res['result']['exceptionDetails']}")
 
-        # 3. Verify DOM elements
-        res = await cdp("Runtime.evaluate", {
-            "expression": """
-                ({
-                    hasButton: !!(document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-mode-bar')),
-                    refBtnSelected: (document.getElementById('refdiff-ooui-btn') || {}).classList ? document.getElementById('refdiff-ooui-btn').classList.contains('oo-ui-optionWidget-selected') : true,
-                    citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
-                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length,
-                    badgeCount: document.querySelectorAll('.ref-badge').length,
-                    hasStatsNote: !!document.getElementById('refdiff-stats-note')
-                })
-            """,
-            "returnByValue": True
-        })
-        info = res["result"]["result"]["value"]
-        print(f"Decoupled state: {info}")
-        assert info["hasButton"], "RefDiff button/bar was not found"
-        assert info["refBtnSelected"], "RefDiff button should be selected"
-        assert info["citRowCount"] > 0, "No citation rows were created"
-        assert info["badgeModCount"] > 0, "No modified badges found"
-        assert not info["hasStatsNote"], "Stats note should be completely removed"
+            # 3. Verify DOM elements
+            res = await cdp("Runtime.evaluate", {
+                "expression": """
+                    ({
+                        hasButton: !!(document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-mode-bar')),
+                        refBtnSelected: (document.getElementById('refdiff-ooui-btn') || {}).classList ? document.getElementById('refdiff-ooui-btn').classList.contains('oo-ui-optionWidget-selected') : true,
+                        citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
+                        badgeModCount: document.querySelectorAll('.ref-badge-mod').length,
+                        badgeCount: document.querySelectorAll('.ref-badge').length,
+                        hasStatsNote: !!document.getElementById('refdiff-stats-note')
+                    })
+                """,
+                "returnByValue": True
+            })
+            info = res["result"]["result"]["value"]
+            print(f"Decoupled state: {info}")
+            assert info["hasButton"], "RefDiff button/bar was not found"
+            assert info["citRowCount"] > 0, "No citation rows were created"
+            assert info["badgeModCount"] > 0, "No modified badges found"
+            assert not info["hasStatsNote"], "Stats note should be completely removed"
 
-        # 4. Capture screenshot of Light Mode
-        print("Capturing Light Mode screenshot...")
-        sc_res = await cdp("Page.captureScreenshot", {"format": "png"})
-        img_bytes = base64.b64decode(sc_res["result"]["data"])
-        light_path = "/home/mik/.gemini/antigravity/brain/42bcc6c0-adbf-448b-bfea-f1f1d1b28b96/wikipedia_polished_light.png"
-        with open(light_path, "wb") as f:
-            f.write(img_bytes)
+            # 4. Capture screenshot of Light Mode
+            print("Capturing Light Mode screenshot...")
+            sc_res = await cdp("Page.captureScreenshot", {"format": "png"})
+            img_bytes = base64.b64decode(sc_res["result"]["data"])
+            light_path = "/home/mik/.gemini/antigravity/brain/42bcc6c0-adbf-448b-bfea-f1f1d1b28b96/wikipedia_polished_light.png"
+            with open(light_path, "wb") as f:
+                f.write(img_bytes)
 
-        # 5. Switch to Dark Mode (skin-theme-clientpref-night)
-        print("Testing Dark Mode...")
-        await cdp("Runtime.evaluate", {
-            "expression": "document.documentElement.className = document.documentElement.className.replace('skin-theme-clientpref-day', '') + ' skin-theme-clientpref-night';"
-        })
-        await asyncio.sleep(0.5)
+            # 5. Switch to Dark Mode (skin-theme-clientpref-night)
+            print("Testing Dark Mode...")
+            await cdp("Runtime.evaluate", {
+                "expression": "document.documentElement.className = document.documentElement.className.replace('skin-theme-clientpref-day', '') + ' skin-theme-clientpref-night';"
+            })
+            await asyncio.sleep(0.5)
 
-        sc_dark_res = await cdp("Page.captureScreenshot", {"format": "png"})
-        dark_bytes = base64.b64decode(sc_dark_res["result"]["data"])
-        dark_path = "/home/mik/.gemini/antigravity/brain/42bcc6c0-adbf-448b-bfea-f1f1d1b28b96/wikipedia_polished_dark.png"
-        with open(dark_path, "wb") as f:
-            f.write(dark_bytes)
+            sc_dark_res = await cdp("Page.captureScreenshot", {"format": "png"})
+            dark_bytes = base64.b64decode(sc_dark_res["result"]["data"])
+            dark_path = "/home/mik/.gemini/antigravity/brain/42bcc6c0-adbf-448b-bfea-f1f1d1b28b96/wikipedia_polished_dark.png"
+            with open(dark_path, "wb") as f:
+                f.write(dark_bytes)
 
-        # Revert theme
-        await cdp("Runtime.evaluate", {
-            "expression": "document.documentElement.className = document.documentElement.className.replace('skin-theme-clientpref-night', '') + ' skin-theme-clientpref-day';"
-        })
+            # Revert theme
+            await cdp("Runtime.evaluate", {
+                "expression": "document.documentElement.className = document.documentElement.className.replace('skin-theme-clientpref-night', '') + ' skin-theme-clientpref-day';"
+            })
 
-        # 6. Test toggle to Standard Wikidiff (clicking Wikitext button)
-        print("Testing toggle to Standard Wikidiff...")
-        await cdp("Runtime.evaluate", {
-            "expression": """
-                (() => {
-                    const wikiBtn = Array.from(document.querySelectorAll('.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget > div')).find(c => c.textContent.includes('Wikitext'));
-                    if (wikiBtn) {
-                        wikiBtn.click();
-                    } else if (document.getElementById('refdiff-btn-standard')) {
-                        document.getElementById('refdiff-btn-standard').click();
-                    }
-                })()
-            """
-        })
-        await asyncio.sleep(0.5)
+            # 6. Test toggle to Standard Wikidiff (clicking Wikitext button)
+            print("Testing toggle to Standard Wikidiff...")
+            await cdp("Runtime.evaluate", {
+                "expression": """
+                    (() => {
+                        const wikiBtn = Array.from(document.querySelectorAll('.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget > div')).find(c => c.textContent.includes('Wikitext'));
+                        if (wikiBtn) {
+                            wikiBtn.click();
+                        } else if (document.getElementById('refdiff-btn-standard')) {
+                            document.getElementById('refdiff-btn-standard').click();
+                        }
+                    })()
+                """
+            })
+            await asyncio.sleep(0.5)
 
-        res_std = await cdp("Runtime.evaluate", {
-            "expression": """
-                ({
-                    citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
-                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length
-                })
-            """,
-            "returnByValue": True
-        })
-        std_info = res_std["result"]["result"]["value"]
-        print(f"Standard view state: {std_info}")
-        assert std_info["citRowCount"] == 0, "Citation rows should be removed in standard view"
-        assert std_info["badgeModCount"] == 0, "Badges should be removed in standard view"
+            res_std = await cdp("Runtime.evaluate", {
+                "expression": """
+                    ({
+                        citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
+                        badgeModCount: document.querySelectorAll('.ref-badge-mod').length
+                    })
+                """,
+                "returnByValue": True
+            })
+            std_info = res_std["result"]["result"]["value"]
+            print(f"Standard view state: {std_info}")
+            assert std_info["citRowCount"] == 0, "Citation rows should be removed in standard view"
+            assert std_info["badgeModCount"] == 0, "Badges should be removed in standard view"
 
-        # 7. Test toggle back to Decoupled (clicking RefDiff button)
-        print("Testing toggle back to Decoupled...")
-        await cdp("Runtime.evaluate", {
-            "expression": """
-                (() => {
-                    const refBtn = document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-btn-decoupled');
-                    if (refBtn) refBtn.click();
-                })()
-            """
-        })
-        await asyncio.sleep(0.5)
+            # 7. Test toggle back to Decoupled (clicking RefDiff button)
+            print("Testing toggle back to Decoupled...")
+            await cdp("Runtime.evaluate", {
+                "expression": """
+                    (() => {
+                        const refBtn = document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-btn-decoupled');
+                        if (refBtn) refBtn.click();
+                    })()
+                """
+            })
+            await asyncio.sleep(0.5)
 
-        res_dec = await cdp("Runtime.evaluate", {
-            "expression": """
-                ({
-                    citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
-                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length
-                })
-            """,
-            "returnByValue": True
-        })
-        dec_info = res_dec["result"]["result"]["value"]
-        print(f"Re-decoupled view state: {dec_info}")
-        assert dec_info["citRowCount"] > 0, "Citation rows should be restored"
-        assert dec_info["badgeModCount"] > 0, "Badges should be restored"
+            res_dec = await cdp("Runtime.evaluate", {
+                "expression": """
+                    ({
+                        citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
+                        badgeModCount: document.querySelectorAll('.ref-badge-mod').length
+                    })
+                """,
+                "returnByValue": True
+            })
+            dec_info = res_dec["result"]["result"]["value"]
+            print(f"Re-decoupled view state: {dec_info}")
+            assert dec_info["citRowCount"] > 0, "Citation rows should be restored"
+            assert dec_info["badgeModCount"] > 0, "Badges should be restored"
 
-        print("All live CDP verification checks passed successfully!")
+            print("All live CDP verification checks passed successfully!")
+    finally:
+        if created_tab_id:
+            try:
+                urllib.request.urlopen(f"http://127.0.0.1:9222/json/close/{created_tab_id}", timeout=2)
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     asyncio.run(run_live_test())

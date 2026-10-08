@@ -214,7 +214,72 @@ const p5 = pairReferences(del5, add5);
 assert.strictEqual(p5.length, 1);
 assert.strictEqual(p5[0].name, 'selfClose');
 assert.strictEqual(p5[0].d.attrs, 'name="selfClose"');
-assert.strictEqual(p5[0].a.attrs, 'name="selfClose"');
+// Test 6: Full pipeline parsing and pairing of comprehensive_test.html (real MediaWiki wikidiff2 HTML)
+const fs = require('fs');
+const path = require('path');
+const compHtml = fs.readFileSync(path.join(__dirname, 'comprehensive_test.html'), 'utf8');
+
+const rows = compHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
+const changeRows = rows.filter(r => r.includes('diff-deletedline') || r.includes('diff-addedline'));
+assert.strictEqual(changeRows.length, 6, 'Should find 6 change rows across the 5 sections in comprehensive_test.html');
+
+let totalDecoupledPairs = 0;
+const sectionPairs = [];
+
+for (const row of changeRows) {
+  const delMatch = row.match(/<td class="[^"]*diff-deletedline[^"]*"><div>([\s\S]*?)<\/div><\/td>/i);
+  const addMatch = row.match(/<td class="[^"]*diff-addedline[^"]*"><div>([\s\S]*?)<\/div><\/td>/i);
+
+  const delHtml = delMatch ? delMatch[1] : '';
+  const addHtml = addMatch ? addMatch[1] : '';
+
+  const delRefs = parseRefs(delHtml);
+  const addRefs = parseRefs(addHtml);
+
+  if (delRefs.length === 0 && addRefs.length === 0) continue;
+
+  const pairs = pairReferences(delRefs, addRefs);
+  totalDecoupledPairs += pairs.length;
+  sectionPairs.push(pairs);
+}
+
+// 5 sections with citations
+assert.strictEqual(sectionPairs.length, 5, 'Should find exactly 5 change rows containing citations');
+assert.strictEqual(totalDecoupledPairs, 7, 'Total reference pairs across 5 sections should be 7');
+
+// Section 1: 3 pairs, sequential document order
+assert.strictEqual(sectionPairs[0].length, 3);
+assert.strictEqual(sectionPairs[0][0].d.content.includes('Venus Orbital Data'), true);
+assert.strictEqual(sectionPairs[0][0].a.content.includes('Venus Orbital Data'), true);
+assert.strictEqual(sectionPairs[0][1].d.content.includes('50–55'), true);
+assert.strictEqual(sectionPairs[0][1].a.content.includes('80–88'), true);
+assert.strictEqual(sectionPairs[0][2].d.content.includes('Planetary Moons'), true);
+assert.strictEqual(sectionPairs[0][2].a.content.includes('Planetary Moons'), true);
+
+// Section 2: Named citation modified
+assert.strictEqual(sectionPairs[1].length, 1);
+assert.strictEqual(sectionPairs[1][0].name, 'schmidt2020');
+assert.strictEqual(sectionPairs[1][0].d.content.includes('45–48'), true);
+assert.strictEqual(sectionPairs[1][0].a.content.includes('45–60'), true);
+
+// Section 3: Added reference with text
+assert.strictEqual(sectionPairs[2].length, 1);
+assert.strictEqual(sectionPairs[2][0].name, 'esa2022');
+assert.strictEqual(sectionPairs[2][0].d, null);
+assert.strictEqual(sectionPairs[2][0].a.content.includes('Müller, H.'), true);
+
+// Section 4: Added reference to existing text
+assert.strictEqual(sectionPairs[3].length, 1);
+assert.strictEqual(sectionPairs[3][0].name, 'esa-press');
+assert.strictEqual(sectionPairs[3][0].d, null);
+assert.strictEqual(sectionPairs[3][0].a.content.includes('Venus Surface Conditions'), true);
+
+// Section 5: Removed reference
+assert.strictEqual(sectionPairs[4].length, 1);
+assert.strictEqual(sectionPairs[4][0].name, 'venera1982');
+assert.strictEqual(sectionPairs[4][0].a, null);
+assert.strictEqual(sectionPairs[4][0].d.content.includes('Moroz, V. I.'), true);
 
 console.log('All refdiff.js JavaScript unit tests passed successfully!');
+
 

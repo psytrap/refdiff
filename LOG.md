@@ -160,6 +160,11 @@ This log records the rationale, architectural decisions, completed milestones, a
     * Moved standalone CLI prototype (`refdiff.py`, `git-refdiff`, and `tests/test_refdiff.py`) into [`archive/python-prototype/`](archive/python-prototype/) with its own dedicated README.
     * Refocused root repository and primary documentation on the native MediaWiki in-browser user script (`refdiff.js`).
     * Updated GitHub Actions CI to test the archived prototype suite via `PYTHONPATH=archive/python-prototype`.
+  * **Test Suite Streamlining & Comprehensive HTML Integration:**
+    * Deleted orphaned `.wiki` sample fixtures (`tests/fixtures/`) leftover from early Python prototype iterations.
+    * Wired [`tests/comprehensive_test.html`](tests/comprehensive_test.html) directly into both offline Node unit tests (`tests/test_pairing.js` Test 6) and headless Chromium CDP integration tests (`tests/test_live_cdp.py`).
+    * Automated validation of all 5 diff scenarios (sequential ordering, named modification, text+ref added, ref added to existing text, ref removed) with zero-loss Wikitext toggle assertions.
+
 
 
 
