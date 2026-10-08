@@ -189,9 +189,6 @@
     );
 
     let citCounter = 1;
-    let totalModified = 0;
-    let totalAdded = 0;
-    let totalRemoved = 0;
 
     for (const row of changeRows) {
       const delDiv = row.querySelector('.diff-deletedline div');
@@ -229,7 +226,6 @@
         if (d && a) {
           const isMod = a.hasChange || (d.raw.replace(/<[^>]+>/g, '').trim() !== a.raw.replace(/<[^>]+>/g, '').trim());
           if (isMod) {
-            totalModified++;
             modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
             const badge = `<span class="ref-badge-mod" title="Citation metadata modified: ⟨~${label}~⟩">⟨~${label}~⟩</span>`;
             newDelHtml = newDelHtml.replace(d.raw, badge);
@@ -240,12 +236,10 @@
             newAddHtml = newAddHtml.replace(a.raw, badge);
           }
         } else if (a && !d) {
-          totalAdded++;
           const badge = `<ins class="diffchange diffchange-inline" title="Added citation: ${label}">{+ ⟨${label}⟩ +}</ins>`;
           newAddHtml = newAddHtml.replace(a.raw, badge);
           modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
         } else if (d && !a) {
-          totalRemoved++;
           const badge = `<del class="diffchange diffchange-inline" title="Removed citation: ${label}">[- ⟨${label}⟩ -]</del>`;
           newDelHtml = newDelHtml.replace(d.raw, badge);
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
@@ -296,23 +290,12 @@
     }
 
     isDecoupled = true;
-
-    // Update stats in header bar
-    const statsEl = document.getElementById('refdiff-stats-note');
-    if (statsEl) {
-      statsEl.textContent = `(Refs: ${totalModified} modified, +${totalAdded} added, -${totalRemoved} removed)`;
-    }
   }
 
   function restoreOriginal(table) {
     if (!table || !origTableHtml) return;
     table.innerHTML = origTableHtml;
     isDecoupled = false;
-
-    const statsEl = document.getElementById('refdiff-stats-note');
-    if (statsEl) {
-      statsEl.textContent = '';
-    }
   }
 
   function init() {
@@ -358,17 +341,6 @@
         if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
       }
 
-      // Add stats container in the prefix bar if present
-      const prefix = document.querySelector('.mw-diff-table-prefix');
-      if (prefix && !document.getElementById('refdiff-stats-note')) {
-        const statsEl = document.createElement('div');
-        statsEl.id = 'refdiff-stats-note';
-        statsEl.className = 'refdiff-stats-note';
-        statsEl.style.marginRight = 'auto';
-        statsEl.style.fontSize = '13px';
-        statsEl.style.color = '#72777d';
-        prefix.insertBefore(statsEl, prefix.firstChild);
-      }
 
       function activateRefDiff() {
         refBtn.classList.add('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
@@ -428,7 +400,6 @@
         <strong>Diff view:</strong>
         <a href="#" id="refdiff-btn-decoupled" class="active">Decoupled (RefDiff)</a> &bull;
         <a href="#" id="refdiff-btn-standard">Standard Wikidiff</a>
-        <span id="refdiff-stats-note" style="color: #72777d; font-size: 12px; margin-left: 10px;"></span>
       `;
       table.parentNode.insertBefore(modeBar, table);
 

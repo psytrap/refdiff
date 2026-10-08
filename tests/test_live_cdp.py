@@ -61,7 +61,7 @@ async def run_live_test():
                     citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
                     badgeModCount: document.querySelectorAll('.ref-badge-mod').length,
                     badgeCount: document.querySelectorAll('.ref-badge').length,
-                    statsNote: (document.getElementById('refdiff-stats-note') || {}).textContent || ''
+                    hasStatsNote: !!document.getElementById('refdiff-stats-note')
                 })
             """,
             "returnByValue": True
@@ -72,6 +72,7 @@ async def run_live_test():
         assert info["refBtnSelected"], "RefDiff button should be selected"
         assert info["citRowCount"] > 0, "No citation rows were created"
         assert info["badgeModCount"] > 0, "No modified badges found"
+        assert not info["hasStatsNote"], "Stats note should be completely removed"
 
         # 4. Capture screenshot of Light Mode
         print("Capturing Light Mode screenshot...")
@@ -119,8 +120,7 @@ async def run_live_test():
             "expression": """
                 ({
                     citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
-                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length,
-                    statsNote: (document.getElementById('refdiff-stats-note') || {}).textContent || ''
+                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length
                 })
             """,
             "returnByValue": True
@@ -129,7 +129,6 @@ async def run_live_test():
         print(f"Standard view state: {std_info}")
         assert std_info["citRowCount"] == 0, "Citation rows should be removed in standard view"
         assert std_info["badgeModCount"] == 0, "Badges should be removed in standard view"
-        assert std_info["statsNote"] == "", "Stats note should be empty in standard view"
 
         # 7. Test toggle back to Decoupled (clicking RefDiff button)
         print("Testing toggle back to Decoupled...")
@@ -147,8 +146,7 @@ async def run_live_test():
             "expression": """
                 ({
                     citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
-                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length,
-                    statsNote: (document.getElementById('refdiff-stats-note') || {}).textContent || ''
+                    badgeModCount: document.querySelectorAll('.ref-badge-mod').length
                 })
             """,
             "returnByValue": True
