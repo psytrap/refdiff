@@ -41,23 +41,17 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 ### Diff Comparison
 
+#### Current (Inline Citations)
+
 <div style="background: #0f141c; padding: 16px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: #cdd9e5; line-height: 1.5; margin: 12px 0; border: 1px solid #2d333b;">
 <table style="width: 100%; border-collapse: separate; border-spacing: 12px 5px; border: none; margin: 0;">
   <thead>
     <tr>
-      <th style="text-align: left; color: #ffffff; font-size: 13px; font-weight: bold; padding-left: 20px;">Line 1:</th>
-      <th style="text-align: left; color: #ffffff; font-size: 13px; font-weight: bold; padding-left: 20px;">Line 1:</th>
+      <th style="text-align: left; color: #ffffff; font-size: 13px; font-weight: bold; padding-left: 20px;">Line 1 (Old):</th>
+      <th style="text-align: left; color: #ffffff; font-size: 13px; font-weight: bold; padding-left: 20px;">Line 1 (New):</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">== Current ==</div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">== Current ==</div></td>
-    </tr>
-    <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-    </tr>
     <tr>
       <td style="vertical-align: top;">
         <div style="display: flex; align-items: flex-start;">
@@ -76,18 +70,21 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
         </div>
       </td>
     </tr>
+  </tbody>
+</table>
+</div>
+
+#### Proposed (`<references-def>`)
+
+<div style="background: #0f141c; padding: 16px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: #cdd9e5; line-height: 1.5; margin: 12px 0; border: 1px solid #2d333b;">
+<table style="width: 100%; border-collapse: separate; border-spacing: 12px 5px; border: none; margin: 0;">
+  <thead>
     <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
+      <th style="text-align: left; color: #ffffff; font-size: 13px; font-weight: bold; padding-left: 20px;">Line 1 (Old):</th>
+      <th style="text-align: left; color: #ffffff; font-size: 13px; font-weight: bold; padding-left: 20px;">Line 1 (New):</th>
     </tr>
-    <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">== Proposed ==</div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">== Proposed ==</div></td>
-    </tr>
-    <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
-    </tr>
+  </thead>
+  <tbody>
     <tr>
       <td style="vertical-align: top;">
         <div style="display: flex; align-items: flex-start;">
