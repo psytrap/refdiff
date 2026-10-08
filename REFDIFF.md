@@ -132,22 +132,23 @@ The parser scans wikitext and segregates content into two discrete data structur
 ### Step 5.2: Prose Diff Calculation
 * The prose stream is diffed using standard word-level sequence matching algorithms.
 * Sentinel tokens are rendered as lightweight reference badges, named directly after the reference (e.g. `[schmidt2020]`) or indexed sequentially for anonymous references (`[ref1]`).
-* **Badge Status Indicators:**
-  * **Unchanged Citation:** `[schmidt2020]` (cyan)
-  * **Modified Citation:** `[~schmidt2020~]` (bold yellow with diff tilde notation, signaling modified underlying metadata)
-  * **Added Citation:** `{+ [esa2022] +}` (green)
-  * **Removed Citation:** `[- [oldref] -]` (red)
-* Even when only citation metadata changes, the prose sentence is displayed annotating the affected reference badge (`[~name~]`) so reviewers immediately understand the claim context.
+* **Badge Status Indicators (Angle Bracket Notation):**
+  * Mathematical angle brackets `⟨...⟩` are used to prevent collisions with Wikipedia's link syntax (`[external link]` and `[[wikilink]]`).
+  * **Unchanged Citation:** `⟨schmidt2020⟩` (cyan)
+  * **Modified Citation:** `⟨~schmidt2020~⟩` (bold yellow with diff tilde notation, signaling modified underlying metadata)
+  * **Added Citation:** `{+ ⟨esa2022⟩ +}` (green)
+  * **Removed Citation:** `[- ⟨oldref⟩ -]` (red)
+* Even when only citation metadata changes, the prose sentence is displayed annotating the affected reference badge (`⟨~name~⟩`) so reviewers immediately understand the claim context.
 
 ### Step 5.3: Raw Citation Diff Calculation (No Template Decoding)
 The tool compares `RawRefsA` against `RawRefsB`:
-* **Added Citations:** Present in B, absent in A. Renders as `🟢 ADDED [name]:` with `{+ <ref ...>...</ref> +}`.
-* **Removed Citations:** Present in A, absent in B. Renders as `🔴 REMOVED [name]:` with `[- <ref ...>...</ref> -]`.
+* **Added Citations:** Present in B, absent in A. Renders as `🟢 ADDED ⟨name⟩:` with `{+ ⟨name⟩ +} {+ <ref ...>...</ref> +}`.
+* **Removed Citations:** Present in A, absent in B. Renders as `🔴 REMOVED ⟨name⟩:` with `[- ⟨name⟩ -] [- <ref ...>...</ref> -]`.
 * **Modified Citations:** Present in both, but inner content or attributes changed.
-  * Runs a **standard raw word-level diff directly on the full encapsulating `<ref>` span**:
+  * Runs a **standard raw word-level diff directly on the full encapsulating `<ref>` span**, prefixed with the badge:
     ```
-    🟡 MODIFIED [~schmidt2020~]:
-       <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |pages=45–[- 48 -] {+ 52 +} |isbn=...}}</ref>
+    🟡 MODIFIED ⟨~schmidt2020~⟩:
+       ⟨~schmidt2020~⟩ <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |pages=45–[- 48 -] {+ 52 +} |isbn=...}}</ref>
     ```
   * No template decoding, parameter extraction, or custom styling is performed—the exact raw wikitext diff is displayed with standard diff highlights (`[- old -]` / `{+ new +}`).
 

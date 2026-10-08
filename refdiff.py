@@ -535,13 +535,13 @@ class TerminalFormatter:
             elif t.type == 'ref_badge':
                 flush()
                 if t.badge_status == 'equal':
-                    out.append(f"{Colors.CYAN}[{t.ref_label}]{Colors.RESET}")
+                    out.append(f"{Colors.CYAN}⟨{t.ref_label}⟩{Colors.RESET}")
                 elif t.badge_status == 'modified':
-                    out.append(f"{Colors.BOLD}{Colors.YELLOW}[~{t.ref_label}~]{Colors.RESET}")
+                    out.append(f"{Colors.BOLD}{Colors.YELLOW}⟨~{t.ref_label}~⟩{Colors.RESET}")
                 elif t.badge_status == 'delete':
-                    out.append(f"{Colors.RED}[- [{t.ref_label}] -]{Colors.RESET}")
+                    out.append(f"{Colors.RED}[- ⟨{t.ref_label}⟩ -]{Colors.RESET}")
                 elif t.badge_status == 'insert':
-                    out.append(f"{Colors.GREEN}{{+ [{t.ref_label}] +}}{Colors.RESET}")
+                    out.append(f"{Colors.GREEN}{{+ ⟨{t.ref_label}⟩ +}}{Colors.RESET}")
 
         flush()
         return "".join(out).strip()
@@ -592,24 +592,24 @@ class TerminalFormatter:
                 delta = s_diff.citation_delta
                 # Added
                 for cit in delta.added:
-                    lbl = f"[{ref_label_map.get(cit.ref_id, cit.ref_id)}]"
+                    lbl = f"⟨{ref_label_map.get(cit.ref_id, cit.ref_id)}⟩"
                     lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}:{Colors.RESET}")
                     tag_str = (cit.full_tag or cit.raw_content).strip()
-                    lines.append(f"     {Colors.GREEN}{{+ {tag_str} +}}{Colors.RESET}")
+                    lines.append(f"     {Colors.GREEN}{{+ {lbl} +}} {{+ {tag_str} +}}{Colors.RESET}")
 
                 # Removed
                 for cit in delta.removed:
-                    lbl = f"[{ref_label_map.get(cit.ref_id, cit.ref_id)}]"
+                    lbl = f"⟨{ref_label_map.get(cit.ref_id, cit.ref_id)}⟩"
                     lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}:{Colors.RESET}")
                     tag_str = (cit.full_tag or cit.raw_content).strip()
-                    lines.append(f"     {Colors.RED}[- {tag_str} -]{Colors.RESET}")
+                    lines.append(f"     {Colors.RED}[- {lbl} -] [- {tag_str} -]{Colors.RESET}")
 
                 # Modified (Raw Diff on full encapsulating tag)
                 for c_old, c_new, raw_diff in delta.modified:
                     num = ref_label_map.get(c_new.ref_id, c_new.ref_id)
-                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED [~{num}~]:{Colors.RESET}")
+                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED ⟨~{num}~⟩:{Colors.RESET}")
                     rendered_diff = cls.render_tokens(raw_diff)
-                    lines.append(f"     {rendered_diff}")
+                    lines.append(f"     {Colors.BOLD}{Colors.YELLOW}⟨~{num}~⟩{Colors.RESET} {rendered_diff}")
 
                 lines.append("")
 
@@ -637,7 +637,7 @@ class StatFormatter:
             if s.citation_delta.removed:
                 cit_details.append(f"-{len(s.citation_delta.removed)} removed")
             if s.citation_delta.modified:
-                mods = [f"[~{ref_label_map.get(c_new.ref_id, c_new.ref_id)}~]" for _, c_new, _ in s.citation_delta.modified]
+                mods = [f"⟨~{ref_label_map.get(c_new.ref_id, c_new.ref_id)}~⟩" for _, c_new, _ in s.citation_delta.modified]
                 cit_details.append(f"{len(s.citation_delta.modified)} modified ({', '.join(mods)})")
 
             cit_str = f"Refs: {', '.join(cit_details)}" if cit_details else "Refs: 0 changed"

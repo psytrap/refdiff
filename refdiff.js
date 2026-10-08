@@ -231,22 +231,22 @@
           if (isMod) {
             totalModified++;
             modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
-            const badge = `<span class="ref-badge-mod" title="Citation metadata modified: [~${label}~]">[~${label}~]</span>`;
+            const badge = `<span class="ref-badge-mod" title="Citation metadata modified: ⟨~${label}~⟩">⟨~${label}~⟩</span>`;
             newDelHtml = newDelHtml.replace(d.raw, badge);
             newAddHtml = newAddHtml.replace(a.raw, badge);
           } else {
-            const badge = `<span class="ref-badge" title="Citation: [${label}]">[${label}]</span>`;
+            const badge = `<span class="ref-badge" title="Citation: ⟨${label}⟩">⟨${label}⟩</span>`;
             newDelHtml = newDelHtml.replace(d.raw, badge);
             newAddHtml = newAddHtml.replace(a.raw, badge);
           }
         } else if (a && !d) {
           totalAdded++;
-          const badge = `<ins class="diffchange diffchange-inline" title="Added citation: ${label}">{+ [${label}] +}</ins>`;
+          const badge = `<ins class="diffchange diffchange-inline" title="Added citation: ${label}">{+ ⟨${label}⟩ +}</ins>`;
           newAddHtml = newAddHtml.replace(a.raw, badge);
           modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
         } else if (d && !a) {
           totalRemoved++;
-          const badge = `<del class="diffchange diffchange-inline" title="Removed citation: ${label}">[- [${label}] -]</del>`;
+          const badge = `<del class="diffchange diffchange-inline" title="Removed citation: ${label}">[- ⟨${label}⟩ -]</del>`;
           newDelHtml = newDelHtml.replace(d.raw, badge);
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
         }
@@ -271,11 +271,24 @@
       for (const mc of modifiedCits) {
         const citRow = document.createElement('tr');
         citRow.className = 'refdiff-cit-row';
+
+        let delPrefix = '';
+        let addPrefix = '';
+        if (mc.isAdd) {
+          addPrefix = `<ins class="diffchange diffchange-inline">{+ ⟨${mc.label}⟩ +}</ins> `;
+        } else if (mc.isDel) {
+          delPrefix = `<del class="diffchange diffchange-inline">[- ⟨${mc.label}⟩ -]</del> `;
+        } else {
+          const modBadge = `<span class="ref-badge-mod" title="Citation metadata modified">⟨~${mc.label}~⟩</span> `;
+          delPrefix = modBadge;
+          addPrefix = modBadge;
+        }
+
         citRow.innerHTML = `
           <td class="diff-marker" data-marker="${mc.isAdd ? '' : '−'}"></td>
-          <td class="${mc.isAdd ? 'diff-context' : 'diff-deletedline diff-side-deleted'}"><div>${mc.oldRaw}</div></td>
+          <td class="${mc.isAdd ? 'diff-context' : 'diff-deletedline diff-side-deleted'}"><div>${delPrefix}${mc.oldRaw}</div></td>
           <td class="diff-marker" data-marker="${mc.isDel ? '' : '+'}"></td>
-          <td class="${mc.isDel ? 'diff-context' : 'diff-addedline diff-side-added'}"><div>${mc.newRaw}</div></td>
+          <td class="${mc.isDel ? 'diff-context' : 'diff-addedline diff-side-added'}"><div>${addPrefix}${mc.newRaw}</div></td>
         `;
         prevRow.parentNode.insertBefore(citRow, prevRow.nextSibling);
         prevRow = citRow;

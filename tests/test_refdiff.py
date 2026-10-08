@@ -58,9 +58,9 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(stats["words_removed"], 0)
         self.assertEqual(stats["cits_modified"], 1)
 
-        # Check badge annotation in prose uses [~s1~]
+        # Check badge annotation in prose uses ⟨~s1~⟩
         prose_str = TerminalFormatter.render_tokens(diffs[0].prose_tokens)
-        self.assertIn("[~s1~]", prose_str)
+        self.assertIn("⟨~s1~⟩", prose_str)
 
         # Check citation diff
         old_cit, new_cit, raw_diff = diffs[0].citation_delta.modified[0]
@@ -69,13 +69,14 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertIn("[- 10 -]", rendered_cit)
         self.assertIn("{+ 20 +}", rendered_cit)
 
-        # Check full render output uses [~s1~]
+        # Check full render output uses ⟨~s1~⟩
         full_render = TerminalFormatter.render(doc_a, doc_b, diffs, stats, ref_label_map)
-        self.assertIn("🟡 MODIFIED [~s1~]:", full_render)
+        self.assertIn("🟡 MODIFIED ⟨~s1~⟩:", full_render)
+        self.assertIn("⟨~s1~⟩", full_render)
 
-        # Check stat output uses [~s1~]
+        # Check stat output uses ⟨~s1~⟩
         stat_render = StatFormatter.render(doc_a, doc_b, diffs, stats, ref_label_map)
-        self.assertIn("[~s1~]", stat_render)
+        self.assertIn("⟨~s1~⟩", stat_render)
 
     def test_diff_engine_anonymous_ref_fallback(self):
         old_text = "== Test ==\nVenus is hot<ref>{{Cite book |pages=10}}</ref>."
