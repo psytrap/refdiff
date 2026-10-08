@@ -1,7 +1,7 @@
-# Proposal: Section-Scoped Reference Blocks (`<references-def>`)
+# Proposal: Section-Scoped Reference Blocks (`<references hidden>`)
 
 * **Target Venue:** Wikimedia Phabricator ([phabricator.wikimedia.org/maniphest/task/edit/form/1/](https://phabricator.wikimedia.org/maniphest/task/edit/form/1/))
-* **Task Title:** `Proposal: Section-scoped reference definition blocks (<references-def>) for clean diffs and citation locality`
+* **Task Title:** `Proposal: Section-scoped reference definition blocks (<references hidden>) for clean diffs and citation locality`
 * **Projects / Tags:** `#extension-cite`, `#Parsoid`, `#MediaWiki-Parser`
 
 ---
@@ -21,7 +21,7 @@
 Instead of embedding bulky citation templates directly into sentences, the wikitext separates callouts from source definitions across three tiers:
 
 * **Prose callouts (`<ref name="..." />`):** Lightweight inline anchors next to the claim.
-* **Section definition block (`<references-def>`):** Compact, one-line-per-source definitions at the end of each section.
+* **Section definition block (`<references hidden>`):** Compact, one-line-per-source definitions at the end of each section.
 * **Global render anchor (`<references />`):** The standard tag at the end of the document.
 
 ```wikitext
@@ -29,18 +29,24 @@ Instead of embedding bulky citation templates directly into sentences, the wikit
 The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" />
 Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
-<references-def>
+<references hidden>
 <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=45–48}}</ref>
 <ref name="nasa-radar">{{Cite web |author=NASA JPL |url=https://example.org/venus-radar |title=Venus Radar Mapping Project |access-date=2026-10-08}}</ref>
-</references-def>
+</references>
 
 == References ==
 <references />
 ```
 
 > [!NOTE]
-> **Tooling-Friendly Alternative (`<references display="none">`):**  
-> An alternative candidate under discussion is reusing the existing tag with the standard CSS display-suppression attribute: `<references display="none">`. Reusing `<references>` leverages existing AST parsers (`mwparserfromhell`, `wikitextparser`), bots (AWB), and regexes that already recognize `<references>...</references>` as a container for definitions (via LDR). Using the standard CSS property-value pair `display="none"` directly resolves the intuitive question of why a `<references>` tag is placed in a section by explicitly stating that visual footnote rendering is suppressed.
+> **Why `<references hidden>` as the Working Title:**  
+> `<references hidden>` adopts the native **HTML5 boolean attribute `hidden`** on the existing MediaWiki `<references>` tag. This offers two major architectural advantages:
+> 1. **AST & Tooling Reuse:** Wikitext parsers (`mwparserfromhell`, `wikitextparser`, Parsoid AST), bots (AWB, Pywikibot), and existing regexes already recognize `<references>...</references>` as a reference definition container (via LDR). No new XML tag registration is required across community tools.
+> 2. **Wikitext Ergonomics:** As a boolean attribute, it requires no value quotes (`<references hidden>` instead of `<references display="none">`), making it concise and natural to type.
+> 
+> *Evaluated alternatives under consideration:*
+> * **`<references-def>`**: A dedicated XML tag that explicitly separates declaration from rendering, avoiding accidental footnote rendering on unpatched legacy third-party wikis.
+> * **`<references display="none">`**: The explicit CSS property-value pair alternative matching web styling conventions.
 
 ## 3. Concrete Diff Comparison
 
@@ -114,8 +120,8 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
       <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; height: 14px;"></div></td>
     </tr>
     <tr>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">&lt;references-def&gt;</div></td>
-      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">&lt;references-def&gt;</div></td>
+      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">&lt;references hidden&gt;</div></td>
+      <td><div style="background: #181d26; border: 1px solid #2d333b; border-radius: 4px; padding: 4px 10px; color: #adbac7;">&lt;references hidden&gt;</div></td>
     </tr>
   </tbody>
 </table>
@@ -125,22 +131,22 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 ## 4. Core Mechanics & Rules
 
-1. **Render Suppression:** `<references-def>` registers citations with the parser but emits **no HTML** at that position.
-2. **Global Aggregation:** The global `<references />` tag at the bottom collects all definitions across all `<references-def>` blocks on the page, rendering a continuous `[1], [2], ...` numbered list ordered by first appearance in the text.
+1. **Render Suppression:** `<references hidden>` registers citations with the parser but emits **no HTML** at that position.
+2. **Global Aggregation:** The global `<references />` tag at the bottom collects all definitions across all `<references hidden>` blocks on the page, rendering a continuous `[1], [2], ...` numbered list ordered by first appearance in the text.
 3. **Fault Tolerance & Relocation:** If an author moves a sentence with `<ref name="..." />` to another section and forgets to move the definition, **the page does not break** (definitions resolve page-wide). Maintenance bots can asynchronously clean up and migrate misplaced definitions to their respective section.
 4. **Cross-Section Dependencies & Deletion Resilience:**
    * *The Hazard:* If Section A defines `<ref name="smith2020">` and Section B reuses `<ref name="smith2020" />`, subsequent deletion or refactoring of Section A could orphan the call in Section B (`cite_error_references_no_text`).
-   * *Status Quo Parity:* This hazard is identical to status-quo inline references (where the primary definition is buried in an upstream paragraph). However, `<references-def>` makes this significantly easier to mitigate:
-     * **Tiered Placement:** Sources cited in a single section remain in that section's `<references-def>`. Pervasive sources cited across many sections can optionally be defined in a document-level `<references-def>` block near `== References ==`.
+   * *Status Quo Parity:* This hazard is identical to status-quo inline references (where the primary definition is buried in an upstream paragraph). However, `<references hidden>` makes this significantly easier to mitigate:
+     * **Tiered Placement:** Sources cited in a single section remain in that section's `<references hidden>`. Pervasive sources cited across many sections can optionally be defined in a document-level `<references hidden>` block near `== References ==`.
      * **Parser Idempotency:** Defining the identical reference in multiple section blocks is accepted without error; the parser deduplicates them cleanly, allowing sections to be fully self-contained.
-     * **Edit-Time Linter / VE Warning:** Because definitions are held in structured blocks rather than buried in prose, Parsoid and edit preview tools can detect when a deleted definition is still referenced downstream, warning the editor to hoist the definition before saving.
+     * **Edit-Time Linter / VE Warning:** Because definitions are held in structured `<references hidden>` blocks rather than buried in prose, Parsoid and edit preview tools can detect when a deleted definition is still referenced downstream, warning the editor to hoist the definition before saving.
 5. **Multi-Page Reuse:** Fully compatible with MediaWiki's native sub-referencing (`<ref name="book" details="p. 45" />`) as well as community page templates (`<ref name="book" />{{rp|45}}`).
 
 ---
 
 ## 5. Affected Tooling (Overview)
 
-* **MediaWiki Core & Parser:** `Extension:Cite` (tag registration & suppressed rendering), `Parsoid` (round-trip DOM handling), `Page Previews` (hovercards).
+* **MediaWiki Core & Parser:** `Extension:Cite` (recognizing boolean `hidden` attribute & suppressing in-situ rendering), `Parsoid` (round-trip DOM handling), `Page Previews` (hovercards).
 * **Diff Tools (`wikidiff2`):** **No modifications required.** Works out-of-the-box with standard diffs (the separation of prose and source hunks within the section is an acknowledged trade-off).
 * **Editors & UI:** `VisualEditor` (option to append citations to section blocks), `SyntaxHighlighter` (tag recognition), `IDE/LSP tools` (local `name="..."` autocomplete).
 * **Bots & Maintenance:** `Pywikibot` (citation scripts), `InternetArchiveBot` (clean in-place URL fixes), `AutoWikiBrowser (AWB)`.
@@ -150,18 +156,18 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 ## 6. Rollback & Dismissal Strategy
 
-To guarantee that introducing `<references-def>` poses zero permanent risk to Wikimedia wikis, the proposal defines a clean dismissal path and long-term legacy support for historical revisions:
+To guarantee that introducing `<references hidden>` poses zero permanent risk to Wikimedia wikis, the proposal defines a clean dismissal path and long-term legacy support for historical revisions:
 
 ### 6.1 Automated Wikitext Clean-Up (In Case of Dismissal)
-If a wiki community or the WMF decides to decommission `<references-def>`, all articles can be migrated back to standard syntax automatically without manual editor labor:
-* **Tracking & Scope:** All affected pages are automatically tracked via `Category:Pages that use section-scoped reference definitions`.
-* **Automated Bot / Maintenance Script:** A dedicated migration script (`cleanupReferencesDef.php` / Pywikibot routine) systematically unwinds the syntax:
-  * **Option A: Loss-less Hoisting to LDR (Default / Recommended):** The script extracts all definitions from section `<references-def>` blocks across the page and appends them into the article's existing document-end `<references>` block (converting the article to standard List-Defined References).  
+If a wiki community or the WMF decides to decommission `<references hidden>`, all articles can be migrated back to standard syntax automatically without manual editor labor:
+* **Tracking & Scope:** All affected pages are automatically tracked via `Category:Pages that use section-scoped reference definitions` (or `Category:Pages that use hidden reference blocks`).
+* **Automated Bot / Maintenance Script:** A dedicated migration script (`cleanupReferencesHidden.php` / Pywikibot routine) systematically unwinds the syntax:
+  * **Option A: Loss-less Hoisting to LDR (Default / Recommended):** The script extracts all definitions from section `<references hidden>` blocks across the page and appends them into the article's existing document-end `<references>` block (converting the article to standard List-Defined References).  
     * **Zero Prose Modifications:** Sentences, paragraphs, and inline callouts (`<ref name="..." />`) remain 100% untouched. This completely eliminates risks of text corruption or merge conflicts during de-migration.
-  * **Option B: Inline Re-injection:** For communities strictly preferring traditional inline references, the script substitutes each definition back into its first in-prose callout (`<ref name="X">...</ref>`) and removes the `<references-def>` container.
+  * **Option B: Inline Re-injection:** For communities strictly preferring traditional inline references, the script substitutes each definition back into its first in-prose callout (`<ref name="X">...</ref>`) and removes the `<references hidden>` container.
 
 ### 6.2 Long-Term Legacy Support for Historical Revisions
 A core requirement for MediaWiki is that older revisions (`oldid=...`) and historical diffs must continue to render correctly for years after an article has been edited or a feature has been retired:
-* **Passive Fallback Hook:** Even if active authoring of `<references-def>` is disabled via configuration, `Extension:Cite` maintains a minimal, passive fallback hook (~10 lines of code) as a multi-year LTS compatibility layer.
-* **Seamless Archive Rendering:** When rendering an older revision containing `<references-def>`, the legacy hook registers the enclosed `<ref>` definitions into the citation pool and suppresses in-situ HTML output.
+* **Passive Fallback Hook:** Even if active authoring of `<references hidden>` is disabled via configuration, `Extension:Cite` maintains a minimal, passive fallback check (~5 lines of code) as a multi-year LTS compatibility layer.
+* **Seamless Archive Rendering:** When rendering an older revision containing `<references hidden>`, the legacy hook registers the enclosed `<ref>` definitions into the citation pool and suppresses in-situ HTML output.
 * **Zero Reader / Historical Breakage:** Historical permalinks and diff views continue to render footnotes cleanly with **zero red cite errors** (`cite_error_references_no_text`) and without raw unparsed tags spilling into prose.

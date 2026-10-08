@@ -6,7 +6,7 @@ This repository contains the architecture, specifications, and tools for diff-op
 
 Traditional inline citations (`<ref>...</ref>`) cause severe diff pollution, messy code reviews, and frequent merge conflicts in Git.
 
-This project introduces a model that decouples **Source Organization** (section-modular definition blocks via `<references-def>`) from **Frontend Presentation** (unified, continuous global numbering at document end via `<references />`).
+This project introduces a model that decouples **Source Organization** (section-modular definition blocks via `<references hidden>`) from **Frontend Presentation** (unified, continuous global numbering at document end via `<references />`).
 
 ## Documentation & Resources
 

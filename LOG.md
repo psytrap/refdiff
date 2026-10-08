@@ -1,6 +1,6 @@
 # Project Log & Planned Steps
 
-This log records the rationale, architectural decisions, completed milestones, and upcoming action items for the **Section-Scoped References (`<references-def>`)** initiative.
+This log records the rationale, architectural decisions, completed milestones, and upcoming action items for the **Section-Scoped References (`<references hidden>`)** initiative.
 
 ---
 
@@ -9,7 +9,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Status:** Ready for Community & Upstream Outreach (Phase 1)
 * **Goal:** Eliminate diff pollution, avoid cross-section merge conflicts, and preserve wikitext readability by decoupling inline reference callouts from section-level citation definitions.
 * **Core Artifacts:**
-  * 💡 **[PROPOSAL.md](PROPOSAL.md):** 70-line concise proposal (pure feature focus).
+  * 💡 **[PROPOSAL.md](PROPOSAL.md):** Concise proposal (pure feature focus).
   * 📄 **[CONCEPT.md](CONCEPT.md):** Comprehensive technical specification and architecture paper.
   * 📝 **[POST.md](POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
   * 📖 **[README.md](README.md):** Repository introduction and index.
@@ -30,7 +30,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ### Phase 2: Feedback Synthesis & Specification Iteration
 - [ ] **Step 2.1: Monitor Community & Developer Reactions**
-  * Track feedback on tag naming (`<references-def>` vs `<references scope="section">`).
+  * Track feedback on syntax choices (`<references hidden>` vs `<references-def>` vs `<references display="none">`).
   * Note community questions regarding VisualEditor UX and mobile rendering.
 - [ ] **Step 2.2: Refine Specification**
   * Incorporate edge cases and consensus items into [CONCEPT.md](CONCEPT.md) and [PROPOSAL.md](PROPOSAL.md).
@@ -40,10 +40,10 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Build a standalone Python script in this repository using `mwparserfromhell` or `wikitextparser`.
   * Capabilities:
     1. Parse a standard Wikipedia wikitext article.
-    2. Extract inline `<ref>` tags and relocate them into section `<references-def>` blocks.
+    2. Extract inline `<ref>` tags and relocate them into section `<references hidden>` blocks.
     3. Generate before/after git diff statistics on real Wikipedia sample articles.
 - [ ] **Step 3.2: Automated Re-Scoping Bot Prototype**
-  * Implement the basic "bot cleanup" algorithm: detect moved `<ref name="..." />` anchors and auto-migrate definitions between `<references-def>` blocks.
+  * Implement the basic "bot cleanup" algorithm: detect moved `<ref name="..." />` anchors and auto-migrate definitions between `<references hidden>` blocks.
 
 ### Phase 4: Upstream MediaWiki Integration
 - [ ] **Step 4.1: Lua / Scribunto Prototype**
@@ -57,7 +57,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 | Decision | Choice | Rationale |
 | :--- | :--- | :--- |
-| **Primary Tag Name** | `<references-def>` | Clearly indicates declaration/definition without implying immediate HTML rendering. Avoids collision with Extension:Cite's nested "sub-references". |
+| **Primary Working Title** | `<references hidden>` | Native HTML5 boolean attribute `hidden` on the existing `<references>` tag. Maximizes AST parser reuse (`mwparserfromhell`, Parsoid AST) and bot compatibility (AWB) without registering new XML tags. Quote-free, clean wikitext ergonomics. Evaluated alternatives: `<references-def>` and `<references display="none">`. |
 | **Reader View** | Unified global list at document bottom | Preserves the familiar Wikipedia reader experience and continuous `[1], [2], ...` footnote numbering. |
 | **Fault Tolerance** | Page-wide resolution scope | Moving sentences between sections never causes red citation errors; ensures high resilience for human editors. |
 | **Bot Philosophy** | "Bots clean up" (simple, async) | Avoids frustrating authors with strict lint errors. Normalization and block consolidation happen asynchronously. |
@@ -98,3 +98,9 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Cross-Section Dependency & Deletion Hazard Analysis:** Addressed the critical edge-case where Section A defines a reference reused downstream in Section B, and Section A is subsequently deleted. Documented status-quo parity (inline references share this exact vulnerability), established architectural mitigations (tiered global/local placement, parser idempotency for safe duplicate definitions, edit-time linter warnings in Parsoid/VE, and bot hoisting) in `PROPOSAL.md` (Section 4) and `CONCEPT.md` (Section 7.2).
   * **Dismissal Clean-up & Historical Revision Legacy Support:** Defined an automated wikitext de-migration strategy via bot/maintenance script (loss-less hoisting to LDR without prose edits) and guaranteed multi-year parser compatibility for older database revisions (`oldid=...`) via a passive fallback hook in `Extension:Cite` in `PROPOSAL.md` (Section 6) and `CONCEPT.md` (Section 9).
   * **Tooling-Friendly Syntax Evaluation (`<references display="none">`):** Evaluated reusing the existing `<references>` tag with the standard CSS display-suppression attribute `display="none"` to address tooling/bot fatigue. Documented that `display="none"` directly resolves human cognitive friction ("why is `<references>` here if it does not display footnotes?") by explicitly mirroring the universal web standard `display: none;`, while allowing existing AST parsers (`mwparserfromhell`, `wikitextparser`), bots (AWB), and regexes to parse definition blocks without new tag registration, in `PROPOSAL.md` (Section 2) and `CONCEPT.md` (Section 6 & 6.1).
+* **Adoption of `<references hidden>` as Primary Working Title Solution:**
+  * Formally designated `<references hidden>` as the primary working title solution across all proposal and concept specifications, superseding `<references-def>`.
+  * **HTML5 Semantic Standard:** Grounded in the native HTML5 boolean attribute `hidden` (§3.2.6), which directs user agents and parsers that an element is not currently relevant and must be hidden from visual display.
+  * **AST & Bot Compatibility:** Reuses the existing MediaWiki `<references>` tag, eliminating the need for new XML tag registration in AST parsers (`mwparserfromhell`, `wikitextparser`, Parsoid AST), bots (AWB, Pywikibot, Citoid), and community regex suites.
+  * **Wikitext Ergonomics:** As a boolean attribute, it requires no value quotes or equals sign (`<references hidden>` instead of `<references display="none">`), providing a cleaner, faster, and less error-prone typing experience for wikitext authors.
+  * **Preserved RFC Alternatives:** Retained `<references-def>` (for strict parser separation preventing accidental rendering on unpatched legacy third-party wikis) and `<references display="none">` (for explicit CSS property-value alignment) as formally evaluated alternatives.
