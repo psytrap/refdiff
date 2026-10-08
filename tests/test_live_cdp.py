@@ -56,7 +56,8 @@ async def run_live_test():
         res = await cdp("Runtime.evaluate", {
             "expression": """
                 ({
-                    hasModeBar: !!document.getElementById('refdiff-mode-bar'),
+                    hasButton: !!(document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-mode-bar')),
+                    refBtnSelected: (document.getElementById('refdiff-ooui-btn') || {}).classList ? document.getElementById('refdiff-ooui-btn').classList.contains('oo-ui-optionWidget-selected') : true,
                     citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
                     badgeModCount: document.querySelectorAll('.ref-badge-mod').length,
                     badgeCount: document.querySelectorAll('.ref-badge').length,
@@ -67,7 +68,8 @@ async def run_live_test():
         })
         info = res["result"]["result"]["value"]
         print(f"Decoupled state: {info}")
-        assert info["hasModeBar"], "Mode bar was not found"
+        assert info["hasButton"], "RefDiff button/bar was not found"
+        assert info["refBtnSelected"], "RefDiff button should be selected"
         assert info["citRowCount"] > 0, "No citation rows were created"
         assert info["badgeModCount"] > 0, "No modified badges found"
 
@@ -97,9 +99,20 @@ async def run_live_test():
             "expression": "document.documentElement.className = document.documentElement.className.replace('skin-theme-clientpref-night', '') + ' skin-theme-clientpref-day';"
         })
 
-        # 6. Test toggle to Standard Wikidiff
+        # 6. Test toggle to Standard Wikidiff (clicking Wikitext button)
         print("Testing toggle to Standard Wikidiff...")
-        await cdp("Runtime.evaluate", {"expression": "document.getElementById('refdiff-btn-standard').click()"})
+        await cdp("Runtime.evaluate", {
+            "expression": """
+                (() => {
+                    const wikiBtn = Array.from(document.querySelectorAll('.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget > div')).find(c => c.textContent.includes('Wikitext'));
+                    if (wikiBtn) {
+                        wikiBtn.click();
+                    } else if (document.getElementById('refdiff-btn-standard')) {
+                        document.getElementById('refdiff-btn-standard').click();
+                    }
+                })()
+            """
+        })
         await asyncio.sleep(0.5)
 
         res_std = await cdp("Runtime.evaluate", {
@@ -118,9 +131,16 @@ async def run_live_test():
         assert std_info["badgeModCount"] == 0, "Badges should be removed in standard view"
         assert std_info["statsNote"] == "", "Stats note should be empty in standard view"
 
-        # 7. Test toggle back to Decoupled
+        # 7. Test toggle back to Decoupled (clicking RefDiff button)
         print("Testing toggle back to Decoupled...")
-        await cdp("Runtime.evaluate", {"expression": "document.getElementById('refdiff-btn-decoupled').click()"})
+        await cdp("Runtime.evaluate", {
+            "expression": """
+                (() => {
+                    const refBtn = document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-btn-decoupled');
+                    if (refBtn) refBtn.click();
+                })()
+            """
+        })
         await asyncio.sleep(0.5)
 
         res_dec = await cdp("Runtime.evaluate", {

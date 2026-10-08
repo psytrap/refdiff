@@ -304,7 +304,7 @@
 
   function init() {
     const table = document.querySelector('table.diff');
-    if (!table || document.getElementById('refdiff-mode-bar')) return;
+    if (!table || document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-mode-bar')) return;
 
     // Inject minimal badge styling
     if (!document.getElementById('refdiff-badge-styles')) {
@@ -314,38 +314,131 @@
       document.head.appendChild(styleEl);
     }
 
-    // Insert mode switcher right above the diff table
-    const modeBar = document.createElement('div');
-    modeBar.id = 'refdiff-mode-bar';
-    modeBar.className = 'refdiff-mode-bar';
-    modeBar.innerHTML = `
-      <strong>Diff view:</strong>
-      <a href="#" id="refdiff-btn-decoupled" class="active">Decoupled (RefDiff)</a> &bull;
-      <a href="#" id="refdiff-btn-standard">Standard Wikidiff</a>
-      <span id="refdiff-stats-note" style="color: #72777d; font-size: 12px; margin-left: 10px;"></span>
-    `;
-    table.parentNode.insertBefore(modeBar, table);
+    const selectWidget = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget');
+
+    if (selectWidget) {
+      // Find Wikitext and Visual buttons
+      const wikiBtn = Array.from(selectWidget.children).find(c => c.textContent.includes('Wikitext'));
+      const visualBtn = Array.from(selectWidget.children).find(c => c.textContent.includes('Visual'));
+
+      // Create native OOUI RefDiff button option
+      const refBtn = document.createElement('div');
+      refBtn.id = 'refdiff-ooui-btn';
+      refBtn.className = 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget oo-ui-optionWidget-selected oo-ui-buttonElement-active';
+      refBtn.setAttribute('role', 'option');
+      refBtn.setAttribute('aria-selected', 'true');
+      refBtn.setAttribute('title', 'RefDiff: Decoupled citation diff view');
+      refBtn.innerHTML = `
+        <a class="oo-ui-buttonElement-button" role="button" tabindex="0">
+          <span class="oo-ui-iconElement-icon oo-ui-icon-diffs oo-ui-image-invert"></span>
+          <span class="oo-ui-labelElement-label">RefDiff</span>
+          <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator oo-ui-image-invert"></span>
+        </a>
+      `;
+      selectWidget.appendChild(refBtn);
+
+      // Deselect Wikitext button initially since RefDiff starts decoupled
+      if (wikiBtn) {
+        wikiBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
+        wikiBtn.setAttribute('aria-selected', 'false');
+        const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
+        if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
+      }
+
+      // Add stats container in the prefix bar if present
+      const prefix = document.querySelector('.mw-diff-table-prefix');
+      if (prefix && !document.getElementById('refdiff-stats-note')) {
+        const statsEl = document.createElement('div');
+        statsEl.id = 'refdiff-stats-note';
+        statsEl.className = 'refdiff-stats-note';
+        statsEl.style.marginRight = 'auto';
+        statsEl.style.fontSize = '13px';
+        statsEl.style.color = '#72777d';
+        prefix.insertBefore(statsEl, prefix.firstChild);
+      }
+
+      function activateRefDiff() {
+        refBtn.classList.add('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
+        refBtn.setAttribute('aria-selected', 'true');
+        const refIcon = refBtn.querySelector('.oo-ui-iconElement-icon');
+        if (refIcon) refIcon.classList.add('oo-ui-image-invert');
+
+        if (wikiBtn) {
+          wikiBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
+          wikiBtn.setAttribute('aria-selected', 'false');
+          const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
+          if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
+        }
+        applyDecoupling(table);
+      }
+
+      function deactivateRefDiff() {
+        refBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
+        refBtn.setAttribute('aria-selected', 'false');
+        const refIcon = refBtn.querySelector('.oo-ui-iconElement-icon');
+        if (refIcon) refIcon.classList.remove('oo-ui-image-invert');
+
+        if (wikiBtn) {
+          wikiBtn.classList.add('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
+          wikiBtn.setAttribute('aria-selected', 'true');
+          const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
+          if (wikiIcon) wikiIcon.classList.add('oo-ui-image-invert');
+        }
+        restoreOriginal(table);
+      }
+
+      refBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        activateRefDiff();
+      });
+
+      if (wikiBtn) {
+        wikiBtn.addEventListener('click', () => {
+          deactivateRefDiff();
+        });
+      }
+
+      if (visualBtn) {
+        visualBtn.addEventListener('click', () => {
+          refBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
+          refBtn.setAttribute('aria-selected', 'false');
+          const refIcon = refBtn.querySelector('.oo-ui-iconElement-icon');
+          if (refIcon) refIcon.classList.remove('oo-ui-image-invert');
+        });
+      }
+    } else {
+      // Fallback mode switcher bar for skins without OOUI diff-mode switcher
+      const modeBar = document.createElement('div');
+      modeBar.id = 'refdiff-mode-bar';
+      modeBar.className = 'refdiff-mode-bar';
+      modeBar.innerHTML = `
+        <strong>Diff view:</strong>
+        <a href="#" id="refdiff-btn-decoupled" class="active">Decoupled (RefDiff)</a> &bull;
+        <a href="#" id="refdiff-btn-standard">Standard Wikidiff</a>
+        <span id="refdiff-stats-note" style="color: #72777d; font-size: 12px; margin-left: 10px;"></span>
+      `;
+      table.parentNode.insertBefore(modeBar, table);
+
+      const btnDecoupled = document.getElementById('refdiff-btn-decoupled');
+      const btnStandard = document.getElementById('refdiff-btn-standard');
+
+      btnStandard.addEventListener('click', (e) => {
+        e.preventDefault();
+        btnStandard.classList.add('active');
+        btnDecoupled.classList.remove('active');
+        restoreOriginal(table);
+      });
+
+      btnDecoupled.addEventListener('click', (e) => {
+        e.preventDefault();
+        btnDecoupled.classList.add('active');
+        btnStandard.classList.remove('active');
+        applyDecoupling(table);
+      });
+    }
 
     // Apply decoupled transformation by default
     applyDecoupling(table);
-
-    // Hook buttons
-    const btnDecoupled = document.getElementById('refdiff-btn-decoupled');
-    const btnStandard = document.getElementById('refdiff-btn-standard');
-
-    btnStandard.addEventListener('click', (e) => {
-      e.preventDefault();
-      btnStandard.classList.add('active');
-      btnDecoupled.classList.remove('active');
-      restoreOriginal(table);
-    });
-
-    btnDecoupled.addEventListener('click', (e) => {
-      e.preventDefault();
-      btnDecoupled.classList.add('active');
-      btnStandard.classList.remove('active');
-      applyDecoupling(table);
-    });
   }
 
   if (window.mw && mw.hook) {
