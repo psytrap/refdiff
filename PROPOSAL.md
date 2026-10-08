@@ -123,8 +123,14 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 1. **Render Suppression:** `<references-def>` registers citations with the parser but emits **no HTML** at that position.
 2. **Global Aggregation:** The global `<references />` tag at the bottom collects all definitions across all `<references-def>` blocks on the page, rendering a continuous `[1], [2], ...` numbered list ordered by first appearance in the text.
-3. **Fault Tolerance & Bot Cleanup:** If an author moves a sentence with `<ref name="..." />` to another section and forgets to move the definition, **the page does not break** (definitions resolve page-wide). Maintenance bots can asynchronously clean up and migrate misplaced definitions to their respective section.
-4. **Multi-Page Reuse:** Fully compatible with MediaWiki's native sub-referencing (`<ref name="book" details="p. 45" />`) as well as community page templates (`<ref name="book" />{{rp|45}}`).
+3. **Fault Tolerance & Relocation:** If an author moves a sentence with `<ref name="..." />` to another section and forgets to move the definition, **the page does not break** (definitions resolve page-wide). Maintenance bots can asynchronously clean up and migrate misplaced definitions to their respective section.
+4. **Cross-Section Dependencies & Deletion Resilience:**
+   * *The Hazard:* If Section A defines `<ref name="smith2020">` and Section B reuses `<ref name="smith2020" />`, subsequent deletion or refactoring of Section A could orphan the call in Section B (`cite_error_references_no_text`).
+   * *Status Quo Parity:* This hazard is identical to status-quo inline references (where the primary definition is buried in an upstream paragraph). However, `<references-def>` makes this significantly easier to mitigate:
+     * **Tiered Placement:** Sources cited in a single section remain in that section's `<references-def>`. Pervasive sources cited across many sections can optionally be defined in a document-level `<references-def>` block near `== References ==`.
+     * **Parser Idempotency:** Defining the identical reference in multiple section blocks is accepted without error; the parser deduplicates them cleanly, allowing sections to be fully self-contained.
+     * **Edit-Time Linter / VE Warning:** Because definitions are held in structured blocks rather than buried in prose, Parsoid and edit preview tools can detect when a deleted definition is still referenced downstream, warning the editor to hoist the definition before saving.
+5. **Multi-Page Reuse:** Fully compatible with MediaWiki's native sub-referencing (`<ref name="book" details="p. 45" />`) as well as community page templates (`<ref name="book" />{{rp|45}}`).
 
 ---
 

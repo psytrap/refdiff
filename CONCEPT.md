@@ -321,10 +321,26 @@ Three technical pathways exist for realizing this model:
 * **Guaranteed Fault Tolerance:** The page **never breaks**. Because the parser aggregates definitions page-wide, the reference resolves seamlessly and renders correctly at the document bottom.
 * **Bots Clean Up:** Maintenance bots asynchronously detect that `<ref name="ref1" />` is only referenced in Section 4, and automatically migrate its definition into Section 4's `<references-def>`.
 
-### 7.2 Cross-Section References
-If a seminal work is cited across multiple sections:
-* The parser allows any section to call `<ref name="..." />` regardless of which `<references-def>` block defines it.
-* Highly ubiquitous, cross-cutting citations can optionally be housed in a document-level `<references-def>` block near the end.
+### 7.2 Cross-Section References & Deletion Hazards
+A frequent scenario in long-form articles is cross-section reference reuse:
+* **The Scenario:** Editor A defines `<ref name="Smith2020">` in the `== Early life ==` section. Editor B reuses `<ref name="Smith2020" />` three sections down in `== Legacy ==`.
+* **The Hazard:** Months later, another contributor refactors, deletes, or splits `== Early life ==` without realizing that downstream sections rely on that definition, potentially causing a classic `cite_error_references_no_text` ("Cite error: The named reference Smith2020 was defined multiple times or was not defined at all").
+
+#### Comparison with Status Quo
+This vulnerability is not new to `<references-def>`; it is the **exact same failure mode that plagues inline references today**, where the primary definition is buried inside an upstream paragraph. In fact, status-quo inline refs make this worse: an editor deleting a paragraph rarely inspects the inline citation tags to determine if it is the primary definition or just an invocation.
+
+#### Architectural Mitigations with `<references-def>`:
+1. **Global Parser Aggregation:** Definitions inside `<references-def>` are parsed into the global citation pool, so cross-section reuses resolve transparently without error.
+2. **Tiered Source Placement:**
+   * *Section-local sources:* Placed in the section's `<references-def>`.
+   * *Ubiquitous / Cross-cutting sources:* Can be placed in a top-level or article-end `<references-def>` block (near `== References ==`), signaling to editors that these citations are global dependencies.
+3. **Parser Idempotency (Safe Duplication):**
+   * If an editor in `== Legacy ==` wants their section to be 100% self-contained and atomic against upstream deletions, they can safely define `<ref name="Smith2020">...</ref>` in their own `<references-def>` block as well. As long as the definition matches, the parser deduplicates it idempotently without throwing a duplicate-key error.
+4. **Edit-Time Linter & VisualEditor Diagnostics:**
+   * Because definitions reside in dedicated, parseable `<references-def>` blocks, section edit previews and Parsoid linters can easily inspect the document AST. If an editor removes `<ref name="Smith2020">` while another section still calls `<ref name="Smith2020" />`, the editor is alerted before saving:
+     > ⚠️ *"Reference 'Smith2020' removed in this section is still cited in 'Legacy'. Hoist to article-level references?"*
+5. **Automated Bot Hoisting:**
+   * Citation maintenance bots (e.g. AnomieBOT) can inspect revision diffs and automatically hoist orphaned `<references-def>` entries to the downstream section or the global reference block.
 
 ### 7.3 Deterministic Formatting for Zero-Diff Commits
 To maximize Git efficiency:
