@@ -31,9 +31,11 @@
   // Only run on MediaWiki diff pages
   const isDiffPage = () => {
     return !!(
+      (window.mw && (mw.config.get('wgDiffNewId') || mw.config.get('wgDiffOldId'))) ||
       document.querySelector('table.diff') ||
       document.getElementById('wikiDiff') ||
-      (window.mw && mw.config.get('wgDiffNewId'))
+      /[?&]diff=/.test(location.search) ||
+      /\/wiki\/Special:Diff\//.test(location.pathname)
     );
   };
 
@@ -301,6 +303,7 @@
     isDecoupled = false;
   }
 
+  let initRetries = 0;
   function init() {
     const table = document.querySelector('table.diff');
     if (!table || document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-mode-bar')) return;
@@ -313,88 +316,126 @@
       document.head.appendChild(styleEl);
     }
 
-    const selectWidget = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget');
+    const buttonGroup = document.querySelector(
+      '.ve-init-mw-diffPage-diffMode .oo-ui-buttonGroupWidget, ' +
+      '.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget, ' +
+      '.ve-init-mw-diffPage-diffMode > *'
+    );
 
-    if (selectWidget) {
-      // Find Wikitext and Visual buttons
-      const wikiBtn = Array.from(selectWidget.children).find(c => c.textContent.includes('Wikitext'));
-      const visualBtn = Array.from(selectWidget.children).find(c => c.textContent.includes('Visual'));
+    // If diffMode container is present but buttonGroup children are not yet populated, retry briefly
+    const diffModeContainer = document.querySelector('.ve-init-mw-diffPage-diffMode');
+    if (!buttonGroup && diffModeContainer && initRetries < 5) {
+      initRetries++;
+      setTimeout(init, 100);
+      return;
+    }
 
-      // Create native OOUI RefDiff button option
-      const refBtn = document.createElement('div');
+    if (buttonGroup) {
+      if (document.getElementById('refdiff-ooui-btn')) return;
+
+      const isSelect = buttonGroup.classList.contains('oo-ui-buttonSelectWidget');
+      const wikiBtn = Array.from(buttonGroup.children).find(c => c.textContent.includes('Wikitext'));
+
+      // Create native OOUI RefDiff button
+      const refBtn = document.createElement(isSelect ? 'div' : 'span');
       refBtn.id = 'refdiff-ooui-btn';
-      refBtn.className = 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget oo-ui-optionWidget-selected oo-ui-buttonElement-active';
-      refBtn.setAttribute('role', 'option');
-      refBtn.setAttribute('aria-selected', 'true');
+      refBtn.className = isSelect
+        ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget oo-ui-optionWidget-selected oo-ui-buttonElement-active'
+        : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget oo-ui-buttonElement-active';
+      refBtn.setAttribute('role', isSelect ? 'option' : 'button');
+      if (isSelect) refBtn.setAttribute('aria-selected', 'true');
       refBtn.setAttribute('title', 'RefDiff: Decoupled citation diff view');
       refBtn.innerHTML = `
-        <a class="oo-ui-buttonElement-button" role="button" tabindex="0">
+        <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
           <span class="oo-ui-iconElement-icon oo-ui-icon-diffs oo-ui-image-invert"></span>
           <span class="oo-ui-labelElement-label">RefDiff</span>
           <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator oo-ui-image-invert"></span>
         </a>
       `;
-      selectWidget.appendChild(refBtn);
+      buttonGroup.appendChild(refBtn);
 
       // Deselect Wikitext button initially since RefDiff starts decoupled
       if (wikiBtn) {
-        wikiBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
-        wikiBtn.setAttribute('aria-selected', 'false');
+        wikiBtn.classList.remove('oo-ui-buttonElement-active', 'oo-ui-optionWidget-selected');
+        if (isSelect) wikiBtn.setAttribute('aria-selected', 'false');
         const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
         if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
       }
 
+      function updateButtonState(active) {
+        const btn = document.getElementById('refdiff-ooui-btn');
+        if (!btn) return;
+        const group = btn.parentElement;
+        const currentWiki = group ? Array.from(group.children).find(c => c.textContent.includes('Wikitext')) : null;
+        const currentIsSelect = group && group.classList.contains('oo-ui-buttonSelectWidget');
 
-      function activateRefDiff() {
-        refBtn.classList.add('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
-        refBtn.setAttribute('aria-selected', 'true');
-        const refIcon = refBtn.querySelector('.oo-ui-iconElement-icon');
-        if (refIcon) refIcon.classList.add('oo-ui-image-invert');
+        if (active) {
+          btn.classList.add('oo-ui-buttonElement-active');
+          if (currentIsSelect) {
+            btn.classList.add('oo-ui-optionWidget-selected');
+            btn.setAttribute('aria-selected', 'true');
+          }
+          const icon = btn.querySelector('.oo-ui-iconElement-icon');
+          if (icon) icon.classList.add('oo-ui-image-invert');
 
-        if (wikiBtn) {
-          wikiBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
-          wikiBtn.setAttribute('aria-selected', 'false');
-          const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
-          if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
+          if (currentWiki) {
+            currentWiki.classList.remove('oo-ui-buttonElement-active', 'oo-ui-optionWidget-selected');
+            if (currentIsSelect) currentWiki.setAttribute('aria-selected', 'false');
+            const wIcon = currentWiki.querySelector('.oo-ui-iconElement-icon');
+            if (wIcon) wIcon.classList.remove('oo-ui-image-invert');
+          }
+        } else {
+          btn.classList.remove('oo-ui-buttonElement-active', 'oo-ui-optionWidget-selected');
+          if (currentIsSelect) btn.setAttribute('aria-selected', 'false');
+          const icon = btn.querySelector('.oo-ui-iconElement-icon');
+          if (icon) icon.classList.remove('oo-ui-image-invert');
+
+          if (currentWiki) {
+            currentWiki.classList.add('oo-ui-buttonElement-active');
+            if (currentIsSelect) {
+              currentWiki.classList.add('oo-ui-optionWidget-selected');
+              currentWiki.setAttribute('aria-selected', 'true');
+            }
+            const wIcon = currentWiki.querySelector('.oo-ui-iconElement-icon');
+            if (wIcon) wIcon.classList.add('oo-ui-image-invert');
+          }
         }
-        applyDecoupling(table);
       }
 
-      function deactivateRefDiff() {
-        refBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
-        refBtn.setAttribute('aria-selected', 'false');
-        const refIcon = refBtn.querySelector('.oo-ui-iconElement-icon');
-        if (refIcon) refIcon.classList.remove('oo-ui-image-invert');
+      // Delegated click handling on diffModeContainer with capture phase
+      if (diffModeContainer && !diffModeContainer._refdiffBound) {
+        diffModeContainer._refdiffBound = true;
+        diffModeContainer.addEventListener('click', (e) => {
+          const btn = e.target.closest('.oo-ui-buttonElement, .oo-ui-buttonWidget, .oo-ui-buttonOptionWidget, [role="button"], [role="option"]');
+          if (!btn) return;
+          if (btn.id === 'refdiff-ooui-btn' || btn.closest('#refdiff-ooui-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            updateButtonState(true);
+            applyDecoupling(table);
+          } else if (btn.textContent.includes('Wikitext')) {
+            updateButtonState(false);
+            restoreOriginal(table);
+          } else if (btn.textContent.includes('Visual')) {
+            const rBtn = document.getElementById('refdiff-ooui-btn');
+            if (rBtn) {
+              rBtn.classList.remove('oo-ui-buttonElement-active', 'oo-ui-optionWidget-selected');
+              const icon = rBtn.querySelector('.oo-ui-iconElement-icon');
+              if (icon) icon.classList.remove('oo-ui-image-invert');
+            }
+          }
+        }, true);
 
-        if (wikiBtn) {
-          wikiBtn.classList.add('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
-          wikiBtn.setAttribute('aria-selected', 'true');
-          const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
-          if (wikiIcon) wikiIcon.classList.add('oo-ui-image-invert');
-        }
-        restoreOriginal(table);
-      }
-
-      refBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        activateRefDiff();
-      });
-
-      if (wikiBtn) {
-        wikiBtn.addEventListener('click', () => {
-          deactivateRefDiff();
+        // Watch for VisualEditor DOM re-renders of the button container
+        const observer = new MutationObserver(() => {
+          if (!document.getElementById('refdiff-ooui-btn')) {
+            init();
+          }
         });
-      }
-
-      if (visualBtn) {
-        visualBtn.addEventListener('click', () => {
-          refBtn.classList.remove('oo-ui-optionWidget-selected', 'oo-ui-buttonElement-active');
-          refBtn.setAttribute('aria-selected', 'false');
-          const refIcon = refBtn.querySelector('.oo-ui-iconElement-icon');
-          if (refIcon) refIcon.classList.remove('oo-ui-image-invert');
-        });
+        observer.observe(diffModeContainer, { childList: true, subtree: true });
       }
     } else {
+      if (document.getElementById('refdiff-mode-bar')) return;
       // Fallback mode switcher bar for skins without OOUI diff-mode switcher
       const modeBar = document.createElement('div');
       modeBar.id = 'refdiff-mode-bar';
