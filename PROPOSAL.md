@@ -38,6 +38,10 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 <references />
 ```
 
+> [!NOTE]
+> **Tooling-Friendly Alternative (`<references definition="true">`):**  
+> An alternative candidate under discussion is reusing the existing tag with an attribute: `<references definition="true">` (or `<references define>`). Because parsers (`mwparserfromhell`, `wikitextparser`), bots (AWB), and regex pipelines already treat `<references>...</references>` as a known container for definitions (via LDR), this attribute approach minimizes churn across existing toolchains while achieving identical section-scoping semantics.
+
 ## 3. Concrete Diff Comparison
 
 <div style="background: #0f141c; padding: 16px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: #cdd9e5; line-height: 1.5; margin: 12px 0; border: 1px solid #2d333b;">
