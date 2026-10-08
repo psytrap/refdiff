@@ -16,7 +16,7 @@ A dedicated diff-decoupling engine and visualization tool that eliminates "templ
 **`RefDiff`** (conceptually described as the **Ref-Differentiator**) carries a deliberate triple meaning:
 1. **Differentiating Prose from Citations:** It functionally decouples two fundamentally orthogonal layers—factual assertions (prose) and evidentiary support (citations).
 2. **Diffing References in Isolation:** It calculates dedicated, granular diffs for bibliographic metadata (e.g. highlighting that only `|pages=45` changed to `|pages=52`) without dragging the surrounding paragraph into the diff hunk.
-3. **The Spiritual Successor to *References Segregator*:** While PleaseStand's 2011 *References Segregator* attempted to help *writers* in the edit window, *RefDiff* solves the far more critical problem for *reviewers* on diff pages.
+3. **The Spiritual Successor to *References Segregator*:** While PleaseStand's 2011 [**References Segregator**](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator) ([`User:PleaseStand/segregate-refs.js`](https://en.wikipedia.org/wiki/User:PleaseStand/segregate-refs.js)) decoupled the *editor* window for writers, **RefDiff** solves the diff-decoupling problem for *reviewers* on diff pages.
 
 ### Canonical Identifiers
 * **Full Tool Name:** `RefDiff`

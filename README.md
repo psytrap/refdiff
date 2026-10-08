@@ -35,7 +35,17 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
   ```
 * Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
 
-### 2. Archived: Python Prototype (`archive/python-prototype/`)
+### 2. The Editor Companion: References Segregator
+
+While **RefDiff** addresses the **reviewing / diff** experience on `Special:Diff`, the complementary problem for the **editing** window is handled by PleaseStand's user script:
+
+* ✍️ [**References Segregator**](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator) ([`User:PleaseStand/segregate-refs.js`](https://en.wikipedia.org/wiki/User:PleaseStand/segregate-refs.js)): Temporarily splits the wikitext editing window into two textareas—clean prose in the main editor and reference definitions in a secondary pane below. Upon saving or previewing, it automatically re-inlines the citations, keeping the raw database wikitext untouched and compliant with `WP:CITEVAR`.
+
+Together, they form a complete virtual decoupling workflow:
+* **Writing / Editing:** [References Segregator](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator)
+* **Reviewing / Diffs:** **RefDiff** ([`refdiff.js`](refdiff.js))
+
+### 3. Archived: Python Prototype (`archive/python-prototype/`)
 
 The repository includes the archived proof-of-concept Python 3 engine and Git external diff driver in [`archive/python-prototype/`](archive/python-prototype/):
 
