@@ -308,33 +308,37 @@ Three technical pathways exist for realizing this model:
 | Candidate | Example | Evaluation |
 | :--- | :--- | :--- |
 | **`<references-def>`** *(Primary Working Title)* | `<references-def>`<br>`  <ref name="id">...</ref>`<br>`</references-def>` | **Optimal Semantics:** Clearly separates *definition/declaration* (`def`) from *rendering* (`references`). Prevents accidental output rendering on unpatched legacy parsers. |
-| **`<references definition="true">`** *(Tooling-Friendly Alternative)* | `<references definition="true">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Optimal Tooling Compatibility:** Reuses the existing `<references>` tag. Existing AST parsers, bots (AWB), and regexes instantly recognize the block without needing new tag registration. |
-| **`<references define>`** | `<references define>`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Compact Attribute:** Boolean flag on `<references>`. Short and readable, but shares the same behavior as `definition="true"`. |
+| **`<references display="no">`** / **`display="none"`** *(Direct Display Suppression)* | `<references display="no">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Resolves Mental Conflict:** Directly explains *why* the tag is placed in the section without rendering footnotes there. Borrows from standard HTML/CSS (`display: none`) and common wiki template conventions (`display=no`). Reuses existing `<references>` AST nodes. |
+| **`<references definition="true">`** / **`<references define>`** *(Functional Role)* | `<references definition="true">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Optimal Tooling Compatibility:** Explicitly names the container's purpose. Reuses the existing `<references>` tag; existing AST parsers, bots (AWB), and regexes instantly recognize the block. |
 | **`<references scope="section">`** | `<references scope="section">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Ambiguous Scope:** Suggests that references are strictly isolated to the section, contradicting the desired page-wide fault tolerance. |
 | **`<references-sub>`** | `<references-sub>`<br>`  <ref name="id">...</ref>`<br>`</references-sub>` | **Confusing:** Risks collision with MediaWiki's existing "sub-referencing" feature (`details="..."`). |
 
 ---
 
-### 6.1 Dedicated Tag (`<references-def>`) vs. Existing Tag Attribute (`<references definition="true">`)
+### 6.1 Dedicated Tag (`<references-def>`) vs. Existing Tag Attribute (`display="no"` / `definition="true"`)
 
-A central architectural decision is whether to introduce a **new parser tag** (`<references-def>`) or an **attribute on the existing tag** (`<references definition="true">` or `<references define>`):
+A central architectural decision is whether to introduce a **new parser tag** (`<references-def>`) or an **attribute on the existing tag** (`<references display="no">` or `<references definition="true">`):
 
-#### Advantages of `<references definition="true">` (The Tooling & Bot Perspective)
+#### Advantages of the Attribute Approach (`display="no"` / `definition="true"`)
 Tool and bot maintainers (AWB, Refill, ProveIt, Pywikibot, user scripts) often express fatigue when new XML tags are added to wikitext because every grammar, syntax highlighter, and regex pipeline must be updated. Reusing `<references>` offers major benefits:
 1. **AST & Parser Continuity:**
    Python and Node.js wikitext parsers (`mwparserfromhell`, `wikitextparser`, Parsoid AST) already treat `<references>...</references>` as a known node that encapsulates `<ref>` definitions (due to List-Defined References).
 2. **Regex & Bot Compatibility:**
    Scripts that search for reference definitions using expressions like `/<references(?:\s+[^>]*)?>.*?<\/references>/is` automatically capture section definition blocks without code modifications.
 3. **Conceptual Parity with List-Defined References (LDR):**
-   MediaWiki already uses `<references>` to hold reference definitions at the document bottom. Adding `definition="true"` simply instructs the parser: *"Perform the definition indexing of `<references>`, but suppress immediate HTML output at this location."*
+   MediaWiki already uses `<references>` to hold reference definitions at the document bottom. Suppressing display via `display="no"` simply instructs the parser: *"Perform the definition indexing of `<references>`, but suppress immediate HTML output at this location."*
+
+#### Naming the Attribute: `display="no"` vs. `definition="true"`
+* **`definition="true"` (or `define`):** Describes *what the block is* (a definition registry).
+* **`display="no"` (or `display="none"`):** Describes *what the renderer should do* (suppress visual output). This directly resolves the cognitive dissonance of placing a `<references>` tag inside a section: the attribute explicitly tells the human editor and reviewer *"do not display references here; this is for parsing only"*, mirroring the familiar CSS `display: none` and Wikipedia template idiom `display=no`.
 
 #### Trade-Offs & Counter-Arguments
 1. **Fallback on Unpatched Parsers:**
-   In standard MediaWiki today, `<references>` ignores unrecognized attributes. If an article containing `<references definition="true">` is rendered on an unpatched third-party wiki or an older parser, it would immediately render an HTML numbered list in the middle of the section. In contrast, `<references-def>` would be treated as an unknown tag or suppressed, avoiding duplicated footnote lists.
+   In standard MediaWiki today, `<references>` ignores unrecognized attributes. If an article containing `<references display="no">` is rendered on an unpatched third-party wiki or an older parser, it would immediately render an HTML numbered list in the middle of the section. In contrast, `<references-def>` would be treated as an unknown tag or suppressed, avoiding duplicated footnote lists.
 2. **Action vs. Declaration Mental Model:**
    For human editors, `<references />` has historically meant an *action* ("render the bibliography here"). Some editors find `<references-def>` more intuitive because the `-def` suffix clearly communicates that it is a *declaration block* rather than a display element.
 
-**Recommendation:** The proposal maintains `<references-def>` as its working title, but formally presents `<references definition="true">` as a drop-in attribute candidate if WMF Core and tool maintainers favor AST reuse.
+**Recommendation:** The proposal maintains `<references-def>` as its working title, but formally presents `<references display="no">` (and `<references definition="true">`) as drop-in attribute candidates if WMF Core and tool maintainers favor AST reuse.
 
 ---
 
