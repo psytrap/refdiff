@@ -174,6 +174,19 @@
       pairs.push({ d: null, a, name: extractName(a.attrs) });
     }
 
+    // Sort pairs by appearance order in document
+    pairs.sort((p1, p2) => {
+      if (p1.a && p2.a) {
+        return addRefs.indexOf(p1.a) - addRefs.indexOf(p2.a);
+      }
+      if (p1.d && p2.d) {
+        return delRefs.indexOf(p1.d) - delRefs.indexOf(p2.d);
+      }
+      const pos1 = p1.a ? addRefs.indexOf(p1.a) : delRefs.indexOf(p1.d);
+      const pos2 = p2.a ? addRefs.indexOf(p2.a) : delRefs.indexOf(p2.d);
+      return pos1 - pos2;
+    });
+
     return pairs;
   }
 

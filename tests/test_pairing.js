@@ -119,10 +119,23 @@ function pairReferences(delRefs, addRefs) {
     pairs.push({ d: null, a, name: extractName(a.attrs) });
   }
 
+  // Sort pairs by appearance order in document
+  pairs.sort((p1, p2) => {
+    if (p1.a && p2.a) {
+      return addRefs.indexOf(p1.a) - addRefs.indexOf(p2.a);
+    }
+    if (p1.d && p2.d) {
+      return delRefs.indexOf(p1.d) - delRefs.indexOf(p2.d);
+    }
+    const pos1 = p1.a ? addRefs.indexOf(p1.a) : delRefs.indexOf(p1.d);
+    const pos2 = p2.a ? addRefs.indexOf(p2.a) : delRefs.indexOf(p2.d);
+    return pos1 - pos2;
+  });
+
   return pairs;
 }
 
-// Test insertion at front:
+// Test 1: Insertion at front:
 const del1 = [
   { raw: '&lt;ref name="A"&gt;A&lt;/ref&gt;', attrs: 'name="A"', content: 'A' },
   { raw: '&lt;ref name="B"&gt;B&lt;/ref&gt;', attrs: 'name="B"', content: 'B' }
@@ -135,16 +148,37 @@ const add1 = [
 
 const p1 = pairReferences(del1, add1);
 assert.strictEqual(p1.length, 3);
-// Pass 1 pairs A and B
-assert.strictEqual(p1[0].name, 'A');
-assert.strictEqual(p1[0].d.content, 'A');
-assert.strictEqual(p1[0].a.content, 'A mod');
-assert.strictEqual(p1[1].name, 'B');
-assert.strictEqual(p1[1].d.content, 'B');
-assert.strictEqual(p1[1].a.content, 'B');
-// Added FIRST
-assert.strictEqual(p1[2].name, 'FIRST');
-assert.strictEqual(p1[2].d, null);
-assert.strictEqual(p1[2].a.content, 'first');
+// In document appearance order, FIRST is at index 0, A is at index 1, B is at index 2
+assert.strictEqual(p1[0].name, 'FIRST');
+assert.strictEqual(p1[0].d, null);
+assert.strictEqual(p1[0].a.content, 'first');
+assert.strictEqual(p1[1].name, 'A');
+assert.strictEqual(p1[1].d.content, 'A');
+assert.strictEqual(p1[1].a.content, 'A mod');
+assert.strictEqual(p1[2].name, 'B');
+assert.strictEqual(p1[2].d.content, 'B');
+assert.strictEqual(p1[2].a.content, 'B');
+
+// Test 2: Modified citation between two unmodified citations (Solar System case)
+const del2 = [
+  { raw: '&lt;ref&gt;Ref 1&lt;/ref&gt;', attrs: '', content: 'Ref 1' },
+  { raw: '&lt;ref&gt;Ref 2 (old)&lt;/ref&gt;', attrs: '', content: 'Ref 2 (old)' },
+  { raw: '&lt;ref&gt;Ref 3&lt;/ref&gt;', attrs: '', content: 'Ref 3' }
+];
+const add2 = [
+  { raw: '&lt;ref&gt;Ref 1&lt;/ref&gt;', attrs: '', content: 'Ref 1' },
+  { raw: '&lt;ref&gt;Ref 2 (new)&lt;/ref&gt;', attrs: '', content: 'Ref 2 (new)' },
+  { raw: '&lt;ref&gt;Ref 3&lt;/ref&gt;', attrs: '', content: 'Ref 3' }
+];
+
+const p2 = pairReferences(del2, add2);
+assert.strictEqual(p2.length, 3);
+// Should preserve exact sequential 1, 2, 3 appearance order
+assert.strictEqual(p2[0].d.content, 'Ref 1');
+assert.strictEqual(p2[0].a.content, 'Ref 1');
+assert.strictEqual(p2[1].d.content, 'Ref 2 (old)');
+assert.strictEqual(p2[1].a.content, 'Ref 2 (new)');
+assert.strictEqual(p2[2].d.content, 'Ref 3');
+assert.strictEqual(p2[2].a.content, 'Ref 3');
 
 console.log("All refdiff.js JavaScript unit tests passed successfully!");
