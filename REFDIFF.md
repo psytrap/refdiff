@@ -108,50 +108,43 @@ Line 42:
 ## 5. Algorithmic Pipeline & Technical Design
 
 ```
-Raw Wikitext (Old) ──► [Tokenize & Extract] ──► (Clean Prose A, Ref Map A)
-                                                        │
-                                                        ├──► [Myers/Patience Diff] ──► Prose Diff
-                                                        │
-Raw Wikitext (New) ──► [Tokenize & Extract] ──► (Clean Prose B, Ref Map B)
-                                                        │
-                                                        └──► [Key-Value Ref Delta] ──► Citation Delta
+Raw Wikitext (Old) ──► [Extract & Sentinelize] ──► (Clean Prose A, Raw Refs A)
+                                                         │
+                                                         ├──► [Word-Level Diff] ──► Prose Diff
+                                                         │
+Raw Wikitext (New) ──► [Extract & Sentinelize] ──► (Clean Prose B, Raw Refs B)
+                                                         │
+                                                         └──► [Raw Content Diff] ──► Citation Diff
 ```
 
 ### Step 5.1: Tokenization & Separation
-The parser scans wikitext and segregates content into two discrete data structures:
-1. **Prose Stream:** Replaces all `<ref>...</ref>` and `<ref name="..." />` tags with opaque sentinel tokens: `__REF_TOKEN_1__`, `__REF_TOKEN_2__`.
-2. **Citation Registry:** A key-value dictionary indexing each reference:
+The parser scans wikitext and segregates content into two discrete data structures without decoding or altering inner templates:
+1. **Prose Stream:** Replaces all `<ref>...</ref>` and `<ref name="..." />` tags with opaque sentinel tokens: `⟦ref:schmidt2020⟧`.
+2. **Citation Registry:** Stores the raw wikitext content of each `<ref>` span indexed by its identifier (`name` or position):
    ```json
    {
      "schmidt2020": {
-       "raw": "{{Cite book |author=Schmidt |pages=112}}",
-       "template": "Cite book",
-       "params": {
-         "author": "Schmidt",
-         "pages": "112"
-       },
-       "positions": [42]
+       "raw": "{{Cite book |author=Schmidt |pages=112}}"
      }
    }
    ```
 
 ### Step 5.2: Prose Diff Calculation
-* The prose stream is diffed using standard patience / word-level diff algorithms.
-* Sentinel tokens (`__REF_TOKEN_X__`) are rendered as clickable superscript badge anchors (`[1]`, `[2]`).
+* The prose stream is diffed using standard word-level sequence matching algorithms.
+* Sentinel tokens are rendered as clickable superscript badge anchors (`[1]`, `[2]`).
 * If a reference anchor was moved to another paragraph, the badge displays a subtle "moved" indicator without polluting prose words.
 
-### Step 5.3: Citation Registry Delta Calculation
-The tool compares `RefMapA` against `RefMapB`:
-* **Added Citations:** Present in B, absent in A.
-* **Removed Citations:** Present in A, absent in B.
-* **Modified Citations:** Present in both, but content changed:
-  * For templated citations (`{{Cite ...}}`), the tool runs a **parameter-level field diff**:
+### Step 5.3: Raw Citation Diff Calculation (No Template Decoding)
+The tool compares `RawRefsA` against `RawRefsB`:
+* **Added Citations:** Present in B, absent in A. Renders as `{+ raw_content +}`.
+* **Removed Citations:** Present in A, absent in B. Renders as `[- raw_content -]`.
+* **Modified Citations:** Present in both, but inner content changed.
+  * Runs a **standard raw word-level diff directly on the inner text of the `<ref>` span**:
     ```
-    Template: Cite book
-    - pages: 112–115
-    + pages: 112–120
+    🟡 MODIFIED [schmidt2020]:
+       {{Cite book |author=Schmidt, Rainer |pages=[- 112–115 -] {+ 112–120 +} |isbn=...}}
     ```
-  * Identical parameters are dimmed; only modified parameters are highlighted.
+  * No template decoding, parameter extraction, or custom styling is performed—the exact raw wikitext diff is displayed with standard diff highlights (`[- old -]` / `{+ new +}`).
 
 ---
 
@@ -175,13 +168,11 @@ The tool compares `RefMapA` against `RefMapB`:
 </div>
 
 <div>
-  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Citation Audit Delta (Isolated Source Modifications)</div>
+  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Citations (Raw Diff on &lt;ref&gt; Span)</div>
   <div style="background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #30363d;">
-    <div style="color: #e3b341; font-weight: bold; margin-bottom: 6px;">🟡 Ref [1] (schmidt2020) — Parameter Updated:</div>
+    <div style="color: #e3b341; font-weight: bold; margin-bottom: 6px;">🟡 MODIFIED [schmidt2020]:</div>
     <div style="padding-left: 16px; font-size: 12px;">
-      <code>{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020</code><br>
-      <span style="color: #8b949e; margin-left: 14px;">|pages=</span> <span style="background: #5a1e1e; color: #ff7b72; padding: 1px 4px; border-radius: 2px;">45–48</span> ➔ <span style="background: #1b4729; color: #7ee787; padding: 1px 4px; border-radius: 2px; font-weight: bold;">45–52</span><br>
-      <code>}}</code>
+      <code>{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=</code><span style="background: #5a1e1e; color: #ff7b72; padding: 1px 4px; border-radius: 2px; text-decoration: line-through;">45–48</span> <span style="background: #1b4729; color: #7ee787; padding: 1px 4px; border-radius: 2px; font-weight: bold;">45–52</span> <code>|isbn=978-3-12-345678-9 |publisher=Springer}}</code>
     </div>
   </div>
 </div>
