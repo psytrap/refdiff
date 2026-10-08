@@ -336,9 +336,8 @@ A very common real-world scenario in Wikipedia is citing the same large monograp
 
 Section-scoped blocks harmonize cleanly with both native MediaWiki features and community templates:
 
-1. **Native MediaWiki Syntax: `Extension:Cite` Sub-Referencing (`details="..."`) — *Recommended***
-   * MediaWiki natively supports sub-referencing via the `details="..."` attribute (developed under the *WMDE Technical Wishes / Sub-referencing* project).
-   * The core bibliographic work is defined **once** in `<references-def>`, and prose callouts specify the exact location via `details="..."`:
+1. **Direct In-Prose Sub-Referencing (`<ref name="..." details="..." />`):**
+   * The core work is defined **once** in `<references-def>`, and prose callouts specify the exact location via `details="..."`:
      ```wikitext
      The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" details="p. 45" />
      Later radar maps confirmed extensive lava plains.<ref name="schmidt2020" details="pp. 112–115" />
@@ -347,17 +346,39 @@ Section-scoped blocks harmonize cleanly with both native MediaWiki features and 
      <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>
      </references-def>
      ```
-   * **Result:** MediaWiki renders the base source once in the references list and associates sub-references (e.g. `[1] pp. 112–115`) with it. The wikitext stays completely clean, modular, and standard-compliant.
+   * **Advantage:** Native MediaWiki standard out-of-the-box.
+   * **Limitation:** If a page number is corrected (e.g. `p. 45` → `p. 52`), the diff hunk touches the prose line in Git.
 
-2. **Community Template Alternative: In-Prose Page Suffix (`{{rp|...}}`) — *Legacy / en.wiki***
-   * On wikis or articles that do not use native sub-referencing, the community template `{{rp}}` (*Reference Page*) is often used to append superscript page numbers directly in prose:
+2. **Full Three-Tier Decoupling: Derived Sub-References in `<references-def>` (*Maximum Git-Blame Protection*) — *Optimal***
+   * To achieve 100% diff isolation even when correcting page numbers, derived references can be declared with their own ID inside `<references-def>`:
+     ```wikitext
+     == 1. Geology of Venus ==
+     The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020_p45" />
+     Later radar maps confirmed extensive lava plains.<ref name="schmidt2020_p112" />
+
+     <references-def>
+     <!-- Base monograph (declared once) -->
+     <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>
+
+     <!-- Page-specific derived references -->
+     <ref name="schmidt2020_p45" parent="schmidt2020" details="p. 45" />
+     <ref name="schmidt2020_p112" parent="schmidt2020" details="pp. 112–115" />
+     </references-def>
+     ```
+   * **Result:**
+     * **Prose Tier:** Completely immaculate. Sentences contain only lightweight, immutable reference anchors (`<ref name="schmidt2020_p45" />` or semantic anchors like `<ref name="venus-lava-depth" />`).
+     * **Definition Tier:** Correcting a page number (e.g. `p. 45` → `p. 52`) modifies **strictly the single line in `<references-def>`**. The prose sentence remains 100% untouched (`git blame` integrity preserved).
+     * **Rendering Tier:** Aggregated seamlessly in the global `<references />` list.
+
+3. **Community Template Alternative: In-Prose Page Suffix (`{{rp|...}}`) — *Legacy / en.wiki***
+   * On wikis that do not use native sub-referencing, the community template `{{rp}}` (*Reference Page*) appends superscript page numbers in prose:
      ```wikitext
      The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" />{{rp|45}}
      Later radar maps confirmed extensive lava plains.<ref name="schmidt2020" />{{rp|112–115}}
      ```
    * **Result:** Renders as `[1]:45` and `[1]:112–115`. Fully supported alongside `<references-def>`.
 
-3. **Shortened Footnotes (`{{sfn}}`) & Global Bibliography**
+4. **Shortened Footnotes (`{{sfn}}`) & Global Bibliography**
    * For articles employing separate `== Bibliography ==` sections, `<references-def>` works seamlessly with short-citation templates (`{{sfn|Schmidt|2020|p=45}}`), allowing editors to consolidate local citations without scattering templates into paragraph text.
 
 ---
