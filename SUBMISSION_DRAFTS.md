@@ -4,17 +4,8 @@ A ready-to-use template for starting discussions and RFCs on Wikimedia discussio
 
 ---
 
-## Target Venues
-
-* **MediaWiki Extension Talk:** [mediawiki.org/wiki/Extension_talk:Cite](https://www.mediawiki.org/wiki/Extension_talk:Cite)
-* **English Wikipedia:** [en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)
-* **German Wikipedia:** [de.wikipedia.org/wiki/Wikipedia_Diskussion:Einzelnachweise](https://de.wikipedia.org/wiki/Wikipedia_Diskussion:Einzelnachweise)
-
----
-
-## Thread Title / Subject
-
-`Proposal: Section-scoped reference blocks (<references-def>) for cleaner wikitext and better diffs`
+* **Target Venue:** English Wikipedia ([en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources))
+* **Section Title / Subject:** `Proposal: Section-scoped reference blocks (<references-def>) for cleaner wikitext and better diffs`
 
 ---
 
