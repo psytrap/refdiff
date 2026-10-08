@@ -1,6 +1,8 @@
 # Proposal: Section-Scoped Reference Blocks (`<references-def>`)
 
-A pragmatic, production-ready proposal for structuring references and citations in MediaWiki wikitext and Git version control.
+* **Target Venue:** Wikimedia Phabricator ([phabricator.wikimedia.org/maniphest/task/edit/form/1/](https://phabricator.wikimedia.org/maniphest/task/edit/form/1/))
+* **Task Title:** `Proposal: Section-scoped reference definition blocks (<references-def>) for clean diffs and citation locality`
+* **Projects / Tags:** `#extension-cite`, `#Parsoid`, `#MediaWiki-Parser`
 
 ---
 
