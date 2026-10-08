@@ -143,5 +143,10 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Citation Diff Row Prefixing:** Citation diff rows appended directly below the prose line now start with their matching badge (`⟨~ref3~⟩ <ref>...`) in gold/amber highlight, immediately connecting the prose badge to the citation change.
   * **Diff Header Minimalism:** Removed redundant text summary (`(Refs: ...)`) from the diff prefix bar to strictly maintain Wikipedia's clean, native header aesthetics.
   * **Subtle Secondary Styling for Unmodified References:** Replaced link-blue styling (`#0645ad` / `#6da2ff`) and bold weight on `.ref-badge` with Wikipedia's native secondary text color (`var(--color-subtle, #72777d)` in light mode, `#8c9196` in dark mode, normal font weight). Unchanged references blend naturally into prose context without mimicking hyperlinks or drawing false review attention.
+  * **Global On-Wiki Deployment & OOUI Container Resilience:**
+    * Published globally to Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)) and enabled for cross-wiki use across all language Wikipedias via [`m:Special:MyPage/global.js`](https://meta.wikimedia.org/wiki/Special:MyPage/global.js).
+    * Enhanced toolbar compatibility to seamlessly support both SSR `.oo-ui-buttonGroupWidget` and client-transformed `.oo-ui-buttonSelectWidget` containers with capture-phase event delegation and `MutationObserver` re-rendering resilience.
+    * Live on-wiki functionality confirmed working across diff views.
+
 
 
