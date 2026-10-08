@@ -156,8 +156,11 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **CI Pipeline & JavaScript Linting:**
     * Configured ESLint (`.eslintrc.json`) tailored for browser user scripts, MediaWiki globals (`mw`), and Node unit tests.
     * Added `package.json` with standard npm lifecycle scripts (`npm run lint`, `npm test`, `npm run ci`).
-    * Expanded JS unit test suite (`tests/test_pairing.js`) with tests for pure additions, pure deletions, and self-closing tags.
-    * Set up GitHub Actions workflow (`.github/workflows/ci.yml`) to automatically test Node (20.x, 22.x) and Python (3.10, 3.12) matrices on push and pull requests.
+  * **Archival of Python Prototype (`archive/python-prototype/`):**
+    * Moved standalone CLI prototype (`refdiff.py`, `git-refdiff`, and `tests/test_refdiff.py`) into [`archive/python-prototype/`](archive/python-prototype/) with its own dedicated README.
+    * Refocused root repository and primary documentation on the native MediaWiki in-browser user script (`refdiff.js`).
+    * Updated GitHub Actions CI to test the archived prototype suite via `PYTHONPATH=archive/python-prototype`.
+
 
 
 

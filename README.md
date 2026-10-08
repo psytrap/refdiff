@@ -35,32 +35,19 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
   ```
 * Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
 
-### 2. Standalone Python Engine & Git Driver (`refdiff.py`)
+### 2. Archived: Python Prototype (`archive/python-prototype/`)
 
-A zero-dependency Python 3 engine (stdlib only) that calculates granular word-level diffs on both prose and citation tags:
+The repository includes the archived proof-of-concept Python 3 engine and Git external diff driver in [`archive/python-prototype/`](archive/python-prototype/):
 
 ```bash
-# Fetch and diff live Wikipedia revisions directly by URL
-python3 refdiff.py "https://en.wikipedia.org/w/index.php?title=Solar_System&diff=1372329011"
-
-# Compare local wikitext revisions in terminal
-python3 refdiff.py old.wiki new.wiki
+# Compare local wikitext revisions via archived CLI
+python3 archive/python-prototype/refdiff.py old.wiki new.wiki
 
 # Show compact diffstat summary
-python3 refdiff.py --stat old.wiki new.wiki
+python3 archive/python-prototype/refdiff.py --stat old.wiki new.wiki
 
-# Emit structured JSON payload (for CI / bots)
-python3 refdiff.py --json old.wiki new.wiki
-
-# Run unit test suite
-python3 -m unittest discover tests
-```
-
-### 3. Git External Diff Driver (`git-refdiff`)
-Use RefDiff natively inside Git repositories for wikitext and documentation:
-```bash
-git config diff.wikitext.command "python3 /path/to/einzelnachweise/refdiff.py"
-echo "*.wiki diff=wikitext" >> .gitattributes
+# Run archived prototype tests
+PYTHONPATH=archive/python-prototype python3 -m unittest discover archive/python-prototype/tests
 ```
 
 

@@ -38,8 +38,9 @@ jobs:
       - name: Run JavaScript unit tests
         run: npm test
 
-      - name: Run Python unit tests
-        run: python -m unittest discover tests
+      - name: Run Archived Python prototype unit tests
+        run: PYTHONPATH=archive/python-prototype python -m unittest discover archive/python-prototype/tests
 
-      - name: Verify CLI smoke test
-        run: python refdiff.py --help
+      - name: Verify Archived Python CLI smoke test
+        run: python archive/python-prototype/refdiff.py --help
+

@@ -201,11 +201,11 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ## 8. Development Roadmap & Status
 
-* [x] **Phase 1: Standalone Core Parser (Python CLI)**
-  * Implemented zero-dependency `refdiff.py` using Python 3 standard library (`re`, `difflib`, `urllib`).
-  * Supports CLI input (`refdiff.py old.wiki new.wiki`), live Wikipedia diff fetching (`refdiff.py <URL>` or `--diff <ID>`), `--stat`, and `--json`.
-* [x] **Phase 2: Git Diff Driver (`git-refdiff`)**
-  * Auto-detects Git external diff driver invocations (`git diff` / `git log -p`) via symlink or `.gitconfig`.
+* [x] **Phase 1: Standalone Core Parser (Python CLI Prototype — Archived)**
+  * Implemented zero-dependency prototype in [`archive/python-prototype/refdiff.py`](archive/python-prototype/refdiff.py) using Python 3 standard library (`re`, `difflib`, `urllib`).
+  * Supported CLI input, live Wikipedia diff fetching, `--stat`, and `--json`.
+* [x] **Phase 2: Git Diff Driver (`git-refdiff` — Archived)**
+  * Prototyped Git external diff driver invocations (`git diff` / `git log -p`) in [`archive/python-prototype/git-refdiff`](archive/python-prototype/git-refdiff).
 * [x] **Phase 3: MediaWiki User Script / Gadget (`refdiff.js`)**
   * Zero-loss in-place DOM manipulation directly on MediaWiki's native diff table (`table.diff`).
   * Preserves 100% of revision metadata headers, line numbers (`Line 101:`), and context lines.
@@ -231,24 +231,15 @@ mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js'
 
 Alternatively, install `refdiff.js` directly in Tampermonkey, Violentmonkey, or Greasemonkey.
 
-### Option B: Terminal CLI & Live Wikipedia Diff Fetching
+### Option B: Archived Python CLI Prototype
+See [`archive/python-prototype/README.md`](archive/python-prototype/README.md) for running the archived Python 3 prototype:
+
 ```bash
 # Compare local wikitext revisions
-python3 refdiff.py old.wiki new.wiki
-
-# Fetch and diff live Wikipedia revisions directly by URL
-python3 refdiff.py "https://en.wikipedia.org/w/index.php?title=Solar_System&diff=1372329011"
-
-# Or by revision ID
-python3 refdiff.py --diff 1372329011
+python3 archive/python-prototype/refdiff.py old.wiki new.wiki
 
 # Compact diffstat summary
-python3 refdiff.py --stat old.wiki new.wiki
+python3 archive/python-prototype/refdiff.py --stat old.wiki new.wiki
 ```
 
-### Option C: Configure as Git Diff Driver
-```bash
-git config diff.wikitext.command "python3 /path/to/einzelnachweise/refdiff.py"
-echo "*.wiki diff=wikitext" >> .gitattributes
-```
 
