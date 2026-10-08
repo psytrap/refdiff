@@ -302,8 +302,8 @@ class RefDiffEngine:
         return result
 
     @classmethod
-    def diff_prose(cls, old_prose: str, new_prose: str, ref_label_map: Dict[str, str]) -> Tuple[List[DiffToken], int, int]:
-        """Performs word-level diff, resolving sentinels into styled badges."""
+    def diff_prose(cls, old_prose: str, new_prose: str, ref_label_map: Dict[str, str], modified_ref_ids: Optional[set] = None) -> Tuple[List[DiffToken], int, int]:
+        """Performs word-level diff, resolving sentinels into styled badges and annotating modified refs."""
         tokens_a = cls.tokenize_prose(old_prose)
         tokens_b = cls.tokenize_prose(new_prose)
 
@@ -319,7 +319,8 @@ class RefDiffEngine:
                     if m:
                         ref_id = m.group(1)
                         label = ref_label_map.get(ref_id, ref_id)
-                        result.append(DiffToken(type='ref_badge', text=tok, ref_id=ref_id, ref_label=label, badge_status='equal'))
+                        status = 'modified' if (modified_ref_ids and ref_id in modified_ref_ids) else 'equal'
+                        result.append(DiffToken(type='ref_badge', text=tok, ref_id=ref_id, ref_label=label, badge_status=status))
                     else:
                         result.append(DiffToken(type='equal', text=tok))
 
@@ -404,7 +405,7 @@ class RefDiffEngine:
         return CitationDelta(added=added, removed=removed, modified=modified)
 
     @classmethod
-    def compare_documents(cls, old_doc: ParsedDocument, new_doc: ParsedDocument) -> Tuple[List[SectionDiff], Dict[str, int]]:
+    def compare_documents(cls, old_doc: ParsedDocument, new_doc: ParsedDocument) -> Tuple[List[SectionDiff], Dict[str, int], Dict[str, str]]:
         """Coordinates section-by-section decoupled comparison."""
         
         # Build 1-based human badge label map (e.g. schmidt2020 -> "1")
@@ -438,10 +439,12 @@ class RefDiffEngine:
             s_old = old_sec_map.get(title, Section(title=title, level=2, raw_text="", prose="", citations={}))
             s_new = new_sec_map.get(title, Section(title=title, level=2, raw_text="", prose="", citations={}))
 
-            prose_tokens, w_add, w_rem = cls.diff_prose(s_old.prose, s_new.prose, ref_label_map)
             cit_delta = cls.diff_citations(s_old.citations, s_new.citations)
+            modified_ref_ids = {c_new.ref_id for _, c_new, _ in cit_delta.modified}
 
-            has_prose_changes = (w_add > 0 or w_rem > 0 or any(t.badge_status in ('insert', 'delete') for t in prose_tokens))
+            prose_tokens, w_add, w_rem = cls.diff_prose(s_old.prose, s_new.prose, ref_label_map, modified_ref_ids)
+
+            has_prose_changes = (w_add > 0 or w_rem > 0 or any(t.badge_status in ('insert', 'delete', 'modified') for t in prose_tokens))
 
             total_stats["words_added"] += w_add
             total_stats["words_removed"] += w_rem
@@ -458,7 +461,7 @@ class RefDiffEngine:
                 citation_delta=cit_delta
             ))
 
-        return section_diffs, total_stats
+        return section_diffs, total_stats, ref_label_map
 
 
 # ==============================================================================
@@ -511,6 +514,8 @@ class TerminalFormatter:
                 badge = f"[{t.ref_label}]"
                 if t.badge_status == 'equal':
                     out.append(f"{Colors.CYAN}{badge}{Colors.RESET}")
+                elif t.badge_status == 'modified':
+                    out.append(f"{Colors.BOLD}{Colors.YELLOW}[*{t.ref_label}*]{Colors.RESET}")
                 elif t.badge_status == 'delete':
                     out.append(f"{Colors.RED}[- {badge} -]{Colors.RESET}")
                 elif t.badge_status == 'insert':
@@ -520,7 +525,7 @@ class TerminalFormatter:
         return "".join(out).strip()
 
     @classmethod
-    def render(cls, old_doc: ParsedDocument, new_doc: ParsedDocument, section_diffs: List[SectionDiff], stats: Dict[str, int], show_all: bool = False) -> str:
+    def render(cls, old_doc: ParsedDocument, new_doc: ParsedDocument, section_diffs: List[SectionDiff], stats: Dict[str, int], ref_label_map: Dict[str, str], show_all: bool = False) -> str:
         lines = []
         sep = "═" * 80
         thin_sep = "─" * 80
@@ -565,20 +570,23 @@ class TerminalFormatter:
                 delta = s_diff.citation_delta
                 # Added
                 for cit in delta.added:
-                    lbl = f"[{cit.ref_id}]"
-                    lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}:{Colors.RESET}")
+                    lbl = f"[{ref_label_map.get(cit.ref_id, cit.ref_id)}]"
+                    name_suffix = f" ({cit.name})" if cit.name and cit.name != ref_label_map.get(cit.ref_id) else ""
+                    lines.append(f"  {Colors.GREEN}🟢 ADDED {lbl}{name_suffix}:{Colors.RESET}")
                     lines.append(f"     {Colors.GREEN}{{+ {cit.raw_content} +}}{Colors.RESET}")
 
                 # Removed
                 for cit in delta.removed:
-                    lbl = f"[{cit.ref_id}]"
-                    lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}:{Colors.RESET}")
+                    lbl = f"[{ref_label_map.get(cit.ref_id, cit.ref_id)}]"
+                    name_suffix = f" ({cit.name})" if cit.name and cit.name != ref_label_map.get(cit.ref_id) else ""
+                    lines.append(f"  {Colors.RED}🔴 REMOVED {lbl}{name_suffix}:{Colors.RESET}")
                     lines.append(f"     {Colors.RED}[- {cit.raw_content} -]{Colors.RESET}")
 
                 # Modified (Raw Diff)
                 for c_old, c_new, raw_diff in delta.modified:
-                    lbl = f"[{c_new.ref_id}]"
-                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED {lbl}:{Colors.RESET}")
+                    num = ref_label_map.get(c_new.ref_id, c_new.ref_id)
+                    name_suffix = f" ({c_new.name})" if c_new.name and c_new.name != num else ""
+                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED [*{num}*]{name_suffix}:{Colors.RESET}")
                     rendered_diff = cls.render_tokens(raw_diff)
                     lines.append(f"     {rendered_diff}")
 
@@ -595,7 +603,7 @@ class StatFormatter:
     """Renders compact git-style diffstat summary."""
 
     @classmethod
-    def render(cls, old_doc: ParsedDocument, new_doc: ParsedDocument, section_diffs: List[SectionDiff], stats: Dict[str, int]) -> str:
+    def render(cls, old_doc: ParsedDocument, new_doc: ParsedDocument, section_diffs: List[SectionDiff], stats: Dict[str, int], ref_label_map: Dict[str, str]) -> str:
         lines = []
         for s in section_diffs:
             has_cit_changes = (len(s.citation_delta.added) + len(s.citation_delta.removed) + len(s.citation_delta.modified)) > 0
@@ -608,7 +616,8 @@ class StatFormatter:
             if s.citation_delta.removed:
                 cit_details.append(f"-{len(s.citation_delta.removed)} removed")
             if s.citation_delta.modified:
-                cit_details.append(f"{len(s.citation_delta.modified)} modified")
+                mods = [f"[*{ref_label_map.get(c_new.ref_id, c_new.ref_id)}*]" for _, c_new, _ in s.citation_delta.modified]
+                cit_details.append(f"{len(s.citation_delta.modified)} modified ({', '.join(mods)})")
 
             cit_str = f"Refs: {', '.join(cit_details)}" if cit_details else "Refs: 0 changed"
             prose_str = f"Prose: +{s.words_added} -{s.words_removed} words" if s.has_prose_changes else "Prose: 0 words"
@@ -627,7 +636,7 @@ class JsonFormatter:
     """Renders structured JSON payload for external tools and MediaWiki gadgets."""
 
     @classmethod
-    def render(cls, old_doc: ParsedDocument, new_doc: ParsedDocument, section_diffs: List[SectionDiff], stats: Dict[str, int]) -> str:
+    def render(cls, old_doc: ParsedDocument, new_doc: ParsedDocument, section_diffs: List[SectionDiff], stats: Dict[str, int], ref_label_map: Dict[str, str]) -> str:
         payload = {
             "summary": {
                 "prose_words_added": stats["words_added"],
@@ -654,6 +663,7 @@ class JsonFormatter:
             for c_old, c_new, raw_diff in s.citation_delta.modified:
                 mod_json.append({
                     "ref_id": c_new.ref_id,
+                    "ref_label": ref_label_map.get(c_new.ref_id, c_new.ref_id),
                     "name": c_new.name,
                     "old_raw": c_old.raw_content,
                     "new_raw": c_new.raw_content,
@@ -694,8 +704,8 @@ def main():
         raw_new = open(new_path, 'r', encoding='utf-8', errors='replace').read()
         doc_a = WikitextParser.parse_document(raw_old, filename=f"{label} (old)")
         doc_b = WikitextParser.parse_document(raw_new, filename=f"{label} (new)")
-        diffs, stats = RefDiffEngine.compare_documents(doc_a, doc_b)
-        print(TerminalFormatter.render(doc_a, doc_b, diffs, stats))
+        diffs, stats, ref_label_map = RefDiffEngine.compare_documents(doc_a, doc_b)
+        print(TerminalFormatter.render(doc_a, doc_b, diffs, stats, ref_label_map))
         return
 
     parser = argparse.ArgumentParser(
@@ -732,14 +742,14 @@ def main():
     doc_a = WikitextParser.parse_document(raw_old, filename=old_name)
     doc_b = WikitextParser.parse_document(raw_new, filename=new_name)
 
-    diffs, stats = RefDiffEngine.compare_documents(doc_a, doc_b)
+    diffs, stats, ref_label_map = RefDiffEngine.compare_documents(doc_a, doc_b)
 
     if args.json:
-        print(JsonFormatter.render(doc_a, doc_b, diffs, stats))
+        print(JsonFormatter.render(doc_a, doc_b, diffs, stats, ref_label_map))
     elif args.stat:
-        print(StatFormatter.render(doc_a, doc_b, diffs, stats))
+        print(StatFormatter.render(doc_a, doc_b, diffs, stats, ref_label_map))
     else:
-        print(TerminalFormatter.render(doc_a, doc_b, diffs, stats, show_all=args.all))
+        print(TerminalFormatter.render(doc_a, doc_b, diffs, stats, ref_label_map, show_all=args.all))
 
 
 if __name__ == "__main__":
