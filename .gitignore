@@ -8,3 +8,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
+# Node artifacts
+node_modules/
+npm-debug.log*

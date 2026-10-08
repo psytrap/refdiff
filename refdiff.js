@@ -191,7 +191,7 @@
   }
 
   function applyDecoupling(table) {
-    if (!table) return;
+    if (!table || isDecoupled) return;
 
     // Cache original HTML once
     if (!origTableHtml) {
@@ -317,7 +317,7 @@
   }
 
   function restoreOriginal(table) {
-    if (!table || !origTableHtml) return;
+    if (!table || !origTableHtml || !isDecoupled) return;
     table.innerHTML = origTableHtml;
     isDecoupled = false;
   }
@@ -381,7 +381,7 @@
         if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
       }
 
-      function updateButtonState(active) {
+      const updateButtonState = (active) => {
         const btn = document.getElementById('refdiff-ooui-btn');
         if (!btn) return;
         const group = btn.parentElement;
@@ -419,7 +419,7 @@
             if (wIcon) wIcon.classList.add('oo-ui-image-invert');
           }
         }
-      }
+      };
 
       // Delegated click handling on diffModeContainer with capture phase
       if (diffModeContainer && !diffModeContainer._refdiffBound) {

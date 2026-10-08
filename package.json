@@ -1,0 +1,27 @@
+{
+  "name": "refdiff",
+  "version": "1.1.0",
+  "description": "Zero-loss citation decoupling gadget and diff driver for Wikipedia / MediaWiki Special:Diff",
+  "main": "refdiff.js",
+  "scripts": {
+    "lint": "eslint refdiff.js tests/**/*.js",
+    "test": "node tests/test_pairing.js",
+    "ci": "npm run lint && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m-k/einzelnachweise.git"
+  },
+  "keywords": [
+    "wikipedia",
+    "mediawiki",
+    "diff",
+    "citations",
+    "userscript"
+  ],
+  "author": "RefDiff Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^6.4.0"
+  }
+}

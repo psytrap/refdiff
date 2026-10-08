@@ -181,4 +181,40 @@ assert.strictEqual(p2[1].a.content, 'Ref 2 (new)');
 assert.strictEqual(p2[2].d.content, 'Ref 3');
 assert.strictEqual(p2[2].a.content, 'Ref 3');
 
-console.log("All refdiff.js JavaScript unit tests passed successfully!");
+// Test 3: Pure addition (no deleted references)
+const del3 = [];
+const add3 = [
+  { raw: '&lt;ref name="newRef"&gt;Content&lt;/ref&gt;', attrs: 'name="newRef"', content: 'Content' }
+];
+const p3 = pairReferences(del3, add3);
+assert.strictEqual(p3.length, 1);
+assert.strictEqual(p3[0].d, null);
+assert.strictEqual(p3[0].name, 'newRef');
+assert.strictEqual(p3[0].a.content, 'Content');
+
+// Test 4: Pure deletion (no added references)
+const del4 = [
+  { raw: '&lt;ref name="delRef"&gt;Old&lt;/ref&gt;', attrs: 'name="delRef"', content: 'Old' }
+];
+const add4 = [];
+const p4 = pairReferences(del4, add4);
+assert.strictEqual(p4.length, 1);
+assert.strictEqual(p4[0].a, null);
+assert.strictEqual(p4[0].name, 'delRef');
+assert.strictEqual(p4[0].d.content, 'Old');
+
+// Test 5: Self-closing reference tag
+const del5 = [
+  { raw: '&lt;ref name="selfClose" /&gt;', attrs: 'name="selfClose"', content: undefined }
+];
+const add5 = [
+  { raw: '&lt;ref name="selfClose" /&gt;', attrs: 'name="selfClose"', content: undefined }
+];
+const p5 = pairReferences(del5, add5);
+assert.strictEqual(p5.length, 1);
+assert.strictEqual(p5[0].name, 'selfClose');
+assert.strictEqual(p5[0].d.attrs, 'name="selfClose"');
+assert.strictEqual(p5[0].a.attrs, 'name="selfClose"');
+
+console.log('All refdiff.js JavaScript unit tests passed successfully!');
+
