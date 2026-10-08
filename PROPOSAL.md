@@ -141,3 +141,23 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 * **Editors & UI:** `VisualEditor` (option to append citations to section blocks), `SyntaxHighlighter` (tag recognition), `IDE/LSP tools` (local `name="..."` autocomplete).
 * **Bots & Maintenance:** `Pywikibot` (citation scripts), `InternetArchiveBot` (clean in-place URL fixes), `AutoWikiBrowser (AWB)`.
 * **External Parsers & Readers:** Python AST parsers (`mwparserfromhell`, `wikitextparser`), `Kiwix / Pandoc` (offline dumps and exports).
+
+---
+
+## 6. Rollback & Dismissal Strategy
+
+To guarantee that introducing `<references-def>` poses zero permanent risk to Wikimedia wikis, the proposal defines a clean dismissal path and long-term legacy support for historical revisions:
+
+### 6.1 Automated Wikitext Clean-Up (In Case of Dismissal)
+If a wiki community or the WMF decides to decommission `<references-def>`, all articles can be migrated back to standard syntax automatically without manual editor labor:
+* **Tracking & Scope:** All affected pages are automatically tracked via `Category:Pages that use section-scoped reference definitions`.
+* **Automated Bot / Maintenance Script:** A dedicated migration script (`cleanupReferencesDef.php` / Pywikibot routine) systematically unwinds the syntax:
+  * **Option A: Loss-less Hoisting to LDR (Default / Recommended):** The script extracts all definitions from section `<references-def>` blocks across the page and appends them into the article's existing document-end `<references>` block (converting the article to standard List-Defined References).  
+    * **Zero Prose Modifications:** Sentences, paragraphs, and inline callouts (`<ref name="..." />`) remain 100% untouched. This completely eliminates risks of text corruption or merge conflicts during de-migration.
+  * **Option B: Inline Re-injection:** For communities strictly preferring traditional inline references, the script substitutes each definition back into its first in-prose callout (`<ref name="X">...</ref>`) and removes the `<references-def>` container.
+
+### 6.2 Long-Term Legacy Support for Historical Revisions
+A core requirement for MediaWiki is that older revisions (`oldid=...`) and historical diffs must continue to render correctly for years after an article has been edited or a feature has been retired:
+* **Passive Fallback Hook:** Even if active authoring of `<references-def>` is disabled via configuration, `Extension:Cite` maintains a minimal, passive fallback hook (~10 lines of code) as a multi-year LTS compatibility layer.
+* **Seamless Archive Rendering:** When rendering an older revision containing `<references-def>`, the legacy hook registers the enclosed `<ref>` definitions into the citation pool and suppresses in-situ HTML output.
+* **Zero Reader / Historical Breakage:** Historical permalinks and diff views continue to render footnotes cleanly with **zero red cite errors** (`cite_error_references_no_text`) and without raw unparsed tags spilling into prose.

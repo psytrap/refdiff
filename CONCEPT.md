@@ -426,3 +426,70 @@ Introducing section-scoped reference blocks interacts with several components ac
 ### 8.5 Parsers & Offline Readers
 * **AST Parsers (`mwparserfromhell`, `wikitextparser`):** Python libraries used across scientific research and bot pipelines. While they parse custom tags natively, extraction scripts should be updated to recognize `<references-def>`.
 * **Offline Readers & Converters (Kiwix / Pandoc):** ZIM scrapers and multi-format converters (Markdown/LaTeX exports) will parse the consolidated global references list automatically, with zero impact on offline readers.
+
+---
+
+## 9. Rollback, Automated De-migration & Historical Revision Compatibility
+
+A crucial requirement for adopting any new structural wikitext markup in Wikimedia is an unconditional, non-destructive rollback guarantee. Because wikitext is immutable and permanently preserved across millions of database revisions, any proposal must answer two critical operational questions:
+1. *If a community decides to dismiss the feature, how do we clean up existing articles without manual editor labor?*
+2. *Years after the feature is retired, what happens when a reader or researcher inspects older revisions (`oldid=...`)?*
+
+### 9.1 Automated Wikitext De-migration (Dismissal Clean-Up)
+
+In the event that `<references-def>` is rejected by community consensus or decommissioned on a specific wiki, the transition back to legacy wikitext is 100% automated:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        FEATURE DISMISSAL DECREED                       │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+           ┌────────────────────────┴────────────────────────┐
+           ▼                                                 ▼
+┌───────────────────────────────────────┐ ┌───────────────────────────────────────┐
+│     Path A: Loss-less Hoisting        │ │     Path B: In-Prose Restoration      │
+│      (To List-Defined References)     │ │        (To Inline References)         │
+├───────────────────────────────────────┤ ├───────────────────────────────────────┤
+│ • Extract <ref> from <references-def> │ │ • Locate 1st in-prose <ref name="X" />│
+│ • Append to bottom <references> block │ │ • Replace with full definition        │
+│ • PROSE TEXT REMAINS 100% UNTOUCHED   │ │ • Remove <references-def> block       │
+│ • Zero risk of sentence merge conflict│ │ • Returns to traditional inline style │
+└───────────────────────────────────────┘ └───────────────────────────────────────┘
+```
+
+1. **Tracking Scope:**
+   * All pages containing `<references-def>` are indexed automatically via `Category:Pages that use section-scoped reference definitions` (managed transparently via `Special:TrackingCategories`).
+2. **Automated Migration Tooling (`cleanupReferencesDef.php` / Pywikibot):**
+   * **Path A (Loss-less Hoisting to LDR — Default / Recommended):**
+     The migration bot parses the page AST, extracts every `<ref name="...">...</ref>` entry from all section-scoped `<references-def>` blocks, appends them into the article's existing document-end `<references>` block, and removes the section blocks.
+     * *Key Benefit:* **Prose sentences are completely untouched.** All inline `<ref name="X" />` callouts remain unchanged, eliminating any possibility of accidental prose corruption, broken punctuation, or merge conflicts.
+   * **Path B (In-Prose Restoration — Optional per wiki policy):**
+     For wikis with strict editorial rules against List-Defined References, the bot substitutes each definition into its first in-prose callout (`<ref name="X">...</ref>`), leaving subsequent callouts as `<ref name="X" />`.
+3. **Decommissioning Milestone:**
+   * Automated bot passes run until the tracking category count drops to 0.
+
+### 9.2 Multi-Year Parser Legacy Support for Historical Revisions
+
+Even after all current revisions of every article on a wiki have been migrated back to legacy syntax, millions of historical revisions (`oldid=...`) and historical diff views will forever contain `<references-def>` markup.
+
+If the parser hook were simply deleted from MediaWiki, viewing an older revision would result in:
+* Catastrophic citation failures (`cite_error_references_no_text`) for every reused reference.
+* Unrecognized XML tags spilling into prose or rendering as raw text.
+* Broken academic and legal permalinks citing Wikipedia revisions from that era.
+
+#### The Passive Fallback Hook Solution:
+To prevent this, `Extension:Cite` maintains a permanent, ultra-lightweight **Passive Fallback Hook** (~10 lines of code) as part of MediaWiki core's long-term LTS compatibility:
+
+```php
+// Passive Fallback Hook in Extension:Cite (read-only LTS compatibility)
+public static function onReferencesDefTag( string $content, array $args, Parser $parser, PPFrame $frame ): string {
+    // 1. Parse and register enclosed <ref> definitions into the page's global citation registry
+    $parser->recursiveTagParse( $content, $frame );
+    // 2. Suppress in-situ HTML rendering completely (return empty string)
+    return '';
+}
+```
+
+* **Zero Operational Overhead:** The fallback hook performs no database writes, loads no external CSS/JS assets, and requires no UI maintenance.
+* **Archival Fidelity:** When an editor, researcher, or automated scraper loads `index.php?title=Article&oldid=123456`, the parser registers the citations silently and renders the global footnotes list at the bottom of the page seamlessly.
+* **Diff Integrity:** Comparing revisions across the transition period displays clean, readable diffs with zero parser error banners.
