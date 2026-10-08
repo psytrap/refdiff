@@ -131,18 +131,23 @@ The parser scans wikitext and segregates content into two discrete data structur
 
 ### Step 5.2: Prose Diff Calculation
 * The prose stream is diffed using standard word-level sequence matching algorithms.
-* Sentinel tokens are rendered as clickable superscript badge anchors (`[1]`, `[2]`).
-* If a reference anchor was moved to another paragraph, the badge displays a subtle "moved" indicator without polluting prose words.
+* Sentinel tokens are rendered as lightweight reference badges, named directly after the reference (e.g. `[schmidt2020]`) or indexed sequentially for anonymous references (`[ref1]`).
+* **Badge Status Indicators:**
+  * **Unchanged Citation:** `[schmidt2020]` (cyan)
+  * **Modified Citation:** `[~schmidt2020~]` (bold yellow with diff tilde notation, signaling modified underlying metadata)
+  * **Added Citation:** `{+ [esa2022] +}` (green)
+  * **Removed Citation:** `[- [oldref] -]` (red)
+* Even when only citation metadata changes, the prose sentence is displayed annotating the affected reference badge (`[~name~]`) so reviewers immediately understand the claim context.
 
 ### Step 5.3: Raw Citation Diff Calculation (No Template Decoding)
 The tool compares `RawRefsA` against `RawRefsB`:
-* **Added Citations:** Present in B, absent in A. Renders as `{+ raw_content +}`.
-* **Removed Citations:** Present in A, absent in B. Renders as `[- raw_content -]`.
-* **Modified Citations:** Present in both, but inner content changed.
-  * Runs a **standard raw word-level diff directly on the inner text of the `<ref>` span**:
+* **Added Citations:** Present in B, absent in A. Renders as `🟢 ADDED [name]:` with `{+ <ref ...>...</ref> +}`.
+* **Removed Citations:** Present in A, absent in B. Renders as `🔴 REMOVED [name]:` with `[- <ref ...>...</ref> -]`.
+* **Modified Citations:** Present in both, but inner content or attributes changed.
+  * Runs a **standard raw word-level diff directly on the full encapsulating `<ref>` span**:
     ```
-    🟡 MODIFIED [schmidt2020]:
-       {{Cite book |author=Schmidt, Rainer |pages=[- 112–115 -] {+ 112–120 +} |isbn=...}}
+    🟡 MODIFIED [~schmidt2020~]:
+       <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |pages=45–[- 48 -] {+ 52 +} |isbn=...}}</ref>
     ```
   * No template decoding, parameter extraction, or custom styling is performed—the exact raw wikitext diff is displayed with standard diff highlights (`[- old -]` / `{+ new +}`).
 
@@ -163,16 +168,16 @@ The tool compares `RawRefsA` against `RawRefsB`:
 <div style="margin-bottom: 20px;">
   <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Section: == 1. Geology of Venus == (Prose Hunk)</div>
   <div style="background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #30363d; line-height: 1.6;">
-    The surface of Venus is dominated by intense volcanism.<sup style="color: #58a6ff; font-weight: bold;">[1]</sup> Radar imaging reveals thousands of volcanic structures, creating an <span style="background: #5a1e1e; color: #ff7b72; padding: 2px 6px; border-radius: 3px; text-decoration: line-through;">extreme</span> <span style="background: #1b4729; color: #7ee787; padding: 2px 6px; border-radius: 3px; font-weight: bold;">runaway</span> greenhouse effect across the planet.<sup style="color: #58a6ff; font-weight: bold;">[2]</sup>
+    The surface of Venus is dominated by intense volcanism.<sup style="color: #e3b341; font-weight: bold;">[~schmidt2020~]</sup> Radar imaging reveals thousands of volcanic structures, creating an <span style="background: #5a1e1e; color: #ff7b72; padding: 2px 6px; border-radius: 3px; text-decoration: line-through;">extreme</span> <span style="background: #1b4729; color: #7ee787; padding: 2px 6px; border-radius: 3px; font-weight: bold;">runaway</span> greenhouse effect across the planet.<sup style="color: #58a6ff; font-weight: bold;">[nasa2018]</sup>
   </div>
 </div>
 
 <div>
-  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Citations (Raw Diff on &lt;ref&gt; Span)</div>
+  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Citations (Raw Diff on Full &lt;ref&gt; Tag)</div>
   <div style="background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #30363d;">
-    <div style="color: #e3b341; font-weight: bold; margin-bottom: 6px;">🟡 MODIFIED [schmidt2020]:</div>
+    <div style="color: #e3b341; font-weight: bold; margin-bottom: 6px;">🟡 MODIFIED [~schmidt2020~]:</div>
     <div style="padding-left: 16px; font-size: 12px;">
-      <code>{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=</code><span style="background: #5a1e1e; color: #ff7b72; padding: 1px 4px; border-radius: 2px; text-decoration: line-through;">45–48</span> <span style="background: #1b4729; color: #7ee787; padding: 1px 4px; border-radius: 2px; font-weight: bold;">45–52</span> <code>|isbn=978-3-12-345678-9 |publisher=Springer}}</code>
+      <code>&lt;ref name="schmidt2020"&gt;{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=</code><span style="background: #5a1e1e; color: #ff7b72; padding: 1px 4px; border-radius: 2px; text-decoration: line-through;">45–48</span> <span style="background: #1b4729; color: #7ee787; padding: 1px 4px; border-radius: 2px; font-weight: bold;">45–52</span> <code>|isbn=978-3-12-345678-9 |publisher=Springer}}&lt;/ref&gt;</code>
     </div>
   </div>
 </div>

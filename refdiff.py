@@ -429,7 +429,7 @@ class RefDiffEngine:
                 if ref_id not in ref_label_map:
                     cit = all_cits_by_id.get(ref_id)
                     if cit and cit.name:
-                        ref_label_map[ref_id] = f"name={cit.name}"
+                        ref_label_map[ref_id] = cit.name
                     else:
                         ref_label_map[ref_id] = f"ref{counter}"
                         counter += 1
@@ -438,7 +438,7 @@ class RefDiffEngine:
                 if ref_id not in ref_label_map:
                     cit = all_cits_by_id.get(ref_id)
                     if cit and cit.name:
-                        ref_label_map[ref_id] = f"name={cit.name}"
+                        ref_label_map[ref_id] = cit.name
                     else:
                         ref_label_map[ref_id] = f"ref{counter}"
                         counter += 1
@@ -532,15 +532,14 @@ class TerminalFormatter:
                 ins_buf.append(t.text)
             elif t.type == 'ref_badge':
                 flush()
-                badge = f"[{t.ref_label}]"
                 if t.badge_status == 'equal':
-                    out.append(f"{Colors.CYAN}{badge}{Colors.RESET}")
+                    out.append(f"{Colors.CYAN}[{t.ref_label}]{Colors.RESET}")
                 elif t.badge_status == 'modified':
-                    out.append(f"{Colors.BOLD}{Colors.YELLOW}{badge}{Colors.RESET}")
+                    out.append(f"{Colors.BOLD}{Colors.YELLOW}[~{t.ref_label}~]{Colors.RESET}")
                 elif t.badge_status == 'delete':
-                    out.append(f"{Colors.RED}[- {badge} -]{Colors.RESET}")
+                    out.append(f"{Colors.RED}[- [{t.ref_label}] -]{Colors.RESET}")
                 elif t.badge_status == 'insert':
-                    out.append(f"{Colors.GREEN}{{+ {badge} +}}{Colors.RESET}")
+                    out.append(f"{Colors.GREEN}{{+ [{t.ref_label}] +}}{Colors.RESET}")
 
         flush()
         return "".join(out).strip()
@@ -606,7 +605,7 @@ class TerminalFormatter:
                 # Modified (Raw Diff on full encapsulating tag)
                 for c_old, c_new, raw_diff in delta.modified:
                     num = ref_label_map.get(c_new.ref_id, c_new.ref_id)
-                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED [{num}]:{Colors.RESET}")
+                    lines.append(f"  {Colors.YELLOW}🟡 MODIFIED [~{num}~]:{Colors.RESET}")
                     rendered_diff = cls.render_tokens(raw_diff)
                     lines.append(f"     {rendered_diff}")
 
@@ -636,7 +635,7 @@ class StatFormatter:
             if s.citation_delta.removed:
                 cit_details.append(f"-{len(s.citation_delta.removed)} removed")
             if s.citation_delta.modified:
-                mods = [f"[{ref_label_map.get(c_new.ref_id, c_new.ref_id)}]" for _, c_new, _ in s.citation_delta.modified]
+                mods = [f"[~{ref_label_map.get(c_new.ref_id, c_new.ref_id)}~]" for _, c_new, _ in s.citation_delta.modified]
                 cit_details.append(f"{len(s.citation_delta.modified)} modified ({', '.join(mods)})")
 
             cit_str = f"Refs: {', '.join(cit_details)}" if cit_details else "Refs: 0 changed"

@@ -119,4 +119,11 @@ This log records the rationale, architectural decisions, completed milestones, a
     2. Key-value citation differ that isolates template parameter changes (`|pages=`, `|url=`, etc.) while suppressing unchanged boilerplate.
   * Implemented 3 output formatters: Section-scoped terminal ANSI renderer, compact git-style `--stat` summary, and structured `--json` emitter for browser gadgets.
   * Added auto-detection for standard Git external diff driver invocations (`git-refdiff`).
-  * Created unit test suite (`tests/test_refdiff.py`) covering template parsing, XML attributes, sentinel injection, parameter diff isolation, and JSON serialization. All tests pass in 0.002s.
+  * Created unit test suite (`tests/test_refdiff.py`) covering XML attributes, sentinel injection, badge status rendering, raw diff isolation, and JSON serialization. All tests pass in 0.002s.
+* **RefDiff Design Refinements & User Feedback Alignment:**
+  * **Raw `<ref>` Span Diffing (No Template Decoding):** Completely removed custom template parameter parsing/decoding logic per user directive. The engine now performs direct, raw word-level diffs on the full encapsulating `<ref name="...">...</ref>` tags, eliminating maintenance complexity and ensuring 100% fidelity to wikitext formatting.
+  * **1:1 Prose Badge & Citation Sync with Option A (`[~name~]`):**
+    * Dropped verbose `name=` badge prefixes in favor of direct reference names (`[schmidt2020]` or `[ref1]`).
+    * Adopted diff tilde notation (`[~schmidt2020~]`) in bold yellow for modified references in both prose badges and citation headers.
+    * Ensured that even on ref-only changes, the prose sentence is displayed annotating the affected reference badge (`[~name~]`) so reviewers immediately understand the claim context.
+    * Added synchronized badge indicators in `--stat` summary (e.g. `Refs: 1 modified ([~schmidt2020~])`).
