@@ -21,6 +21,8 @@ import re
 import difflib
 import json
 import argparse
+import urllib.request
+import urllib.parse
 from dataclasses import dataclass, field, asdict
 from typing import Optional, Dict, List, Tuple, Any
 
@@ -711,6 +713,48 @@ class JsonFormatter:
 # ==============================================================================
 # Main Entry Point & CLI Driver
 # ==============================================================================
+# Live Wikipedia Revision Fetcher (Standard Library urllib)
+# ==============================================================================
+
+def fetch_wikipedia_revisions(url: Optional[str] = None, wiki: str = "en", diff_id: Optional[Any] = None, old_id: Optional[Any] = None) -> Tuple[str, str, str, str]:
+    """Fetches wikitext revisions from MediaWiki API using Python standard library."""
+    if url:
+        p = urllib.parse.urlparse(url)
+        qs = urllib.parse.parse_qs(p.query)
+        diff_id = qs.get("diff", [diff_id])[0]
+        old_id = qs.get("oldid", [old_id])[0]
+        host = p.netloc if p.netloc else f"{wiki}.wikipedia.org"
+    else:
+        host = wiki if "." in wiki else f"{wiki}.wikipedia.org"
+
+    headers = {"User-Agent": "RefDiff/1.0 (https://github.com/m-k/einzelnachweise; tool:RefDiff) urllib"}
+
+    if not old_id or diff_id == "prev":
+        req_url = f"https://{host}/w/api.php?action=query&prop=revisions&revids={diff_id}&rvprop=ids&format=json"
+        req = urllib.request.Request(req_url, headers=headers)
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        pages = data.get("query", {}).get("pages", {})
+        rev = list(pages.values())[0]["revisions"][0]
+        diff_id = rev["revid"]
+        old_id = rev["parentid"]
+
+    req_url = f"https://{host}/w/api.php?action=query&prop=revisions&revids={old_id}|{diff_id}&rvprop=ids|content&rvslots=main&format=json"
+    req = urllib.request.Request(req_url, headers=headers)
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+
+    pages = data.get("query", {}).get("pages", {})
+    rev_map = {}
+    title = "Wikipedia"
+    for pid, pdata in pages.items():
+        title = pdata.get("title", title)
+        for r in pdata.get("revisions", []):
+            content = r.get("slots", {}).get("main", {}).get("*", r.get("*", ""))
+            rev_map[r["revid"]] = content
+
+    return rev_map[int(old_id)], rev_map[int(diff_id)], f"{title} (Rev {old_id})", f"{title} (Rev {diff_id})"
+
 
 def main():
     # Detect standard Git external diff driver invocation:
@@ -730,8 +774,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="RefDiff: A diff-decoupling engine separating prose edits from citation metadata changes."
     )
-    parser.add_argument("old_file", help="Old revision wikitext file (or '-' for stdin)")
-    parser.add_argument("new_file", help="New revision wikitext file")
+    parser.add_argument("old_file", nargs="?", help="Old revision wikitext file, Wikipedia URL, or '-' for stdin")
+    parser.add_argument("new_file", nargs="?", help="New revision wikitext file (optional if Wikipedia URL or --diff is given)")
+    parser.add_argument("--wiki", default="en", help="Language code or wiki domain for live fetching (default: en)")
+    parser.add_argument("--diff", help="New revision ID for live Wikipedia diff")
+    parser.add_argument("--oldid", help="Old revision ID for live Wikipedia diff")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     parser.add_argument("--stat", action="store_true", help="Output compact diffstat summary")
     parser.add_argument("--no-color", action="store_true", help="Disable ANSI color codes")
@@ -743,19 +790,30 @@ def main():
         Colors.disable()
 
     try:
-        if args.old_file == "-":
-            raw_old = sys.stdin.read()
-            old_name = "stdin"
-        else:
-            with open(args.old_file, "r", encoding="utf-8") as f:
-                raw_old = f.read()
-            old_name = os.path.basename(args.old_file)
+        if args.old_file and (args.old_file.startswith("http://") or args.old_file.startswith("https://")):
+            raw_old, raw_new, old_name, new_name = fetch_wikipedia_revisions(url=args.old_file, wiki=args.wiki)
+        elif args.diff:
+            raw_old, raw_new, old_name, new_name = fetch_wikipedia_revisions(wiki=args.wiki, diff_id=args.diff, old_id=args.oldid)
+        elif args.old_file:
+            if not args.new_file:
+                sys.stderr.write("Error: Both old_file and new_file are required when comparing local files.\n")
+                sys.exit(1)
+            if args.old_file == "-":
+                raw_old = sys.stdin.read()
+                old_name = "stdin"
+            else:
+                with open(args.old_file, "r", encoding="utf-8") as f:
+                    raw_old = f.read()
+                old_name = os.path.basename(args.old_file)
 
-        with open(args.new_file, "r", encoding="utf-8") as f:
-            raw_new = f.read()
-        new_name = os.path.basename(args.new_file)
+            with open(args.new_file, "r", encoding="utf-8") as f:
+                raw_new = f.read()
+            new_name = os.path.basename(args.new_file)
+        else:
+            parser.print_help()
+            sys.exit(1)
     except Exception as e:
-        sys.stderr.write(f"Error reading input files: {e}\n")
+        sys.stderr.write(f"Error reading input: {e}\n")
         sys.exit(1)
 
     doc_a = WikitextParser.parse_document(raw_old, filename=old_name)
