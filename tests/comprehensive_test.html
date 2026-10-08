@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RefDiff Comprehensive Test Page</title>
+<link rel="stylesheet" href="https://en.wikipedia.org/w/load.php?modules=mediawiki.diff.styles%7Cmediawiki.skinning.content.parsoid&only=styles">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Lato, Helvetica, Arial, sans-serif; padding: 24px; background: #fff; color: #202122; max-width: 1200px; margin: 0 auto; }
+h1 { font-size: 20px; border-bottom: 1px solid #a2a9b1; padding-bottom: 6px; margin-bottom: 16px; }
+table.diff { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 13px; line-height: 1.5; }
+td.diff-marker { width: 1.5em; text-align: right; font-weight: bold; }
+td.diff-deletedline { background-color: #feeec8; }
+td.diff-addedline { background-color: #d8ecf9; }
+td.diff-context { background-color: #f8f9fa; color: #54595d; }
+.diffchange { font-weight: bold; text-decoration: none; }
+.diff-deletedline .diffchange { background-color: #fee090; }
+.diff-addedline .diffchange { background-color: #d1eeea; }
+</style>
+</head>
+<body>
+<h1>RefDiff Comprehensive Test Suite (Native MediaWiki wikidiff2 Engine)</h1>
+<div class="ve-init-mw-diffPage-diffMode">
+  <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonSelectWidget oo-ui-buttonElement-framed">
+    <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonOptionWidget">
+      <a class="oo-ui-buttonElement-button"><span class="oo-ui-labelElement-label">Visual</span></a>
+    </div>
+    <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonOptionWidget oo-ui-optionWidget-selected">
+      <a class="oo-ui-buttonElement-button"><span class="oo-ui-labelElement-label">Wikitext</span></a>
+    </div>
+  </div>
+</div>
+<table class="diff">
+  <colgroup>
+    <col class="diff-marker"><col class="diff-content">
+    <col class="diff-marker"><col class="diff-content">
+  </colgroup>
+  <tbody>
+    <tr>
+  <td colspan="2" class="diff-lineno">Line 2:</td>
+  <td colspan="2" class="diff-lineno">Line 2:</td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><br /></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><br /></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><div>=== 1. Sequential Anonymous References ===</div></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><div>=== 1. Sequential Anonymous References ===</div></td>
+</tr>
+<tr>
+  <td class="diff-marker" data-marker="−"></td>
+  <td class="diff-deletedline diff-side-deleted"><div>Venus has an orbital period of 224.7 days.&lt;ref&gt;{{Cite web |title=Venus Orbital Data |url=https://planetary.org/venus-orbit |year=2020}}&lt;/ref&gt; Its rotation is retrograde and exceptionally slow, taking 243 Earth days for one sidereal rotation.&lt;ref&gt;{{Cite book |author=Harris, A. |title=Planetary Dynamics |year=2018 |pages=<del class="diffchange diffchange-inline">50–55</del> |publisher=Academic Press}}&lt;/ref&gt; It has no natural satellites or rings.&lt;ref&gt;{{Cite web |title=Planetary Moons Overview |url=https://nasa.gov/moons |year=2021}}&lt;/ref&gt;</div></td>
+  <td class="diff-marker" data-marker="+"></td>
+  <td class="diff-addedline diff-side-added"><div>Venus has an orbital period of 224.7 days.&lt;ref&gt;{{Cite web |title=Venus Orbital Data |url=https://planetary.org/venus-orbit |year=2020}}&lt;/ref&gt; Its rotation is retrograde and exceptionally slow, taking 243 Earth days for one sidereal rotation.&lt;ref&gt;{{Cite book |author=Harris, A. |title=Planetary Dynamics |year=2018 |pages=<ins class="diffchange diffchange-inline">80–88</ins> |publisher=Academic Press}}&lt;/ref&gt; It has no natural satellites or rings.&lt;ref&gt;{{Cite web |title=Planetary Moons Overview |url=https://nasa.gov/moons |year=2021}}&lt;/ref&gt;</div></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><br /></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><br /></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><div>=== 2. Named Reference Modified ===</div></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><div>=== 2. Named Reference Modified ===</div></td>
+</tr>
+<tr>
+  <td class="diff-marker" data-marker="−"></td>
+  <td class="diff-deletedline diff-side-deleted"><div>The surface is dominated by volcanic plains.&lt;ref name="schmidt2020"&gt;{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=<del class="diffchange diffchange-inline">45–48</del> |publisher=Springer}}&lt;/ref&gt;</div></td>
+  <td class="diff-marker" data-marker="+"></td>
+  <td class="diff-addedline diff-side-added"><div>The surface is dominated by volcanic plains.&lt;ref name="schmidt2020"&gt;{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=<ins class="diffchange diffchange-inline">45–60</ins> |publisher=Springer}}&lt;/ref&gt;</div></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><br /></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><br /></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><div>=== 3. New Prose Text and Reference Added ===</div></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><div>=== 3. New Prose Text and Reference Added ===</div></td>
+</tr>
+<tr>
+  <td colspan="2" class="diff-empty diff-side-deleted"></td>
+  <td class="diff-marker" data-marker="+"></td>
+  <td class="diff-addedline diff-side-added"><div>The atmosphere consists of 96.5% carbon dioxide, producing an extreme greenhouse effect across the entire globe.&lt;ref name="esa2022"&gt;{{Cite journal |author=Müller, H. et al. |title=Venus Density Profiles |journal=Planetary Science Review |year=2022 |doi=10.1016/j.pss.2022.105412}}&lt;/ref&gt;</div></td>
+</tr>
+<tr>
+  <td class="diff-marker" data-marker="−"></td>
+  <td class="diff-deletedline diff-side-deleted"><div>The atmosphere consists of 96.5% carbon dioxide.</div></td>
+  <td colspan="2" class="diff-empty diff-side-added"></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><br /></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><br /></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><div>=== 4. Reference Added to Existing Text (No Prose Change) ===</div></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><div>=== 4. Reference Added to Existing Text (No Prose Change) ===</div></td>
+</tr>
+<tr>
+  <td class="diff-marker" data-marker="−"></td>
+  <td class="diff-deletedline diff-side-deleted"><div>Surface atmospheric pressure is ninety times that of Earth.</div></td>
+  <td class="diff-marker" data-marker="+"></td>
+  <td class="diff-addedline diff-side-added"><div>Surface atmospheric pressure is ninety times that of Earth.<ins class="diffchange diffchange-inline">&lt;ref name="esa-press"&gt;{{Cite book |author=ESA |title=Venus Surface Conditions |year=2015 |publisher=ESA Publications}}&lt;/ref&gt;</ins></div></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><br /></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><br /></td>
+</tr>
+<tr>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-deleted"><div>=== 5. Reference Removed ===</div></td>
+  <td class="diff-marker"></td>
+  <td class="diff-context diff-side-added"><div>=== 5. Reference Removed ===</div></td>
+</tr>
+<tr>
+  <td class="diff-marker" data-marker="−"></td>
+  <td class="diff-deletedline diff-side-deleted"><div>Early radar measurements were conducted by Soviet Venera landers.<del class="diffchange diffchange-inline">&lt;ref name="venera1982"&gt;{{Cite book |author=Moroz, V. I. |title=The Atmosphere of Venus |year=1982 |pages=12–18}}&lt;/ref&gt;</del></div></td>
+  <td class="diff-marker" data-marker="+"></td>
+  <td class="diff-addedline diff-side-added"><div>Early radar measurements were conducted by Soviet Venera landers.</div></td>
+</tr>
+
+  </tbody>
+</table>
+</body>
+</html>

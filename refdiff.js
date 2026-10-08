@@ -211,30 +211,34 @@
     for (const row of changeRows) {
       const delDiv = row.querySelector('.diff-deletedline div');
       const addDiv = row.querySelector('.diff-addedline div');
-      if (!delDiv || !addDiv) continue;
+      if (!delDiv && !addDiv) continue;
 
       // Extract refs from deleted side
       const delRefs = [];
       let m;
-      refRegex.lastIndex = 0;
-      while ((m = refRegex.exec(delDiv.innerHTML)) !== null) {
-        delRefs.push({ raw: m[0], attrs: m[1], content: m[2] });
+      if (delDiv) {
+        refRegex.lastIndex = 0;
+        while ((m = refRegex.exec(delDiv.innerHTML)) !== null) {
+          delRefs.push({ raw: m[0], attrs: m[1], content: m[2] });
+        }
       }
 
       // Extract refs from added side
       const addRefs = [];
-      refRegex.lastIndex = 0;
-      while ((m = refRegex.exec(addDiv.innerHTML)) !== null) {
-        const hasChange = m[0].includes('diffchange');
-        addRefs.push({ raw: m[0], attrs: m[1], content: m[2], hasChange });
+      if (addDiv) {
+        refRegex.lastIndex = 0;
+        while ((m = refRegex.exec(addDiv.innerHTML)) !== null) {
+          const hasChange = m[0].includes('diffchange');
+          addRefs.push({ raw: m[0], attrs: m[1], content: m[2], hasChange });
+        }
       }
 
       if (delRefs.length === 0 && addRefs.length === 0) continue;
 
       const pairs = pairReferences(delRefs, addRefs);
       const modifiedCits = [];
-      let newDelHtml = delDiv.innerHTML;
-      let newAddHtml = addDiv.innerHTML;
+      let newDelHtml = delDiv ? delDiv.innerHTML : '';
+      let newAddHtml = addDiv ? addDiv.innerHTML : '';
 
       for (const pair of pairs) {
         const d = pair.d;
@@ -264,18 +268,20 @@
         }
       }
 
-      delDiv.innerHTML = newDelHtml;
-      addDiv.innerHTML = newAddHtml;
+      if (delDiv) delDiv.innerHTML = newDelHtml;
+      if (addDiv) addDiv.innerHTML = newAddHtml;
 
       // If no remaining diffchanges in prose, convert line to context appearance
-      const hasProseChanges = newDelHtml.includes('diffchange') || newAddHtml.includes('diffchange');
-      if (!hasProseChanges) {
-        const delTd = row.querySelector('.diff-deletedline');
-        const addTd = row.querySelector('.diff-addedline');
-        if (delTd) delTd.className = 'diff-context diff-side-deleted';
-        if (addTd) addTd.className = 'diff-context diff-side-added';
-        const markers = row.querySelectorAll('.diff-marker');
-        markers.forEach(mk => mk.removeAttribute('data-marker'));
+      if (delDiv && addDiv) {
+        const hasProseChanges = newDelHtml.includes('diffchange') || newAddHtml.includes('diffchange');
+        if (!hasProseChanges) {
+          const delTd = row.querySelector('.diff-deletedline');
+          const addTd = row.querySelector('.diff-addedline');
+          if (delTd) delTd.className = 'diff-context diff-side-deleted';
+          if (addTd) addTd.className = 'diff-context diff-side-added';
+          const markers = row.querySelectorAll('.diff-marker');
+          markers.forEach(mk => mk.removeAttribute('data-marker'));
+        }
       }
 
       // Insert citation diff rows directly below this prose row
