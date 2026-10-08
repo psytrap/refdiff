@@ -10,9 +10,9 @@ This project introduces a model that decouples **Source Organization** (section-
 
 ## Documentation & Resources
 
-* 💡 **[PROPOSAL.md](PROPOSAL.md)** – Concise, production-ready proposal (pure feature focus).
-* 📄 **[CONCEPT.md](CONCEPT.md)** – Comprehensive architecture document with detailed diff analyses, technical pathways, and scoping rules.
-* 📝 **[SUBMISSION_DRAFTS.md](SUBMISSION_DRAFTS.md)** – Copy-paste templates for Wikimedia Phabricator and Wikipedia:Village pump.
+* 💡 **[PROPOSAL.md](PROPOSAL.md)** – Ready-to-submit Phabricator task proposal (clean feature focus, visual diff table, mechanics).
+* 📄 **[CONCEPT.md](CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
+* 📝 **[SUBMISSION_DRAFTS.md](SUBMISSION_DRAFTS.md)** – Ready-to-use Wiki post Anschreiben for community discussion pages (`Extension_talk:Cite`, `Wikipedia:Citing sources`).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
 
 ### Key Pillars
