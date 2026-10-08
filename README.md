@@ -24,13 +24,16 @@ RefDiff eliminates "template camouflage" by decoupling human prose edits from ci
 
 A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It operates directly on Wikipedia's native 2-column diff table (`table.diff`), preserving 100% of revision metadata headers, line numbers (`Line 101:`), and context rows:
 
+* **Seamless Native UI:** Integrates directly into Wikipedia's native OOUI diff mode switcher alongside Wikitext: `[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ] Inline ( )`.
+* **Mathematical Angle Bracket Badges:** Uses `⟨ref1⟩` and `⟨~ref3~⟩` to prevent syntactic conflict with Wikipedia's external links `[...]` and wikilinks `[[...]]`.
+* **Subtle, Ergonomic Badge Highlighting:** Unmodified citations use native subtle secondary text (`var(--color-subtle, #72777d)` / `#8c9196`, normal font weight) with zero blue highlight, so only genuine modifications (amber `⟨~ref3~⟩`) draw the reviewer's attention.
+* **Prefixed Citation Diff Rows:** Inserts citation diffs directly below the affected prose row, prefixed with their corresponding amber badge (`⟨~ref3~⟩ <ref>...`).
 * **Instant Installation:** Add this one line to your `Special:MyPage/common.js` on English Wikipedia (or any MediaWiki wiki):
   ```javascript
   // [[File:refdiff.js]] - Decoupled citation diffs for Special:Diff
   mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
   ```
-* Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey.
-* Fully supports Vector 2022 Light and Dark Modes with a 1-click toggle: `[ Decoupled (RefDiff) | Standard Wikidiff ]`.
+* Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
 
 ### 2. Standalone Python Engine & Git Driver (`refdiff.py`)
 

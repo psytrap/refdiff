@@ -132,9 +132,16 @@ This log records the rationale, architectural decisions, completed milestones, a
     * Resolves comparison endpoints via the MediaWiki Action API (`action=compare`), parses JSON slots, and pipes revisions straight into the decoupled diff engine.
   * **Zero-Loss In-Place MediaWiki User Script (`refdiff.js`):**
     * Completely discarded synthetic replacement diff tables to preserve 100% of native MediaWiki elements: revision metadata headers (author, timestamp, edit summary), line numbers (`Line 101:`), context rows, and embedded file previews.
-    * Implemented in-place DOM row manipulation: replaces `<ref>` tags in changed prose rows with direct inline badges (`[name]`, `[~name~]`), converts rows without remaining prose changes to neutral context appearance, and inserts native citation diff rows (`<tr class="refdiff-cit-row">`) directly underneath.
+    * Implemented in-place DOM row manipulation: replaces `<ref>` tags in changed prose rows with direct inline badges (`⟨name⟩`, `⟨~name~⟩`), converts rows without remaining prose changes to neutral context appearance, and inserts native citation diff rows (`<tr class="refdiff-cit-row">`) directly underneath.
     * Added standard UserScript metadata block for Tampermonkey, Violentmonkey, and Greasemonkey compatibility, plus a 1-line loader snippet for Wikipedia `Special:MyPage/common.js`.
     * Implemented entity-safe attribute regex parsing (`&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)...`) resolving HTML entity clipping bugs.
     * Implemented multi-pass citation pairing: (1) matching by explicit `name`, (2) matching identical text content, (3) positional order fallback. Eliminates false modification cascading when citations are inserted at the start of a paragraph.
     * Verified live on English Wikipedia (`Solar System diff=1372329011`) in Chromium CDP across both Light and Dark modes. Confirmed instantaneous zero-loss toggle between Decoupled and Standard Wikidiff.
+* **UI Polish, Native OOUI Integration & Visual Ergonomics:**
+  * **Native MediaWiki OOUI Diff Toolbar Integration:** Moved the RefDiff button directly into Wikipedia's native mode switcher (`.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget`) immediately adjacent to `[[]] Wikitext` (`[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ] Inline ( )`), seamlessly matching Wikipedia's button styling, dark/light theme tokens, and inline diff toggle.
+  * **Mathematical Angle Bracket Notation (`⟨ref1⟩`, `⟨~ref3~⟩`):** Replaced square brackets `[...]` with mathematical angle brackets across `refdiff.js`, `refdiff.py`, and specifications, eliminating visual and syntactic collisions with Wikipedia's link highlighting (`[external link]` and `[[wikilink]]`).
+  * **Citation Diff Row Prefixing:** Citation diff rows appended directly below the prose line now start with their matching badge (`⟨~ref3~⟩ <ref>...`) in gold/amber highlight, immediately connecting the prose badge to the citation change.
+  * **Diff Header Minimalism:** Removed redundant text summary (`(Refs: ...)`) from the diff prefix bar to strictly maintain Wikipedia's clean, native header aesthetics.
+  * **Subtle Secondary Styling for Unmodified References:** Replaced link-blue styling (`#0645ad` / `#6da2ff`) and bold weight on `.ref-badge` with Wikipedia's native secondary text color (`var(--color-subtle, #72777d)` in light mode, `#8c9196` in dark mode, normal font weight). Unchanged references blend naturally into prose context without mimicking hyperlinks or drawing false review attention.
+
 

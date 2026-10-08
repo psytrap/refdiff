@@ -63,15 +63,15 @@ Line 42:
 │          PANE 1: PROSE DIFF       │       │    PANE 2: CITATION AUDIT DELTA   │
 ├───────────────────────────────────┤       ├───────────────────────────────────┤
 │ The atmosphere consists mostly    │       │ 🟢 [Added] None                   │
-│ of carbon dioxide [1], creating   │       │ 🔴 [Removed] None                 │
+│ of carbon dioxide ⟨1⟩, creating   │       │ 🔴 [Removed] None                 │
 │ an [- extreme -] {+ runaway +}    │       │ 🟡 [Modified] 1 citation updated: │
-│ greenhouse effect.                │       │    • Schmidt 2020:                │
+│ greenhouse effect.                │       │    • ⟨~Schmidt 2020~⟩:            │
 │                                   │       │      pages: [- 112 -] {+ 115 +}   │
 └───────────────────────────────────┘       └───────────────────────────────────┘
 ```
 
-1. **Pane 1 (Prose Diff):** Strips all citation markup into lightweight anchor badges (`[1]`, `[2]`). Shows **strictly human-readable text modifications**.
-2. **Pane 2 (Citation Audit Delta):** Shows an isolated, parameter-level delta of all sources added, modified, or removed across the edit.
+1. **Pane 1 (Prose Diff):** Strips all citation markup into lightweight anchor badges (`⟨1⟩`, `⟨2⟩`). Shows **strictly human-readable text modifications**.
+2. **Pane 2 (Citation Audit Delta):** Shows an isolated, parameter-level delta of all sources added, modified, or removed across the edit, prefixed with their corresponding badges.
 
 ---
 
@@ -79,13 +79,14 @@ Line 42:
 
 ### Target A: MediaWiki User Script / Gadget (`RefDiff.js`)
 * **Runtime:** Runs in the browser via `common.js` on English Wikipedia and other wikis.
-* **Trigger:** Activates automatically on `Special:Diff` or when clicking a "Decouple Diffs" toggle button in the revision header.
+* **Placement & UI Integration:**
+  * Integrates directly into Wikipedia's native OOUI diff mode switcher (`.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget`) alongside Wikitext: `[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ] Inline ( )`.
+  * Strictly adheres to native Wikipedia design with no extraneous banners or non-native status bars.
+  * Preserves native inline diff toggle (`Inline ( )`) and full Vector 2022 light/dark theme responsiveness.
 * **Mechanism:**
-  1. Inspects the MediaWiki diff DOM (`table.diff`).
-  2. Pulls the raw wikitext of `oldid` and `diff` via MediaWiki JS API (`mw.Api().get({ action: 'query', prop: 'revisions', ... })`).
-  3. Runs client-side tokenization and diffing.
-  4. Injects the dual-pane visualization directly above or replacing the standard diff table.
-  5. Provides a one-click toggle: `[ Show Decoupled Diff | Show Raw Wikidiff ]`.
+  1. Operates directly on Wikipedia's native 2-column diff table (`table.diff`), preserving 100% of revision metadata headers, line numbers (`Line 101:`), and context rows.
+  2. Parses `<ref>` tags in changed rows, replaces them with lightweight badges (`⟨ref1⟩`, `⟨~ref3~⟩`), and injects matching citation diff rows (`<tr class="refdiff-cit-row">`) directly underneath each prose line.
+  3. Provides an instantaneous 1-click toggle between RefDiff and Standard Wikidiff.
 
 ### Target B: Git External Diff Driver (`git-refdiff`)
 * **Runtime:** Standalone CLI tool written in Python or Rust.
@@ -131,13 +132,13 @@ The parser scans wikitext and segregates content into two discrete data structur
 
 ### Step 5.2: Prose Diff Calculation
 * The prose stream is diffed using standard word-level sequence matching algorithms.
-* Sentinel tokens are rendered as lightweight reference badges, named directly after the reference (e.g. `[schmidt2020]`) or indexed sequentially for anonymous references (`[ref1]`).
+* Sentinel tokens are rendered as lightweight reference badges, named directly after the reference (e.g. `⟨schmidt2020⟩`) or indexed sequentially for anonymous references (`⟨ref1⟩`).
 * **Badge Status Indicators (Angle Bracket Notation):**
-  * Mathematical angle brackets `⟨...⟩` are used to prevent collisions with Wikipedia's link syntax (`[external link]` and `[[wikilink]]`).
-  * **Unchanged Citation:** `⟨schmidt2020⟩` (cyan)
-  * **Modified Citation:** `⟨~schmidt2020~⟩` (bold yellow with diff tilde notation, signaling modified underlying metadata)
-  * **Added Citation:** `{+ ⟨esa2022⟩ +}` (green)
-  * **Removed Citation:** `[- ⟨oldref⟩ -]` (red)
+  * Mathematical angle brackets `⟨...⟩` prevent visual collisions with Wikipedia's link syntax (`[external link]` and `[[wikilink]]`).
+  * **Unchanged Citation:** `⟨schmidt2020⟩` (subtle secondary text via `var(--color-subtle, #72777d)` / `#8c9196`, normal font weight; zero blue highlight so unchanged citations blend cleanly with prose without mimicking hyperlinks).
+  * **Modified Citation:** `⟨~schmidt2020~⟩` (bold amber/gold `#9a6700` / `#ffd043` with diff tilde notation, signaling modified underlying metadata).
+  * **Added Citation:** `{+ ⟨esa2022⟩ +}` (green inline diff badge).
+  * **Removed Citation:** `[- ⟨oldref⟩ -]` (red strikethrough inline diff badge).
 * Even when only citation metadata changes, the prose sentence is displayed annotating the affected reference badge (`⟨~name~⟩`) so reviewers immediately understand the claim context.
 
 ### Step 5.3: Raw Citation Diff Calculation (No Template Decoding)
@@ -145,7 +146,11 @@ The tool compares `RawRefsA` against `RawRefsB`:
 * **Added Citations:** Present in B, absent in A. Renders as `🟢 ADDED ⟨name⟩:` with `{+ ⟨name⟩ +} {+ <ref ...>...</ref> +}`.
 * **Removed Citations:** Present in A, absent in B. Renders as `🔴 REMOVED ⟨name⟩:` with `[- ⟨name⟩ -] [- <ref ...>...</ref> -]`.
 * **Modified Citations:** Present in both, but inner content or attributes changed.
-  * Runs a **standard raw word-level diff directly on the full encapsulating `<ref>` span**, prefixed with the badge:
+  * In the browser gadget, citation diff rows are inserted directly underneath the modified prose line and prefixed with the matching badge:
+    ```
+    ⟨~schmidt2020~⟩ <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |pages=45–[- 48 -] {+ 52 +} |isbn=...}}</ref>
+    ```
+  * In the CLI engine:
     ```
     🟡 MODIFIED ⟨~schmidt2020~⟩:
        ⟨~schmidt2020~⟩ <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |pages=45–[- 48 -] {+ 52 +} |isbn=...}}</ref>
@@ -159,26 +164,21 @@ The tool compares `RawRefsA` against `RawRefsB`:
 <div style="background: #0d1117; padding: 20px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #c9d1d9; border: 1px solid #30363d; margin: 16px 0;">
 
 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding-bottom: 10px; margin-bottom: 15px;">
-  <span style="font-weight: bold; color: #58a6ff;">🔍 RefDiff View (Ref-Differentiator)</span>
-  <div>
-    <span style="background: #1f6feb; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 6px;">Prose Diff</span>
-    <span style="background: #238636; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-size: 11px;">1 Source Modified</span>
-  </div>
+  <span style="font-weight: bold; color: #eaecf0;">MediaWiki Native Diff Toolbar: [ 👁 Visual ] [ [[]] Wikitext ] <span style="background: #1f4070; color: #ffffff; padding: 2px 8px; border-radius: 3px; font-weight: bold;">[ ⧉ RefDiff ]</span> Inline ( )</span>
 </div>
 
 <div style="margin-bottom: 20px;">
-  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Section: == 1. Geology of Venus == (Prose Hunk)</div>
+  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Section: == 1. Geology of Venus == (Prose Row)</div>
   <div style="background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #30363d; line-height: 1.6;">
-    The surface of Venus is dominated by intense volcanism.<sup style="color: #e3b341; font-weight: bold;">[~schmidt2020~]</sup> Radar imaging reveals thousands of volcanic structures, creating an <span style="background: #5a1e1e; color: #ff7b72; padding: 2px 6px; border-radius: 3px; text-decoration: line-through;">extreme</span> <span style="background: #1b4729; color: #7ee787; padding: 2px 6px; border-radius: 3px; font-weight: bold;">runaway</span> greenhouse effect across the planet.<sup style="color: #58a6ff; font-weight: bold;">[nasa2018]</sup>
+    The surface of Venus is dominated by intense volcanism.<span style="color: #ffd043; background: rgba(255, 208, 67, 0.2); border-radius: 2px; padding: 0 3px; font-weight: bold;">⟨~schmidt2020~⟩</span> Radar imaging reveals thousands of volcanic structures, creating an <span style="background: #5a1e1e; color: #ff7b72; padding: 2px 6px; border-radius: 3px; text-decoration: line-through;">extreme</span> <span style="background: #1b4729; color: #7ee787; padding: 2px 6px; border-radius: 3px; font-weight: bold;">runaway</span> greenhouse effect across the planet.<span style="color: #8c9196; padding: 0 2px;">⟨nasa2018⟩</span>
   </div>
 </div>
 
 <div>
-  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Citations (Raw Diff on Full &lt;ref&gt; Tag)</div>
+  <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">Citation Diff Row (Appended Directly Below Prose)</div>
   <div style="background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #30363d;">
-    <div style="color: #e3b341; font-weight: bold; margin-bottom: 6px;">🟡 MODIFIED [~schmidt2020~]:</div>
-    <div style="padding-left: 16px; font-size: 12px;">
-      <code>&lt;ref name="schmidt2020"&gt;{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=</code><span style="background: #5a1e1e; color: #ff7b72; padding: 1px 4px; border-radius: 2px; text-decoration: line-through;">45–48</span> <span style="background: #1b4729; color: #7ee787; padding: 1px 4px; border-radius: 2px; font-weight: bold;">45–52</span> <code>|isbn=978-3-12-345678-9 |publisher=Springer}}&lt;/ref&gt;</code>
+    <div style="font-size: 12px;">
+      <span style="color: #ffd043; background: rgba(255, 208, 67, 0.2); border-radius: 2px; padding: 0 3px; font-weight: bold; margin-right: 4px;">⟨~schmidt2020~⟩</span><code>&lt;ref name="schmidt2020"&gt;{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=</code><span style="background: #5a1e1e; color: #ff7b72; padding: 1px 4px; border-radius: 2px; text-decoration: line-through;">45–48</span> <span style="background: #1b4729; color: #7ee787; padding: 1px 4px; border-radius: 2px; font-weight: bold;">45–52</span> <code>|isbn=978-3-12-345678-9 |publisher=Springer}}&lt;/ref&gt;</code>
     </div>
   </div>
 </div>
@@ -209,6 +209,10 @@ The tool compares `RawRefsA` against `RawRefsB`:
 * [x] **Phase 3: MediaWiki User Script / Gadget (`refdiff.js`)**
   * Zero-loss in-place DOM manipulation directly on MediaWiki's native diff table (`table.diff`).
   * Preserves 100% of revision metadata headers, line numbers (`Line 101:`), and context lines.
+  * Integrated directly into native OOUI diff mode button switcher next to Wikitext: `[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ] Inline ( )`.
+  * Adopted mathematical angle brackets `⟨ref1⟩` and `⟨~ref3~⟩` without visual collision with wikitext link syntax.
+  * Implemented badge-prefixed citation diff rows directly underneath each modified prose line.
+  * Subtle secondary styling for unmodified references (zero blue highlight, normal font weight) to focus review attention strictly on edits.
   * Compatible with English Wikipedia Vector 2022 (Light and Dark Mode), Tampermonkey/Violentmonkey, and `common.js`.
 * [ ] **Phase 4: Upstream Phabricator Feature Request**
   * Submit RFC to Wikimedia Phabricator for native Parsoid/`wikidiff2` integration.
