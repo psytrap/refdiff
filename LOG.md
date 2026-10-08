@@ -147,6 +147,13 @@ This log records the rationale, architectural decisions, completed milestones, a
     * Published globally to Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)) and enabled for cross-wiki use across all language Wikipedias via [`m:Special:MyPage/global.js`](https://meta.wikimedia.org/wiki/Special:MyPage/global.js).
     * Enhanced toolbar compatibility to seamlessly support both SSR `.oo-ui-buttonGroupWidget` and client-transformed `.oo-ui-buttonSelectWidget` containers with capture-phase event delegation and `MutationObserver` re-rendering resilience.
     * Live on-wiki functionality confirmed working across diff views.
+  * **Document Appearance Order Sorting:**
+    * Resolved non-sequential anonymous citation numbering (`ref1`, `ref3`, `ref2`) caused by multi-pass matching adding identical citations before modified ones.
+    * Sorted citation pairs by their document index prior to numbering, ensuring citations strictly count `ref1`, `ref2`, `ref3` in natural reading order.
+  * **Single-Sided Addition & Deletion Row Decoupling:**
+    * Extended `applyDecoupling()` to process change rows that contain only `.diff-addedline` or `.diff-deletedline` (such as whole paragraph additions/deletions or `wikidiff2` line replacements).
+    * Built comprehensive 5-scenario test suite (`tests/comprehensive_test.html`) and verified against official Wikipedia API `action=compare` `wikidiff2` output in Chromium CDP across Light and Dark themes.
+
 
 
 
