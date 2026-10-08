@@ -153,6 +153,12 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Single-Sided Addition & Deletion Row Decoupling:**
     * Extended `applyDecoupling()` to process change rows that contain only `.diff-addedline` or `.diff-deletedline` (such as whole paragraph additions/deletions or `wikidiff2` line replacements).
     * Built comprehensive 5-scenario test suite (`tests/comprehensive_test.html`) and verified against official Wikipedia API `action=compare` `wikidiff2` output in Chromium CDP across Light and Dark themes.
+  * **CI Pipeline & JavaScript Linting:**
+    * Configured ESLint (`.eslintrc.json`) tailored for browser user scripts, MediaWiki globals (`mw`), and Node unit tests.
+    * Added `package.json` with standard npm lifecycle scripts (`npm run lint`, `npm test`, `npm run ci`).
+    * Expanded JS unit test suite (`tests/test_pairing.js`) with tests for pure additions, pure deletions, and self-closing tags.
+    * Set up GitHub Actions workflow (`.github/workflows/ci.yml`) to automatically test Node (20.x, 22.x) and Python (3.10, 3.12) matrices on push and pull requests.
+
 
 
 
