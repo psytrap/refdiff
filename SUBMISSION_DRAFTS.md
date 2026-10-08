@@ -129,21 +129,21 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 ---
 
-## 2. Extension:Cite Discussion Pages
+## 2. Community Discussion Draft (MediaWiki & Wikipedia Forums)
 
 * **Primary Venue (MediaWiki.org):** [mediawiki.org/wiki/Extension_talk:Cite](https://www.mediawiki.org/wiki/Extension_talk:Cite)
 * **Wikipedia Discussion Pages:** `en:Wikipedia talk:Citing sources` (or `de:Wikipedia Diskussion:Einzelnachweise`)
-* **Section Heading:** `Proposal: Section-scoped reference blocks (<references-def>) for cleaner wikitext and better diffs`
+* **Subject / Section Title:** `Proposal: Section-scoped reference blocks (<references-def>) for cleaner wikitext and better diffs`
 
-```wikitext
-== Proposal: Section-scoped reference blocks (<references-def>) for cleaner wikitext and better diffs ==
+### Post Body
 
 Hi all,
 
-I would like to propose a feature idea to improve reference management in wikitext: introducing a section-scoped definition block (working title: <code><references-def></code>) that keeps citations near the text without breaking prose flow.
+I would like to propose a feature idea to improve reference management in wikitext: introducing a section-scoped definition block (working title: `<references-def>`) that keeps citations near the text without breaking prose flow.
 
-=== What it looks like ===
-<syntaxhighlight lang="wikitext">
+#### What it looks like
+
+```wikitext
 == 1. Geology of Venus ==
 The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" />
 Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
@@ -155,33 +155,35 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 == References ==
 <references />
-</syntaxhighlight>
+```
 
-=== Why this helps ===
-# '''Readable wikitext with references still nearby:''' Paragraphs in raw wikitext stay fluent and readable without 500-character citation templates cluttering sentences. Unlike purely global reference lists at the bottom of the article, the citations remain right at hand within the section where they belong.
-# '''Clean, isolated diffs:''' Rewording a sentence touches only the sentence line. Updating a URL or page number touches only that single reference line.
-# '''No edit conflicts between sections:''' Two editors working on different sections never collide in a shared reference list at the bottom of the page.
-# '''Better claim auditing:''' Reviewers can check the section's source inventory at a glance against hallucinated or unverified text.
-# '''Same reader experience:''' Footnotes continue to display at the very bottom with continuous global numbering (<code>[1]</code>, <code>[2]</code>, …) as usual.
+#### Why this helps
 
-=== Diff Comparison ===
-; Status Quo (Inline Citations)
-<syntaxhighlight lang="diff">
+1. **Readable wikitext with references still nearby:** Paragraphs in raw wikitext stay fluent and readable without 500-character citation templates cluttering sentences. Unlike purely global reference lists at the bottom of the article, citations remain right at hand within the section where they belong.
+2. **Clean, isolated diffs:** Rewording a sentence touches only the sentence line. Updating a URL or page number touches only that single reference line.
+3. **No edit conflicts between sections:** Two editors working on different sections never collide in a shared reference list at the bottom of the page.
+4. **Better claim auditing:** Reviewers can check the section's source inventory at a glance against hallucinated or unverified text.
+5. **Same reader experience:** Footnotes continue to display at the very bottom with continuous global numbering (`[1]`, `[2]`, …) as usual.
+
+#### Diff Comparison
+
+**Status Quo (Inline Citations):**
+```diff
 - The atmosphere consists mostly of carbon dioxide<ref>{{Cite book |author=Schmidt, Rainer |title=Planetary Atmospheres |year=2020 |pages=112–115 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>, creating an extreme greenhouse effect that heats the surface.
 + The atmosphere consists mostly of carbon dioxide<ref>{{Cite book |author=Schmidt, Rainer |title=Planetary Atmospheres |year=2020 |pages=112–115 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>, creating a runaway greenhouse effect that heats the surface.
-</syntaxhighlight>
+```
 
-; Proposed (<references-def>)
-<syntaxhighlight lang="diff">
+**Proposed (`<references-def>`):**
+```diff
 - The atmosphere consists mostly of carbon dioxide<ref name="schmidt2020" />, creating an extreme greenhouse effect that heats the surface.
 + The atmosphere consists mostly of carbon dioxide<ref name="schmidt2020" />, creating a runaway greenhouse effect that heats the surface.
-</syntaxhighlight>
-
-=== Mechanics ===
-* <code><references-def></code> does not render HTML where it sits—it simply registers definitions.
-* The standard <code><references /></code> tag at the bottom outputs everything in appearance order.
-* '''Fault tolerance:''' The parser resolves definitions page-wide. If someone moves a sentence to another section and forgets to move the definition, the page '''does not break'''. Bots can later clean up and migrate misplaced definitions.
-* '''Trade-off (Diff review):''' Because prose and source definitions are decoupled, they form separate hunks within the section rather than on the same line. Section-scoping keeps this physical distance minimal (within the same section) while leaving raw wikitext clean and readable.
-
-I'd love to hear your thoughts and feedback before filing/linking the Phabricator task! ~~~~
 ```
+
+#### Mechanics & Trade-Offs
+
+* `<references-def>` does not render HTML where it sits—it simply registers definitions in the parser citation registry.
+* The standard `<references />` tag at the bottom outputs everything in appearance order.
+* **Fault tolerance:** The parser resolves definitions page-wide. If someone moves a sentence to another section and forgets to move the definition, the page does not break. Bots can later clean up and migrate misplaced definitions.
+* **Trade-off (Diff review):** Because prose and source definitions are decoupled, they form separate hunks within the section rather than on the same line. Section-scoping keeps this physical distance minimal (within the same section) while leaving raw wikitext clean and readable.
+
+I'd love to hear your thoughts and feedback before filing/linking the Phabricator task!
