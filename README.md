@@ -12,7 +12,7 @@ This project introduces a model that decouples **Source Organization** (section-
 
 * 💡 **[PROPOSAL.md](PROPOSAL.md)** – Ready-to-submit Phabricator task proposal (clean feature focus, visual diff table, mechanics).
 * 📄 **[CONCEPT.md](CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
-* 📝 **[SUBMISSION_DRAFTS.md](SUBMISSION_DRAFTS.md)** – Ready-to-use Wiki post Anschreiben for community discussion pages (`Extension_talk:Cite`, `Wikipedia:Citing sources`).
+* 📝 **[POST.md](POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
 
 ### Key Pillars

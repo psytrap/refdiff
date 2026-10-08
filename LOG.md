@@ -11,7 +11,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Core Artifacts:**
   * 💡 **[PROPOSAL.md](PROPOSAL.md):** 70-line concise proposal (pure feature focus).
   * 📄 **[CONCEPT.md](CONCEPT.md):** Comprehensive technical specification and architecture paper.
-  * 📝 **[SUBMISSION_DRAFTS.md](SUBMISSION_DRAFTS.md):** Ready-to-use copy-paste templates for Wikimedia Phabricator and Extension:Cite discussion pages.
+  * 📝 **[POST.md](POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
