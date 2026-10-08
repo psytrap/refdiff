@@ -147,6 +147,7 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 ## 5. Affected Tooling (Overview)
 
 * **MediaWiki Core & Parser:** `Extension:Cite` (recognizing boolean `hidden` attribute & suppressing in-situ rendering), `Parsoid` (round-trip DOM handling), `Page Previews` (hovercards).
+* **Legacy & Third-Party Compatibility:** For third-party or unpatched wikis running older `Extension:Cite` versions, a 15-line server hook (`ParserBeforeInternalParse`) dynamically transpiles `<references hidden>` blocks into standard document-end List-Defined References (LDR) in memory at parse time. This guarantees 100% backward-compatible HTML output with zero `<ol>` in-situ rendering, while dump/export filters (`Special:Export`, Kiwix) export standard LDR wikitext.
 * **Diff Tools (`wikidiff2`):** **No modifications required.** Works out-of-the-box with standard diffs (the separation of prose and source hunks within the section is an acknowledged trade-off).
 * **Editors & UI:** `VisualEditor` (option to append citations to section blocks), `SyntaxHighlighter` (tag recognition), `IDE/LSP tools` (local `name="..."` autocomplete).
 * **Bots & Maintenance:** `Pywikibot` (citation scripts), `InternetArchiveBot` (clean in-place URL fixes), `AutoWikiBrowser (AWB)`.

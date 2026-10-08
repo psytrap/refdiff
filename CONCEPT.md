@@ -284,7 +284,7 @@ To maintain author freedom while keeping repositories clean:
 
 ## 5. Technical Implementation Pathways
 
-Three technical pathways exist for realizing this model:
+Four technical pathways exist for realizing this model:
 
 ### Pathway A: Git Preprocessor / Clean-Smudge Filter
 * **How it works:** Authors edit and version section-modular wikitext in Git. A lightweight pre-commit hook, CI job, or Git filter compiles the text into standard wikitext (moving definitions to the global `<references>` tag) before pushing or uploading to MediaWiki.
@@ -300,6 +300,38 @@ Three technical pathways exist for realizing this model:
 * **How it works:** A native hook or patch in `Extension:Cite` directly supports the `hidden` attribute on `<references>` within the parser pipeline, registering definitions while suppressing immediate HTML rendering.
 * **Pros:** Cleanest long-term native integration in MediaWiki core.
 * **Cons:** Requires server administrator deployment.
+
+### Pathway D: On-the-Fly Reformatting Compatibility Layer (Dynamic LDR Hoisting)
+* **How it works:** On unpatched MediaWiki instances or third-party wikis running older versions of `Extension:Cite`, a lightweight server hook in `ParserBeforeInternalParse` (or a micro-extension `CiteHiddenCompat`) dynamically extracts `<references hidden>` blocks and hoists the enclosed `<ref>` definitions into the document-end `<references>` tag as standard List-Defined References (LDR) in memory before `Extension:Cite` parses tags:
+  ```php
+  // LocalSettings.php — Dynamic Reformatting Compatibility Layer
+  $wgHooks['ParserBeforeInternalParse'][] = function ( Parser $parser, string &$text ) {
+      $collectedDefs = [];
+      // 1. Extract definitions and strip section <references hidden> blocks
+      $text = preg_replace_callback(
+          '/<references\s+hidden\s*>(.*?)<\/references>/is',
+          function ( $matches ) use ( &$collectedDefs ) {
+              $collectedDefs[] = trim( $matches[1] );
+              return ''; // Suppress in-situ HTML completely
+          },
+          $text
+      );
+      // 2. Append collected definitions into the bottom <references> block as standard LDR
+      if ( !empty( $collectedDefs ) ) {
+          $defsBlock = "\n" . implode( "\n", $collectedDefs ) . "\n";
+          if ( preg_match( '/<references\s*\/>/i', $text ) ) {
+              $text = preg_replace( '/<references\s*\/>/i', "<references>{$defsBlock}</references>", $text, 1 );
+          } elseif ( preg_match( '/<references\b(.*?)>(.*?)<\/references>/is', $text ) ) {
+              $text = preg_replace( '/<references\b(.*?)>(.*?)<\/references>/is', "<references$1>$2{$defsBlock}</references>", $text, 1 );
+          }
+      }
+  };
+  ```
+* **Pros:**
+  1. **Zero Core Modifications:** Can be dropped into `LocalSettings.php` on any MediaWiki release (1.35 to 1.43+) without waiting for core software upgrades.
+  2. **100% Backward-Compatible Output:** Because `Extension:Cite` receives pure 2008-standard LDR wikitext, it never encounters an unpatched tag, completely eliminating in-situ `<ol>` lists, premature citation buffer flushes, and parameter error banners.
+  3. **Wikitext Storage Integrity:** Database revisions remain clean, modern, and section-modular for Git diffs and human editing.
+* **Cons:** In-memory regular expression scan on parse time (negligible overhead for standard pages).
 
 ---
 
@@ -332,8 +364,8 @@ Tool and bot maintainers (AWB, Refill, ProveIt, Pywikibot, user scripts) often e
    Unlike `<references display="none">` or `<references definition="true">`, a boolean attribute requires no value or quotes: editors type simply `<references hidden>`. This minimizes keystrokes, syntax errors, and visual noise in wikitext.
 
 #### Trade-Offs & Counter-Arguments
-1. **Fallback on Unpatched Parsers:**
-   In standard MediaWiki today, `<references>` ignores unrecognized attributes. If an article containing `<references hidden>` is rendered on an unpatched third-party wiki or an older parser without the patch, it would immediately render an HTML numbered list in the middle of the section. In contrast, `<references-def>` would be treated as an unknown tag or suppressed, avoiding duplicated footnote lists.
+1. **Fallback on Unpatched Parsers (Mitigated via Dynamic Reformatting):**
+   In standard unpatched MediaWiki today, `<references>` ignores or errors on unrecognized attributes and executes its default `<ol>` render method. However, this is completely mitigated by the **On-the-Fly Reformatting Compatibility Layer (Pathway D)**: a 15-line hook in `LocalSettings.php` transpiles `<references hidden>` to standard LDR at parse time on third-party wikis. Furthermore, Wikimedia export filters (`Special:Export`, database dumps for Kiwix and mirrors) automatically transpile wikitext to standard LDR on export, ensuring external consumers and mirrors never encounter unrecognized syntax.
 2. **Action vs. Declaration Mental Model:**
    For human editors, `<references />` has historically meant an *action* ("render the bibliography here"). Some editors find `<references-def>` more intuitive because the `-def` suffix clearly communicates that it is a *declaration block* rather than a display element.
 
