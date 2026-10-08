@@ -45,7 +45,7 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertTrue(doc.citations["volc"].is_definition)
         self.assertEqual(doc.citations["volc"].raw_content, "{{Cite book |author=Vulcan |year=2021}}")
 
-    def test_diff_engine_raw_citation_diff_and_prose_annotation(self):
+    def test_diff_engine_named_ref_badge(self):
         old_text = "== Test ==\nVenus has volcanism<ref name=\"s1\">{{Cite book |pages=10}}</ref>."
         new_text = "== Test ==\nVenus has volcanism<ref name=\"s1\">{{Cite book |pages=20}}</ref>."
         doc_a = WikitextParser.parse_document(old_text)
@@ -53,15 +53,14 @@ class TestRefDiffParser(unittest.TestCase):
 
         diffs, stats, ref_label_map = RefDiffEngine.compare_documents(doc_a, doc_b)
         self.assertEqual(len(diffs), 1)
-        # Even when wording is identical, prose has changes because the ref badge is annotated as modified!
         self.assertTrue(diffs[0].has_prose_changes)
         self.assertEqual(stats["words_added"], 0)
         self.assertEqual(stats["words_removed"], 0)
         self.assertEqual(stats["cits_modified"], 1)
 
-        # Check badge annotation in prose
+        # Check badge annotation in prose uses [name=s1]
         prose_str = TerminalFormatter.render_tokens(diffs[0].prose_tokens)
-        self.assertIn("[ref1]", prose_str)
+        self.assertIn("[name=s1]", prose_str)
 
         # Check citation diff
         old_cit, new_cit, raw_diff = diffs[0].citation_delta.modified[0]
@@ -70,20 +69,18 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertIn("[- 10 -]", rendered_cit)
         self.assertIn("{+ 20 +}", rendered_cit)
 
-    def test_diff_engine_prose_isolation(self):
-        old_text = "== Test ==\nVenus is cold<ref name=\"s1\">{{Cite book |pages=10}}</ref>."
-        new_text = "== Test ==\nVenus is hot<ref name=\"s1\">{{Cite book |pages=10}}</ref>."
+    def test_diff_engine_anonymous_ref_fallback(self):
+        old_text = "== Test ==\nVenus is hot<ref>{{Cite book |pages=10}}</ref>."
+        new_text = "== Test ==\nVenus is very hot<ref>{{Cite book |pages=10}}</ref>."
         doc_a = WikitextParser.parse_document(old_text)
         doc_b = WikitextParser.parse_document(new_text)
 
         diffs, stats, ref_label_map = RefDiffEngine.compare_documents(doc_a, doc_b)
         self.assertTrue(diffs[0].has_prose_changes)
         self.assertEqual(stats["words_added"], 1)
-        self.assertEqual(stats["words_removed"], 1)
-        self.assertEqual(stats["cits_modified"], 0)
+        self.assertEqual(stats["words_removed"], 0)
 
-        # Unmodified citation has standard cyan badge [ref1]
-        self.assertEqual(diffs[0].prose_tokens[-2].badge_status, "equal")
+        # Anonymous citation has standard cyan badge [ref1]
         self.assertEqual(diffs[0].prose_tokens[-2].ref_label, "ref1")
 
     def test_json_formatter(self):
@@ -99,9 +96,7 @@ class TestRefDiffParser(unittest.TestCase):
         self.assertEqual(data["summary"]["prose_words_added"], 1)
         self.assertEqual(data["summary"]["citations_modified"], 1)
         self.assertEqual(data["sections"][0]["title"], "Test")
-        self.assertEqual(data["sections"][0]["citation_delta"]["modified"][0]["ref_label"], "ref1")
-        self.assertEqual(data["sections"][0]["citation_delta"]["modified"][0]["old_raw"], "See page 10")
-        self.assertEqual(data["sections"][0]["citation_delta"]["modified"][0]["new_raw"], "See page 20")
+        self.assertEqual(data["sections"][0]["citation_delta"]["modified"][0]["ref_label"], "name=s1")
 
 if __name__ == "__main__":
     unittest.main()

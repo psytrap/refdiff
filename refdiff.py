@@ -413,19 +413,35 @@ class RefDiffEngine:
     def compare_documents(cls, old_doc: ParsedDocument, new_doc: ParsedDocument) -> Tuple[List[SectionDiff], Dict[str, int], Dict[str, str]]:
         """Coordinates section-by-section decoupled comparison."""
         
-        # Build 1-based human badge label map (e.g. schmidt2020 -> "ref1")
+        # Build human badge label map (e.g. name=esa2022 if name is present, else ref1, ref2, ...)
         ref_label_map: Dict[str, str] = {}
+        all_cits_by_id: Dict[str, Citation] = {}
+        for sec in new_doc.sections:
+            all_cits_by_id.update(sec.citations)
+        for sec in old_doc.sections:
+            for rid, cit in sec.citations.items():
+                if rid not in all_cits_by_id:
+                    all_cits_by_id[rid] = cit
+
         counter = 1
         for sec in new_doc.sections:
             for ref_id in sec.citations:
                 if ref_id not in ref_label_map:
-                    ref_label_map[ref_id] = f"ref{counter}"
-                    counter += 1
+                    cit = all_cits_by_id.get(ref_id)
+                    if cit and cit.name:
+                        ref_label_map[ref_id] = f"name={cit.name}"
+                    else:
+                        ref_label_map[ref_id] = f"ref{counter}"
+                        counter += 1
         for sec in old_doc.sections:
             for ref_id in sec.citations:
                 if ref_id not in ref_label_map:
-                    ref_label_map[ref_id] = f"ref{counter}"
-                    counter += 1
+                    cit = all_cits_by_id.get(ref_id)
+                    if cit and cit.name:
+                        ref_label_map[ref_id] = f"name={cit.name}"
+                    else:
+                        ref_label_map[ref_id] = f"ref{counter}"
+                        counter += 1
 
         old_sec_map = {s.title: s for s in old_doc.sections}
         new_sec_map = {s.title: s for s in new_doc.sections}
