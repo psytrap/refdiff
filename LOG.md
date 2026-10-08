@@ -63,7 +63,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Bot Philosophy** | "Bots clean up" (simple, async) | Avoids frustrating authors with strict lint errors. Normalization and block consolidation happen asynchronously. |
 | **Formatting** | Single-line per `<ref>` inside definition block | Prevents excessive vertical file bloat and ensures atomic, 1-line Git diff hunks per source update. |
 | **Diff Tooling Scope** | Zero changes required (`wikidiff2` untouched) | Avoids scope creep and maintainer pushback. Decoupling of claim and source in diff hunks is documented as an acknowledged trade-off mitigated by section locality. |
-| **Multi-Page Citations** | Compatible with `{{rp}}`, `{{r}}`, and `extends="..."` | Decoupled section blocks natively support in-prose page suffixes (`{{rp|45}}`) and native sub-referencing without modifying citation templates. |
+| **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp|45}}`). |
 
 ---
 

@@ -124,7 +124,7 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 1. **Render Suppression:** `<references-def>` registers citations with the parser but emits **no HTML** at that position.
 2. **Global Aggregation:** The global `<references />` tag at the bottom collects all definitions across all `<references-def>` blocks on the page, rendering a continuous `[1], [2], ...` numbered list ordered by first appearance in the text.
 3. **Fault Tolerance & Bot Cleanup:** If an author moves a sentence with `<ref name="..." />` to another section and forgets to move the definition, **the page does not break** (definitions resolve page-wide). Maintenance bots can asynchronously clean up and migrate misplaced definitions to their respective section.
-4. **Multi-Page Reuse:** Works out-of-the-box with in-prose page templates (`<ref name="book" />{{rp|45}}`) and Extension:Cite sub-referencing (`<ref name="p45" extends="book">p. 45</ref>`).
+4. **Multi-Page Reuse:** Fully compatible with MediaWiki's native sub-referencing (`<ref name="book" details="p. 45" />`) as well as community page templates (`<ref name="book" />{{rp|45}}`).
 
 ---
 

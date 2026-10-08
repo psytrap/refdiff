@@ -334,36 +334,30 @@ To maximize Git efficiency:
 ### 7.4 Multi-Page Reference Reuse (Citing the Same Source with Different Pages)
 A very common real-world scenario in Wikipedia is citing the same large monograph or report across multiple claims, but referencing different page numbers each time (e.g. citing *Schmidt 2020* on page 45, page 112, and page 240).
 
-Section-scoped blocks harmonize cleanly with all established Wikipedia practices:
+Section-scoped blocks harmonize cleanly with both native MediaWiki features and community templates:
 
-1. **Approach A: In-Prose Page Suffix (`{{rp|...}}` / `{{r|...}}`) — *Immediate Compatibility***
-   * The base bibliographic work is defined **once** in `<references-def>` without a fixed page range.
-   * Prose sentences call the base anchor and append standard page-number templates:
+1. **Native MediaWiki Syntax: `Extension:Cite` Sub-Referencing (`details="..."`) — *Recommended***
+   * MediaWiki natively supports sub-referencing via the `details="..."` attribute (developed under the *WMDE Technical Wishes / Sub-referencing* project).
+   * The core bibliographic work is defined **once** in `<references-def>`, and prose callouts specify the exact location via `details="..."`:
+     ```wikitext
+     The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" details="p. 45" />
+     Later radar maps confirmed extensive lava plains.<ref name="schmidt2020" details="pp. 112–115" />
+
+     <references-def>
+     <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>
+     </references-def>
+     ```
+   * **Result:** MediaWiki renders the base source once in the references list and associates sub-references (e.g. `[1] pp. 112–115`) with it. The wikitext stays completely clean, modular, and standard-compliant.
+
+2. **Community Template Alternative: In-Prose Page Suffix (`{{rp|...}}`) — *Legacy / en.wiki***
+   * On wikis or articles that do not use native sub-referencing, the community template `{{rp}}` (*Reference Page*) is often used to append superscript page numbers directly in prose:
      ```wikitext
      The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" />{{rp|45}}
      Later radar maps confirmed extensive lava plains.<ref name="schmidt2020" />{{rp|112–115}}
-
-     <references-def>
-     <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>
-     </references-def>
      ```
-   * **Result:** Readers see `[1]:45` and `[1]:112–115`. The bibliography contains a single, unified entry. Zero template modifications required.
+   * **Result:** Renders as `[1]:45` and `[1]:112–115`. Fully supported alongside `<references-def>`.
 
-2. **Approach B: Native Sub-References (`extends="..."`) — *Cleanest Prose***
-   * When using Extension:Cite's sub-referencing model, child references inherit all bibliographic metadata from a parent entry:
-     ```wikitext
-     The surface of Venus is dominated by intense volcanism.<ref name="schmidt-p45" />
-     Later radar maps confirmed extensive lava plains.<ref name="schmidt-p112" />
-
-     <references-def>
-     <ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |isbn=978-3-12-345678-9 |publisher=Springer}}</ref>
-     <ref name="schmidt-p45" extends="schmidt2020">p. 45</ref>
-     <ref name="schmidt-p112" extends="schmidt2020">pp. 112–115</ref>
-     </references-def>
-     ```
-   * **Result:** Prose stays 100% free of page numbers and template syntax. All page-specific variations reside in the section definition block.
-
-3. **Approach C: Shortened Footnotes (`{{sfn}}`) & Global Bibliography**
+3. **Shortened Footnotes (`{{sfn}}`) & Global Bibliography**
    * For articles employing separate `== Bibliography ==` sections, `<references-def>` works seamlessly with short-citation templates (`{{sfn|Schmidt|2020|p=45}}`), allowing editors to consolidate local citations without scattering templates into paragraph text.
 
 ---
