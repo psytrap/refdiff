@@ -193,16 +193,20 @@ async def run_suite(args: argparse.Namespace) -> int:
                         const veDiff = document.querySelector('.ve-ui-diffElement, .ve-init-mw-diffPage-diff');
                         const citRows = document.querySelectorAll('tr.refdiff-cit-row');
                         const citRowsVisible = Array.from(citRows).filter(r => r.offsetParent !== null).length;
+                        const table = document.querySelector('table.diff');
+                        const nonHeaderRowsVisible = table ? Array.from(table.querySelectorAll('tr:not(.diff-title)')).filter(r => r.offsetParent !== null).length : 0;
                         const sw = document.getElementById('mw-diffPage-inline-toggle-switch');
                         return {
                             veDiffVisible: veDiff ? (veDiff.offsetParent !== null && veDiff.closest('.oo-ui-element-hidden') === null) : false,
                             citRowsVisible,
+                            nonHeaderRowsVisible,
                             inlineDisabled: sw ? sw.classList.contains('oo-ui-widget-disabled') : true
                         };
                     })()
                 """)
                 assert state_visual["veDiffVisible"], "VisualEditor visual diff should be displayed"
                 assert state_visual["citRowsVisible"] == 0, "No RefDiff citation rows should leak into Visual diff"
+                assert state_visual["nonHeaderRowsVisible"] == 0, "No Wikitext diff content rows should remain visible in Visual diff"
                 await client.capture_screenshot(os.path.join(screenshots_dir, "01_visual_diff.png"))
                 test_steps.append(("Switch to Visual Diff (clean view, 0 leaked rows)", True))
 
@@ -230,6 +234,34 @@ async def run_suite(args: argparse.Namespace) -> int:
             assert state_refdiff["inlineDisabled"], "Inline diff switch must be disabled during RefDiff"
             await client.capture_screenshot(os.path.join(screenshots_dir, "02_refdiff_decoupled.png"))
             test_steps.append(("Switch to RefDiff (citations decoupled, inline switch disabled)", True))
+
+            # 5b. Direct Transition: RefDiff -> Visual Diff
+            if has_ve:
+                print("[Step 5b] Testing direct transition: RefDiff -> Visual Diff...")
+                await client.click(visual_btn)
+                await asyncio.sleep(args.wait_ve)
+
+                state_rd_to_visual = await client.evaluate("""
+                    (() => {
+                        const veDiff = document.querySelector('.ve-ui-diffElement, .ve-init-mw-diffPage-diff');
+                        const citRows = document.querySelectorAll('tr.refdiff-cit-row');
+                        const citRowsVisible = Array.from(citRows).filter(r => r.offsetParent !== null).length;
+                        const table = document.querySelector('table.diff');
+                        const nonHeaderRowsVisible = table ? Array.from(table.querySelectorAll('tr:not(.diff-title)')).filter(r => r.offsetParent !== null).length : 0;
+                        const sw = document.getElementById('mw-diffPage-inline-toggle-switch');
+                        return {
+                            veDiffVisible: veDiff ? (veDiff.offsetParent !== null && veDiff.closest('.oo-ui-element-hidden') === null) : false,
+                            citRowsVisible,
+                            nonHeaderRowsVisible,
+                            inlineDisabled: sw ? sw.classList.contains('oo-ui-widget-disabled') : true
+                        };
+                    })()
+                """)
+                assert state_rd_to_visual["veDiffVisible"], "VisualEditor visual diff should be displayed after RefDiff -> Visual"
+                assert state_rd_to_visual["citRowsVisible"] == 0, "No citation rows should remain after RefDiff -> Visual"
+                assert state_rd_to_visual["nonHeaderRowsVisible"] == 0, "No Wikitext diff content rows should remain visible after RefDiff -> Visual"
+                await client.capture_screenshot(os.path.join(screenshots_dir, "02b_refdiff_to_visual.png"))
+                test_steps.append(("Direct transition RefDiff -> Visual (0 leaked rows, clean view)", True))
 
             # 6. Mode Switch: Standard Wikitext Diff
             print("[Step 6] Switching back to Standard Wikitext Diff...")

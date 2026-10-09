@@ -128,12 +128,13 @@
       text-decoration: none;
       cursor: default;
     }
-    /* Ensure citation diff rows are never visible when Visual diff is active */
+    /* Ensure citation diff rows and hidden rows are never visible when Visual diff is active */
     .ve-init-mw-diffPage-diff ~ table.diff .refdiff-cit-row,
     .ve-ui-diffElement ~ table.diff .refdiff-cit-row,
     body.ve-diff-visual table.diff .refdiff-cit-row,
     tr.oo-ui-element-hidden + tr.refdiff-cit-row,
-    .refdiff-cit-row.oo-ui-element-hidden {
+    .refdiff-cit-row.oo-ui-element-hidden,
+    table.diff tr.oo-ui-element-hidden {
       display: none !important;
     }
   `;
@@ -492,8 +493,16 @@
     const widget = getDiffModeWidget();
     const refBtn = typeof document !== 'undefined' ? document.getElementById('refdiff-ooui-btn') : null;
     const group = refBtn ? refBtn.parentElement : null;
-    const currentWiki = group ? Array.from(group.children).find(c => c.textContent.includes('Wikitext')) : null;
-    const currentVisual = group ? Array.from(group.children).find(c => c.textContent.includes('Visual')) : null;
+    const currentWiki = group ? Array.from(group.children).find(c => {
+      if (c === refBtn) return false;
+      const text = c.textContent.toLowerCase();
+      return text.includes('wiki') || c.querySelector('.oo-ui-icon-wikiText');
+    }) : null;
+    const currentVisual = group ? Array.from(group.children).find(c => {
+      if (c === refBtn) return false;
+      const text = c.textContent.toLowerCase();
+      return text.includes('visu') || c.querySelector('.oo-ui-icon-eye');
+    }) : null;
     const isSelect = group && group.classList.contains('oo-ui-buttonSelectWidget');
 
     // Fallback mode bar elements
@@ -502,6 +511,11 @@
 
     if (mode === 'visual') {
       restoreOriginal(table);
+      if (table && typeof table.querySelectorAll === 'function') {
+        const bodyRows = getDiffBodyRows(table);
+        bodyRows.forEach(r => r.classList.add('oo-ui-element-hidden'));
+        notifyBodyUpdate(table);
+      }
       setInlineSwitchDisabled(true);
       if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'visual') {
         widget.selectItemByData('visual');
@@ -513,6 +527,11 @@
       if (btnDecoupled) btnDecoupled.classList.remove('active');
     } else if (mode === 'wikitext') {
       restoreOriginal(table);
+      if (table && typeof table.querySelectorAll === 'function') {
+        const bodyRows = getDiffBodyRows(table);
+        bodyRows.forEach(r => r.classList.remove('oo-ui-element-hidden'));
+        notifyBodyUpdate(table);
+      }
       setRefDiffPreferred(false);
       setInlineSwitchDisabled(false);
       if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'source') {
@@ -524,6 +543,10 @@
       if (btnStandard) btnStandard.classList.add('active');
       if (btnDecoupled) btnDecoupled.classList.remove('active');
     } else if (mode === 'refdiff') {
+      if (table && typeof table.querySelectorAll === 'function') {
+        const bodyRows = getDiffBodyRows(table);
+        bodyRows.forEach(r => r.classList.remove('oo-ui-element-hidden'));
+      }
       if (isVisualDiffActive()) {
         if (widget) {
           widget.selectItemByData('source');
@@ -539,6 +562,9 @@
       if (btnDecoupled) btnDecoupled.classList.add('active');
       if (btnStandard) btnStandard.classList.remove('active');
       applyDecoupling(table);
+      if (table) {
+        notifyBodyUpdate(table);
+      }
     }
   }
 
@@ -643,6 +669,40 @@
   }
 
   /**
+   * Returns all non-header diff rows from a MediaWiki diff table.
+   * Matches VisualEditor's row categorization (excluding diff-title, diff-multi, diff-notice).
+   * @param {HTMLTableElement} table
+   * @returns {HTMLTableRowElement[]}
+   */
+  function getDiffBodyRows(table) {
+    if (!table || typeof table.querySelectorAll !== 'function') return [];
+    const headerSet = new Set(table.querySelectorAll('tr.diff-title'));
+    const multiOrNotice = table.querySelectorAll('td.diff-multi, td.diff-notice');
+    for (let i = 0; i < multiOrNotice.length; i++) {
+      if (multiOrNotice[i].parentElement) {
+        headerSet.add(multiOrNotice[i].parentElement);
+      }
+    }
+    return Array.from(table.querySelectorAll('tr')).filter(r => !headerSet.has(r));
+  }
+
+  /**
+   * Fires MediaWiki's native 'wikipage.diff.wikitextBodyUpdate' hook so VisualEditor
+   * synchronizes its internal $wikitextDiffBody reference with the live table rows.
+   * @param {HTMLTableElement} table
+   */
+  function notifyBodyUpdate(table) {
+    if (!table) return;
+    if (typeof window !== 'undefined' && window.mw && window.mw.hook) {
+      const $ = window.$ || window.jQuery;
+      if ($) {
+        const bodyRows = getDiffBodyRows(table);
+        window.mw.hook('wikipage.diff.wikitextBodyUpdate').fire($(bodyRows));
+      }
+    }
+  }
+
+  /**
    * Restores the diff table to its original native MediaWiki HTML.
    * @param {HTMLTableElement} table
    */
@@ -650,6 +710,7 @@
     if (!table || !origTableHtml || !isDecoupled) return;
     table.innerHTML = origTableHtml;
     isDecoupled = false;
+    notifyBodyUpdate(table);
   }
 
   // --- Environment & Page Detection ---
@@ -661,7 +722,7 @@
   function isDiffPage() {
     if (typeof window === 'undefined' || typeof document === 'undefined') return false;
     return !!(
-      (window.mw && (mw.config.get('wgDiffNewId') || mw.config.get('wgDiffOldId'))) ||
+      (window.mw && window.mw.config && (window.mw.config.get('wgDiffNewId') || window.mw.config.get('wgDiffOldId'))) ||
       document.querySelector('table.diff') ||
       document.getElementById('wikiDiff') ||
       /[?&]diff=/.test(location.search) ||
@@ -743,9 +804,15 @@
             e.preventDefault();
             e.stopPropagation();
             selectMode('refdiff', table);
-          } else if (btn.textContent.includes('Wikitext')) {
+          } else if (
+            btn.querySelector('.oo-ui-icon-wikiText') ||
+            btn.textContent.toLowerCase().includes('wiki')
+          ) {
             selectMode('wikitext', table);
-          } else if (btn.textContent.includes('Visual')) {
+          } else if (
+            btn.querySelector('.oo-ui-icon-eye') ||
+            btn.textContent.toLowerCase().includes('visu')
+          ) {
             selectMode('visual', table);
           }
         }, true);
@@ -811,14 +878,14 @@
 
   // --- Auto-start in browser environment ---
   if (typeof window !== 'undefined' && isDiffPage()) {
-    if (window.mw && mw.hook) {
-      mw.hook('wikipage.diff.diffTypeSwitch').add((sw) => {
+    if (window.mw && window.mw.hook) {
+      window.mw.hook('wikipage.diff.diffTypeSwitch').add((sw) => {
         diffTypeSwitchWidget = sw;
         if (isRefDiffPreferred() && !isVisualDiffActive()) {
           setInlineSwitchDisabled(true);
         }
       });
-      mw.hook('wikipage.diff').add(init);
+      window.mw.hook('wikipage.diff').add(init);
       if (document.readyState === 'complete' || document.readyState === 'interactive') {
         setTimeout(init, 50);
       }
@@ -842,6 +909,8 @@
     createCitRow,
     applyDecoupling,
     restoreOriginal,
+    getDiffBodyRows,
+    notifyBodyUpdate,
     isDiffPage,
     isVisualDiffActive,
     selectMode,

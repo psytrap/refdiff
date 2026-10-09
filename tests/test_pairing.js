@@ -24,7 +24,9 @@ const {
   updateButtonState,
   setInlineSwitchDisabled,
   applyDecoupling,
-  restoreOriginal
+  restoreOriginal,
+  getDiffBodyRows,
+  notifyBodyUpdate
 } = require('../refdiff.js');
 
 // --- Lightweight Test Runner ---
@@ -350,6 +352,111 @@ suite('6. Visual Diff & Selection Mode Switching', () => {
       assert.strictEqual(isRefDiffPreferred(), false);
     } finally {
       teardownMockWindow();
+    }
+  });
+
+  test('getDiffBodyRows separates header rows from body content rows', () => {
+    const titleRow = { className: 'diff-title' };
+    const noticeRow = { className: '' };
+    const noticeTd = { className: 'diff-notice', parentElement: noticeRow };
+    const contentRow1 = { className: '', classList: { add() {}, remove() {} } };
+    const contentRow2 = { className: '', classList: { add() {}, remove() {} } };
+
+    const mockTable = {
+      querySelectorAll(selector) {
+        if (selector === 'tr.diff-title') return [titleRow];
+        if (selector.includes('diff-multi') || selector.includes('diff-notice')) return [noticeTd];
+        if (selector === 'tr') return [titleRow, noticeRow, contentRow1, contentRow2];
+        return [];
+      }
+    };
+
+    const bodyRows = getDiffBodyRows(mockTable);
+    assert.strictEqual(bodyRows.length, 2);
+    assert.strictEqual(bodyRows[0], contentRow1);
+    assert.strictEqual(bodyRows[1], contentRow2);
+  });
+
+  test('selectMode toggles oo-ui-element-hidden on body rows and notifies mw.hook', () => {
+    let hookFiredWith = null;
+    global.window = {
+      mw: {
+        hook(name) {
+          if (name === 'wikipage.diff.wikitextBodyUpdate') {
+            return {
+              fire(arg) { hookFiredWith = arg; }
+            };
+          }
+          return { fire() {}, add() {} };
+        }
+      },
+      $: (el) => el
+    };
+
+    const addedClasses = [];
+    const removedClasses = [];
+    const bodyRow = {
+      className: '',
+      classList: {
+        add(c) { addedClasses.push(c); },
+        remove(c) { removedClasses.push(c); }
+      }
+    };
+    const mockTable = {
+      querySelectorAll(selector) {
+        if (selector === 'tr.diff-title') return [];
+        if (selector.includes('diff-multi') || selector.includes('diff-notice')) return [];
+        if (selector === 'tr') return [bodyRow];
+        if (selector === 'tr.oo-ui-element-hidden') return [bodyRow];
+        return [];
+      }
+    };
+
+    try {
+      selectMode('visual', mockTable);
+      assert.strictEqual(addedClasses.includes('oo-ui-element-hidden'), true, 'Should add oo-ui-element-hidden in visual mode');
+      assert.deepStrictEqual(hookFiredWith, [bodyRow], 'Should fire wikitextBodyUpdate with body rows in visual mode');
+
+      hookFiredWith = null;
+      selectMode('wikitext', mockTable);
+      assert.strictEqual(removedClasses.includes('oo-ui-element-hidden'), true, 'Should remove oo-ui-element-hidden in wikitext mode');
+      assert.deepStrictEqual(hookFiredWith, [bodyRow], 'Should fire wikitextBodyUpdate with body rows in wikitext mode');
+    } finally {
+      delete global.window;
+    }
+  });
+
+  test('notifyBodyUpdate fires mw.hook with jQuery-wrapped body rows', () => {
+    let hookFiredWith = null;
+    global.window = {
+      mw: {
+        hook(name) {
+          if (name === 'wikipage.diff.wikitextBodyUpdate') {
+            return {
+              fire(arg) { hookFiredWith = arg; }
+            };
+          }
+          return { fire() {}, add() {} };
+        }
+      },
+      $: (el) => el
+    };
+
+    const row = { className: '' };
+    const mockTable = {
+      querySelectorAll(selector) {
+        if (selector === 'tr.diff-title') return [];
+        if (selector.includes('diff-multi') || selector.includes('diff-notice')) return [];
+        if (selector === 'tr') return [row];
+        return [];
+      }
+    };
+
+    try {
+      notifyBodyUpdate(mockTable);
+      assert.deepStrictEqual(hookFiredWith, [row]);
+    } finally {
+      delete global.window;
     }
   });
 });
