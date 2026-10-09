@@ -103,7 +103,7 @@ Notice how the unchanged citation {{mono|<span style="color: #72777d;">‚ü®ref1‚ü
 
 == Installation ==
 
-=== English Wikipedia (Recommended) ===
+=== Option 1: English Wikipedia (Recommended) ===
 Add the following line to your local [[Special:MyPage/common.js|common.js]] page on English Wikipedia:
 
 <syntaxhighlight lang="javascript">
