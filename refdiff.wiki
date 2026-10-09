@@ -82,30 +82,49 @@ RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic
 
 === Decoupled Diff Example ===
 
-A live interactive demonstration showing all badge categories (unmodified, modified, added, removed) is available at [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 live diff]):
+A live interactive demonstration showing all badge categories (unmodified, modified, added, removed) is available at [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 live diff]).
+
+Notice how the unchanged citation {{mono|<span style="color: #72777d;">⟨ref1⟩</span>}} remains calm and neutral, while the modified citation {{mono|<span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px;">⟨~ref2~⟩</span>}} draws attention to its dedicated citation diff row directly underneath:
 
 {| class="wikitable" style="width: 100%; table-layout: fixed; font-family: monospace; font-size: 0.9em;"
 ! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (Old):
 ! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (New):
 |-
 | style="vertical-align: top; background: #ffe6e6; padding: 8px 10px; line-height: 1.5;" |
-<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating an <del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">extreme</del> greenhouse effect.
+<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> The atmosphere consists of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating an <del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">extreme</del> greenhouse effect.<span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref2~⟩</span>
 | style="vertical-align: top; background: #e6ffe6; padding: 8px 10px; line-height: 1.5;" |
-<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">runaway</ins> greenhouse effect.
+<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> The atmosphere consists of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">runaway</ins> greenhouse effect.<span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref2~⟩</span>
 |-
 | style="vertical-align: top; background: #fffdf0; padding: 8px 10px; line-height: 1.5; border-top: 2px solid #eaecf0;" |
-<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref1~⟩</span> &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">112–115</del>}}&lt;/ref&gt;
+<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref2~⟩</span> &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">112–115</del>}}&lt;/ref&gt;
 | style="vertical-align: top; background: #fffdf0; padding: 8px 10px; line-height: 1.5; border-top: 2px solid #eaecf0;" |
-<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref1~⟩</span> &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">112–125</ins>}}&lt;/ref&gt;
+<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref2~⟩</span> &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">112–125</ins>}}&lt;/ref&gt;
 |}
 
 == Installation ==
 
-Add the following line to your [[Special:MyPage/common.js|common.js]] page (or [[Special:MyPage/global.js|global.js]] for all Wikimedia wikis):
+=== Option 1: Standard Installation (Recommended for English Wikipedia) ===
+Add the following line to your local [[Special:MyPage/common.js|common.js]] page on English Wikipedia:
 
 <syntaxhighlight lang="javascript">
-// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+// [[m:User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
 mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+</syntaxhighlight>
+
+=== Option 2: Global Cross-Wiki Installation (All Wikimedia Wikis) ===
+To enable RefDiff automatically across all language Wikipedias, Wikidata, and Wikimedia projects at once, add the exact same line to your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]**:
+
+<syntaxhighlight lang="javascript">
+// [[m:User:Powercycler/refdiff.js]] - RefDiff across all wikis
+mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+</syntaxhighlight>
+
+=== Option 3: Personal Copy / Developer Fork ===
+If you maintain your own custom script fork at [[:m:Special:MyPage/refdiff.js|m:Special:MyPage/refdiff.js]], load it dynamically with:
+
+<syntaxhighlight lang="javascript">
+// [[m:Special:MyPage/refdiff.js]] - Load personal Meta-Wiki fork
+mw.loader.load('//meta.wikimedia.org/w/index.php?title=User:' + encodeURIComponent((mw.config.get('wgUserName') || '').replace(/ /g, '_')) + '/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
 Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
