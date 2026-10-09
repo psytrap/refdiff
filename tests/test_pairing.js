@@ -223,7 +223,7 @@ assert.strictEqual(mwStore[STORAGE_KEY], 'true');
 assert.strictEqual(isRefDiffPreferred(), true);
 
 // 8. Visual Diff & Selection Mode Tests
-const { isVisualDiffActive, selectMode, updateButtonState } = require('../refdiff.js');
+const { isVisualDiffActive, selectMode, updateButtonState, setInlineSwitchDisabled } = require('../refdiff.js');
 
 // Test 8.1: isVisualDiffActive returns false in Node environment
 assert.strictEqual(isVisualDiffActive(), false);
@@ -245,6 +245,12 @@ assert.strictEqual(isRefDiffPreferred(), true);
 
 updateButtonState(false, mockTable);
 assert.strictEqual(isRefDiffPreferred(), false);
+
+// Test 8.3: setInlineSwitchDisabled handles null/missing environment safely
+assert.doesNotThrow(() => {
+  setInlineSwitchDisabled(true);
+  setInlineSwitchDisabled(false);
+});
 
 // Clean up globals
 delete global.window;

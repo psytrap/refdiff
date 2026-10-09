@@ -122,7 +122,7 @@ On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's 
 * '''Three-Way Diff Mode Switching:''' Seamlessly switches between {{mono|Visual}} (native rich HTML diff), standard {{mono|Wikitext}} diff, and decoupled {{mono|RefDiff}} instantly (&lt; 5ms, no page reload).
 * '''Visual Diff Interoperability:''' Switching to {{mono|Visual}} cleanly dismisses citation diff rows and restores native diff markup; switching back to {{mono|RefDiff}} seamlessly re-engages citation decoupling.
 * '''State Persistence:''' Remembers your latest mode selection across diff pages via {{mono|mw.storage}}. If you toggle back to Wikitext or open a diff in Visual mode, diffs remain in your chosen view until you click RefDiff again.
-* '''Inline Diff Compatibility:''' Fully compatible with Wikipedia's native {{mono|Inline}} checkbox.
+* '''Inline Switch Inactive during RefDiff:''' The native {{mono|Inline}} toggle switch is automatically disabled and inactive while RefDiff is active to preserve two-column citation alignment, and automatically re-enabled when switching back to standard Wikitext diff.
 * '''Fallback Mode Bar:''' On older skins without the OOUI button container (e.g. Monobook), RefDiff displays a clean switcher bar above the diff table:
   : {{mono|Diff view: '''Decoupled (RefDiff)''' • Standard Wikidiff}}
 

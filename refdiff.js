@@ -450,6 +450,38 @@
     return false;
   }
 
+  let diffTypeSwitchWidget = null;
+
+  /**
+   * Sets the disabled/inactive state of the native MediaWiki inline diff switch.
+   * @param {boolean} disabled
+   */
+  function setInlineSwitchDisabled(disabled) {
+    if (diffTypeSwitchWidget && typeof diffTypeSwitchWidget.setDisabled === 'function') {
+      if (disabled && typeof diffTypeSwitchWidget.getValue === 'function' && diffTypeSwitchWidget.getValue()) {
+        diffTypeSwitchWidget.setValue(false);
+      }
+      diffTypeSwitchWidget.setDisabled(disabled);
+    }
+    if (typeof document !== 'undefined') {
+      const swEl = document.getElementById('mw-diffPage-inline-toggle-switch') ||
+                   document.querySelector('.oo-ui-toggleSwitchWidget, input[name="diff-type"]');
+      if (swEl) {
+        swEl.classList.toggle('oo-ui-widget-disabled', disabled);
+        swEl.classList.toggle('oo-ui-widget-enabled', !disabled);
+        swEl.setAttribute('aria-disabled', String(disabled));
+        if (swEl.tagName === 'INPUT') {
+          swEl.disabled = disabled;
+        }
+      }
+      const field = swEl ? swEl.closest('.oo-ui-fieldLayout') : null;
+      if (field) {
+        field.classList.toggle('oo-ui-widget-disabled', disabled);
+        field.classList.toggle('oo-ui-widget-enabled', !disabled);
+      }
+    }
+  }
+
   /**
    * Switches the diff view mode between 'visual', 'wikitext', and 'refdiff'.
    * @param {'visual'|'wikitext'|'refdiff'} mode
@@ -470,6 +502,7 @@
 
     if (mode === 'visual') {
       restoreOriginal(table);
+      setInlineSwitchDisabled(true);
       if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'visual') {
         widget.selectItemByData('visual');
       }
@@ -481,6 +514,7 @@
     } else if (mode === 'wikitext') {
       restoreOriginal(table);
       setRefDiffPreferred(false);
+      setInlineSwitchDisabled(false);
       if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'source') {
         widget.selectItemByData('source');
       }
@@ -498,6 +532,7 @@
         }
       }
       setRefDiffPreferred(true);
+      setInlineSwitchDisabled(true);
       setElementActive(currentVisual, false, isSelect);
       setElementActive(currentWiki, false, isSelect);
       setElementActive(refBtn, true, isSelect);
@@ -767,13 +802,22 @@
 
     // Apply decoupled transformation if preferred and not in visual diff mode
     if (shouldDecouple && !isVisual) {
+      setInlineSwitchDisabled(true);
       applyDecoupling(table);
+    } else if (!isVisual) {
+      setInlineSwitchDisabled(false);
     }
   }
 
   // --- Auto-start in browser environment ---
   if (typeof window !== 'undefined' && isDiffPage()) {
     if (window.mw && mw.hook) {
+      mw.hook('wikipage.diff.diffTypeSwitch').add((sw) => {
+        diffTypeSwitchWidget = sw;
+        if (isRefDiffPreferred() && !isVisualDiffActive()) {
+          setInlineSwitchDisabled(true);
+        }
+      });
       mw.hook('wikipage.diff').add(init);
       if (document.readyState === 'complete' || document.readyState === 'interactive') {
         setTimeout(init, 50);
@@ -802,6 +846,7 @@
     isVisualDiffActive,
     selectMode,
     updateButtonState,
+    setInlineSwitchDisabled,
     init
   };
 });
