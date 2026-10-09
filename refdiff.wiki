@@ -31,11 +31,15 @@ Over 90% of quality control, vandalism patrolling, and editorial review on Wikip
 
 When an article uses standard inline citations ({{tag|ref|content={{tlx|cite book |author&#61;... |title&#61;...}}}}), references often contain 300 to 600 characters of bibliographic parameters. When an editor edits a single word in a sentence, standard MediaWiki diffs ({{mono|wikidiff2}}) highlight the entire paragraph as modified:
 
-<div style="background: #f8f9fa; border: 1px solid #c8ccd1; padding: 12px; margin: 1em 0; font-family: monospace; font-size: 0.9em; line-height: 1.5; color: #202122;">
-'''Line 42:'''<br />
-<span style="background: #ffe6e6; color: #7a0000; text-decoration: line-through;">− The atmosphere consists mostly of carbon dioxide&lt;ref&gt;{{tlx|Cite book |author&#61;Schmidt, Rainer |title&#61;Planetary Atmospheres |year&#61;2020 |pages&#61;112–115 |isbn&#61;978-3-12-345678-9}}&lt;/ref&gt;, creating an <span style="background: #ffb3b3; font-weight: bold;">extreme</span> greenhouse effect.</span><br />
-<span style="background: #e6ffe6; color: #006600;">+ The atmosphere consists mostly of carbon dioxide&lt;ref&gt;{{tlx|Cite book |author&#61;Schmidt, Rainer |title&#61;Planetary Atmospheres |year&#61;2020 |pages&#61;112–115 |isbn&#61;978-3-12-345678-9}}&lt;/ref&gt;, creating a <span style="background: #a3f0a3; font-weight: bold;">runaway</span> greenhouse effect.</span>
-</div>
+{| class="wikitable" style="width: 100%; table-layout: fixed; font-family: monospace; font-size: 0.9em;"
+! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (Old):
+! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (New):
+|-
+| style="vertical-align: top; background: #ffe6e6; padding: 8px 10px; line-height: 1.5;" |
+<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> The atmosphere consists mostly of carbon dioxide&lt;ref&gt;{{tlx|Cite book |author&#61;Schmidt, Rainer |title&#61;Planetary Atmospheres |year&#61;2020 |pages&#61;112–115 |isbn&#61;978-3-12-345678-9}}&lt;/ref&gt;, creating an <del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">extreme</del> greenhouse effect.
+| style="vertical-align: top; background: #e6ffe6; padding: 8px 10px; line-height: 1.5;" |
+<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> The atmosphere consists mostly of carbon dioxide&lt;ref&gt;{{tlx|Cite book |author&#61;Schmidt, Rainer |title&#61;Planetary Atmospheres |year&#61;2020 |pages&#61;112–115 |isbn&#61;978-3-12-345678-9}}&lt;/ref&gt;, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">runaway</ins> greenhouse effect.
+|}
 
 === Why this is harmful: ===
 # '''Camouflaged Vandalism:''' Subtle vandalism (changing numbers, swapping years, altering names) hides inside the visual noise of untouched template parameters.
@@ -80,12 +84,20 @@ RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic
 |}
 
 === Decoupled Diff Example ===
-<div style="background: #f8f9fa; border: 1px solid #c8ccd1; padding: 12px; margin: 1em 0; font-family: monospace; font-size: 0.9em; line-height: 1.5; color: #202122;">
-'''Line 42:'''<br />
-&nbsp;&nbsp;The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating an <span style="background: #ffe6e6; color: #7a0000; text-decoration: line-through;">extreme</span> <span style="background: #e6ffe6; color: #006600;">runaway</span> greenhouse effect.<br /><br />
-&nbsp;&nbsp;<span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 0 2px;">⟨~ref1~⟩</span> &nbsp;− &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<span style="background: #ffb3b3;">112–115</span>}}&lt;/ref&gt;<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<span style="background: #a3f0a3;">112–125</span>}}&lt;/ref&gt;
-</div>
+{| class="wikitable" style="width: 100%; table-layout: fixed; font-family: monospace; font-size: 0.9em;"
+! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (Old):
+! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (New):
+|-
+| style="vertical-align: top; background: #ffe6e6; padding: 8px 10px; line-height: 1.5;" |
+<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating an <del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">extreme</del> greenhouse effect.
+| style="vertical-align: top; background: #e6ffe6; padding: 8px 10px; line-height: 1.5;" |
+<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">runaway</ins> greenhouse effect.
+|-
+| style="vertical-align: top; background: #fffdf0; padding: 8px 10px; line-height: 1.5; border-top: 2px solid #eaecf0;" |
+<span style="font-weight: bold; color: #b32424; margin-right: 6px;">−</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref1~⟩</span> &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<del style="background: #ffb3b3; color: #7a0000; font-weight: bold; text-decoration: line-through; padding: 1px 3px; border-radius: 2px;">112–115</del>}}&lt;/ref&gt;
+| style="vertical-align: top; background: #fffdf0; padding: 8px 10px; line-height: 1.5; border-top: 2px solid #eaecf0;" |
+<span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref1~⟩</span> &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">112–125</ins>}}&lt;/ref&gt;
+|}
 
 == Installation ==
 

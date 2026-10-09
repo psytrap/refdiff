@@ -73,17 +73,15 @@ RefDiff uses mathematical angle brackets (`⟨...⟩`) to avoid collisions with 
 ### 2. Side-by-Side Comparison
 
 #### Standard Diff (Before RefDiff):
-![Standard Wikipedia diff showing noisy template parameters inside deleted and added lines](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/comprehensive_test.html)
+| Line 42 (Old Revision) | Line 42 (New Revision) |
+| :--- | :--- |
+| <span style="color: #b32424; font-weight: bold;">−</span> The atmosphere consists mostly of carbon dioxide`<ref>{{Cite book |author=Schmidt, Rainer |title=Planetary Atmospheres |year=2020 |pages=112–115 |isbn=978-3-12-345678-9}}</ref>`, creating an <del style="background: #ffb3b3; color: #7a0000; font-weight: bold;">extreme</del> greenhouse effect. | <span style="color: #14866d; font-weight: bold;">+</span> The atmosphere consists mostly of carbon dioxide`<ref>{{Cite book |author=Schmidt, Rainer |title=Planetary Atmospheres |year=2020 |pages=112–115 |isbn=978-3-12-345678-9}}</ref>`, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none;">runaway</ins> greenhouse effect. |
 
 #### Decoupled Diff (With RefDiff active):
-```text
-Line 42:
-  The atmosphere consists mostly of carbon dioxide ⟨ref1⟩, creating an
-  [- extreme -] {+ runaway +} greenhouse effect.
-
-  ⟨~ref1~⟩  − <ref>{{Cite book |... |pages=112–115}}</ref>
-            + <ref>{{Cite book |... |pages=112–125}}</ref>
-```
+| Line 42 (Old Revision) | Line 42 (New Revision) |
+| :--- | :--- |
+| <span style="color: #b32424; font-weight: bold;">−</span> The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating an <del style="background: #ffb3b3; color: #7a0000; font-weight: bold;">extreme</del> greenhouse effect. | <span style="color: #14866d; font-weight: bold;">+</span> The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none;">runaway</ins> greenhouse effect. |
+| <span style="color: #b32424; font-weight: bold;">−</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px;">⟨~ref1~⟩</span> `<ref>{{Cite book |... |pages=`<del style="background: #ffb3b3; color: #7a0000; font-weight: bold;">112–115</del>`}}</ref>` | <span style="color: #14866d; font-weight: bold;">+</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px;">⟨~ref1~⟩</span> `<ref>{{Cite book |... |pages=`<ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none;">112–125</ins>`}}</ref>` |
 
 ---
 
