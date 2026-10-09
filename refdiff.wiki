@@ -19,7 +19,7 @@
 | style="padding: 3px 0;" | [https://github.com/m-k/einzelnachweise GitHub]
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Showcase:
-| style="padding: 3px 0;" | [[/Show_case|/Show_case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
+| style="padding: 3px 0;" | [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Skins:
 | style="padding: 3px 0;" | Vector 2022, Legacy, Timeless, Monobook
@@ -87,6 +87,9 @@ RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic
 |}
 
 === Decoupled Diff Example ===
+
+A live interactive demonstration showing all badge categories (unmodified, modified, added, removed) is available at [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 live diff]):
+
 {| class="wikitable" style="width: 100%; table-layout: fixed; font-family: monospace; font-size: 0.9em;"
 ! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (Old):
 ! style="width: 50%; background: #eaecf0; text-align: left; padding: 6px 10px;" | Line 42 (New):
@@ -159,7 +162,7 @@ RefDiff is part of a broader ecosystem for citation management:
 |}
 
 == See Also ==
-* [[/Show_case|/Show_case]] – Live showcase diff page
+* [[/Show case|/Show case]] – Live showcase diff page
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
