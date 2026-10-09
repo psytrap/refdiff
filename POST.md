@@ -36,7 +36,7 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 1. **Readable wikitext with references still nearby:** Paragraphs in raw wikitext stay fluent and readable without 500-character citation templates cluttering sentences. Unlike purely global reference lists at the bottom of the article, citations remain right at hand within the section where they belong.
 2. **Clean, isolated diffs:** Rewording a sentence touches only the sentence line. Updating a URL or page number touches only that single reference line.
 3. **No edit conflicts between sections:** Two editors working on different sections never collide in a shared reference list at the bottom of the page.
-4. **Better claim auditing:** Reviewers can check the section's source inventory at a glance against hallucinated or unverified text ("AI slop").
+4. **Better claim verification & vandalism patrolling:** Reviewers can check the section's source inventory at a glance to verify whether factual assertions are backed by reliable sources, without wading through template markup.
 5. **Same reader experience:** Footnotes continue to display at the very bottom with continuous global numbering (`[1]`, `[2]`, …) as usual.
 
 ### Diff Comparison
