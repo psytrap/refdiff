@@ -101,11 +101,11 @@ A live interactive demonstration showing all badge categories (unmodified, modif
 
 == Installation ==
 
-Add the following line to your [[Special:MyPage/common.js|common.js]] page:
+Add the following line to your [[Special:MyPage/common.js|common.js]] page (or [[Special:MyPage/global.js|global.js]] for all Wikimedia wikis):
 
 <syntaxhighlight lang="javascript">
-// [[File:refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
-mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
+// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
 Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
