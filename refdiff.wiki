@@ -1,13 +1,27 @@
-{{User script
-| name = RefDiff
-| desc = Zero-loss citation decoupling gadget for Special:Diff. Eliminates template camouflage by separating prose changes from citation metadata.
-| status = stable
-| date = 2026-10-09
-| version = 1.1.0
-| source = https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js
-| skin = Vector 2022, Vector legacy, Timeless, Monobook, Minerva
-| categories = [[Category:Wikipedia user scripts|RefDiff]] [[Category:Wikipedia diff tools|RefDiff]]
-}}
+<div style="float: right; margin: 0 0 1em 1.5em; width: 290px; border: 1px solid #a2a9b1; background-color: #f8f9fa; padding: 12px; border-radius: 4px; font-size: 88%; line-height: 1.5;">
+<div style="text-align: center; font-size: 130%; font-weight: bold; margin-bottom: 4px; color: #202122;">RefDiff</div>
+<div style="text-align: center; font-style: italic; color: #54595d; margin-bottom: 12px;">The Ref-Differentiator</div>
+{| style="width: 100%; border-collapse: collapse; font-size: 100%; background: transparent;"
+|-
+| style="font-weight: bold; padding: 3px 0; width: 35%; color: #54595d;" | Type:
+| style="padding: 3px 0;" | [[Wikipedia:User scripts|User script]] / Gadget
+|-
+| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Status:
+| style="padding: 3px 0; color: #14866d; font-weight: bold;" | Stable (v1.1.0)
+|-
+| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Target:
+| style="padding: 3px 0;" | {{mono|Special:Diff}}
+|-
+| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Source:
+| style="padding: 3px 0; word-break: break-all;" | [https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js refdiff.js (CDN)]
+|-
+| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Repository:
+| style="padding: 3px 0;" | [https://github.com/m-k/einzelnachweise GitHub]
+|-
+| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Skins:
+| style="padding: 3px 0;" | Vector 2022, Legacy, Timeless, Monobook
+|}
+</div>
 
 '''RefDiff''' (''The Ref-Differentiator'') is a [[Wikipedia:User scripts|user script]] and gadget for MediaWiki's diff view ({{mono|Special:Diff}}). It virtually decouples inline citation templates from sentences in Wikipedia's native diff table, eliminating '''"template camouflage"''' so reviewers and vandalism patrollers can focus on what actually changed in the prose.
 
@@ -39,7 +53,7 @@ RefDiff runs client-side in the browser and transforms the diff table in-place:
 
 == Visual Guide & Badge Legend ==
 
-RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic collisions with external links ({{mono|[...]}}) and wikilinks ({{mono|[[...]]}}):
+RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic collisions with external links ({{mono|[...]}}) and wikilinks ({{mono|<nowiki>[[...]]</nowiki>}}):
 
 {| class="wikitable"
 ! Badge !! Meaning !! Appearance !! Reviewer Action
@@ -83,7 +97,7 @@ Add the following line to your [[Special:MyPage/common.js|common.js]] page:
 mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
 </syntaxhighlight>
 
-Then bypass your browser cache ({{kbd|Ctrl}}+{{kbd|F5}} on Windows/Linux, {{kbd|Cmd}}+{{kbd|Shift}}+{{kbd|R}} on macOS).
+Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
 
 === Option 2: Browser Extension (Tampermonkey / Violentmonkey)
 If you prefer running RefDiff across all Wikimedia projects via a browser extension:
@@ -98,7 +112,7 @@ If you prefer running RefDiff across all Wikimedia projects via a browser extens
 On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's native diff mode selector:
 
 {| class="wikitable" style="text-align: center;"
-| {{mono|[ 👁 Visual ]}} || {{mono|[ [[]] Wikitext ]}} || {{mono|'''[ ⧉ RefDiff ]'''}} || {{mono|Inline ( )}}
+| {{mono|[ 👁 Visual ]}} || {{mono|[ <nowiki>[[]]</nowiki> Wikitext ]}} || {{mono|'''[ ⧉ RefDiff ]'''}} || {{mono|Inline ( )}}
 |}
 
 * '''Instant Toggle:''' Click {{mono|Wikitext}} to switch back to standard Wikidiff, or click {{mono|RefDiff}} to re-apply decoupling instantly (&lt; 5ms, no page reload).
@@ -126,7 +140,7 @@ RefDiff is part of a broader ecosystem for citation management:
 | Decouples citations in the {{mono|Special:Diff}} view.
 |-
 | '''Writing / Editing'''
-| [[User:PleaseStand/References segregator]]
+| [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]]
 | Writers, copyeditors
 | Splits citations into a second pane in the edit window; re-inlines upon save.
 |-
@@ -146,10 +160,9 @@ RefDiff is part of a broader ecosystem for citation management:
 * '''License:''' MIT License
 
 == See Also ==
-* [[Wikipedia:Diff]] – Understanding Wikipedia diffs
 * [[Help:Diff]] – Help page for diff views
-* [[Wikipedia:Citing sources]] – Wikipedia citation guidelines
-* [[User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
+* [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
+* [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
 
-[[Category:Wikipedia user scripts|RefDiff]]
-[[Category:Wikipedia diff tools|RefDiff]]
+[[Category:User scripts]]
+[[Category:Diff tools]]
