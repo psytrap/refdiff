@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint refdiff.js tests/**/*.js",
     "test": "node tests/test_pairing.js",
+    "test:live": "python3 tests/test_live_cdp.py",
     "ci": "npm run lint && npm run test"
   },
   "repository": {
