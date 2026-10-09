@@ -101,7 +101,6 @@ RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic
 
 == Installation ==
 
-=== Option 1: Add to your common.js (Recommended)
 Add the following line to your [[Special:MyPage/common.js|common.js]] page:
 
 <syntaxhighlight lang="javascript">
@@ -110,13 +109,6 @@ mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js'
 </syntaxhighlight>
 
 Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
-
-=== Option 2: Browser Extension (Tampermonkey / Violentmonkey)
-If you prefer running RefDiff across all Wikimedia projects via a browser extension:
-# Open your userscript manager.
-# Create a new script or install from URL using:
-# {{mono|https://raw.githubusercontent.com/m-k/einzelnachweise/main/refdiff.js}}
-# Save and enable. It matches all Wikimedia diff URLs automatically.
 
 == UI Controls & Mode Switching ==
 

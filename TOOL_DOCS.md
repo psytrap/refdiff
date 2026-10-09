@@ -87,9 +87,9 @@ RefDiff uses mathematical angle brackets (`⟨...⟩`) to avoid collisions with 
 
 ## Installation Guide
 
-RefDiff can be installed as a personal user script on any MediaWiki wiki or via a browser extension userscript manager.
+RefDiff is installed as a personal user script on your Wikipedia account:
 
-### Option A: Install on English Wikipedia (Recommended)
+### Installation via common.js (Recommended)
 
 1. Log into your Wikipedia account.
 2. Open your personal script file: [**Special:MyPage/common.js**](https://en.wikipedia.org/wiki/Special:MyPage/common.js) (or click "Edit" on that page).
@@ -100,24 +100,7 @@ RefDiff can be installed as a personal user script on any MediaWiki wiki or via 
    ```
 4. Save the page and bypass your browser cache (`Ctrl+F5` on Linux/Windows, `Cmd+Shift+R` on macOS).
 
-### Option B: Install on German Wikipedia (`de.wikipedia.org`)
-
-Add to [**de:Special:MyPage/common.js**](https://de.wikipedia.org/wiki/Special:MyPage/common.js):
-```javascript
-// RefDiff: Entkoppelte Einzelnachweis-Diffs
-mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
-```
-
-### Option C: Install via Tampermonkey / Violentmonkey / Greasemonkey
-
-If you prefer a browser extension that works automatically across all Wikimedia projects without logging in:
-1. Open your userscript manager dashboard.
-2. Click **Create a new script** or **Install from URL**.
-3. Use the raw GitHub URL:
-   ```text
-   https://raw.githubusercontent.com/m-k/einzelnachweise/main/refdiff.js
-   ```
-4. Enable the script. It matches all `*wikipedia.org*diff=*`, `*wikimedia.org*diff=*`, etc.
+*(On other Wikimedia projects such as `de.wikipedia.org` or `meta.wikimedia.org`, add the same snippet to your local `Special:MyPage/common.js` or global script).*
 
 ---
 
