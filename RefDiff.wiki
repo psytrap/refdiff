@@ -113,11 +113,37 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 * '''OS Dark Mode:''' Automatically responds to operating system dark mode settings.
 * '''Vector legacy (2010), Timeless, Monobook, Minerva:''' Fully compatible.
 
-== Relationship to Other Tools & Proposals ==
+== Complementary Tools & Proposals ==
 
-* '''Writing / Editing:''' [[User:PleaseStand/References segregator]] – complementary tool that temporarily splits citations into a secondary pane in the wikitext edit window.
-* '''Reviewing / Diffs:''' '''RefDiff''' – virtually decouples citations on {{mono|Special:Diff}}.
-* '''Wikitext Storage Concepts:''' Long-term architectural ideas such as section-scoped reference definitions (e.g. {{tag|references|attribs=hidden}} or {{tag|ref|attribs=hidden}}) explore bringing this same clean separation to stored wikitext itself.
+RefDiff is part of a broader ecosystem for citation management:
+
+{| class="wikitable"
+! Dimension !! Tool !! Target User !! What It Does
+|-
+| '''Reviewing / Diffs'''
+| '''RefDiff''' ({{mono|refdiff.js}})
+| Reviewers, patrollers, fact-checkers
+| Decouples citations in the {{mono|Special:Diff}} view.
+|-
+| '''Writing / Editing'''
+| [[User:PleaseStand/References segregator]]
+| Writers, copyeditors
+| Splits citations into a second pane in the edit window; re-inlines upon save.
+|-
+| '''Storage Concepts'''
+| '''Section-Scoped References''' ({{tag|references|attribs=hidden}} / {{tag|ref|attribs=hidden}})
+| Proposed Wikitext syntax
+| Concepts for section-scoped reference definitions in raw wikitext.
+|}
+
+== Technical Specifications ==
+
+* '''File Size:''' ~23 KB unminified (~7 KB gzipped).
+* '''Execution Time:''' ~2–5 ms on typical 100-hunk diff pages.
+* '''Architecture:''' Universal Module Definition (UMD) with pure-function exports for Node.js testability.
+* '''Compatibility:''' Zero external dependencies; uses native DOM and MediaWiki hooks.
+* '''Repository:''' [https://github.com/m-k/einzelnachweise github.com/m-k/einzelnachweise]
+* '''License:''' MIT License
 
 == See Also ==
 * [[Wikipedia:Diff]] – Understanding Wikipedia diffs

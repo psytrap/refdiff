@@ -1,0 +1,155 @@
+{{User script
+| name = RefDiff
+| desc = Zero-loss citation decoupling gadget for Special:Diff. Eliminates template camouflage by separating prose changes from citation metadata.
+| status = stable
+| date = 2026-10-09
+| version = 1.1.0
+| source = https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js
+| skin = Vector 2022, Vector legacy, Timeless, Monobook, Minerva
+| categories = [[Category:Wikipedia user scripts|RefDiff]] [[Category:Wikipedia diff tools|RefDiff]]
+}}
+
+'''RefDiff''' (''The Ref-Differentiator'') is a [[Wikipedia:User scripts|user script]] and gadget for MediaWiki's diff view ({{mono|Special:Diff}}). It virtually decouples inline citation templates from sentences in Wikipedia's native diff table, eliminating '''"template camouflage"''' so reviewers and vandalism patrollers can focus on what actually changed in the prose.
+
+== The Problem: Template Camouflage ==
+
+Over 90% of quality control, vandalism patrolling, and editorial review on Wikipedia happens in the diff view ({{mono|Special:Diff}}).
+
+When an article uses standard inline citations ({{tag|ref|content={{tlx|cite book |author&#61;... |title&#61;...}}}}), references often contain 300 to 600 characters of bibliographic parameters. When an editor edits a single word in a sentence, standard MediaWiki diffs ({{mono|wikidiff2}}) highlight the entire paragraph as modified:
+
+<div style="background: #f8f9fa; border: 1px solid #c8ccd1; padding: 12px; margin: 1em 0; font-family: monospace; font-size: 0.9em; line-height: 1.5; color: #202122;">
+'''Line 42:'''<br />
+<span style="background: #ffe6e6; color: #7a0000; text-decoration: line-through;">− The atmosphere consists mostly of carbon dioxide&lt;ref&gt;{{tlx|Cite book |author&#61;Schmidt, Rainer |title&#61;Planetary Atmospheres |year&#61;2020 |pages&#61;112–115 |isbn&#61;978-3-12-345678-9}}&lt;/ref&gt;, creating an <span style="background: #ffb3b3; font-weight: bold;">extreme</span> greenhouse effect.</span><br />
+<span style="background: #e6ffe6; color: #006600;">+ The atmosphere consists mostly of carbon dioxide&lt;ref&gt;{{tlx|Cite book |author&#61;Schmidt, Rainer |title&#61;Planetary Atmospheres |year&#61;2020 |pages&#61;112–115 |isbn&#61;978-3-12-345678-9}}&lt;/ref&gt;, creating a <span style="background: #a3f0a3; font-weight: bold;">runaway</span> greenhouse effect.</span>
+</div>
+
+=== Why this is harmful: ===
+# '''Camouflaged Vandalism:''' Subtle vandalism (changing numbers, swapping years, altering names) hides inside the visual noise of untouched template parameters.
+# '''Misleading Diffs on Citation Fixes:''' Updating a dead URL or correcting a page number marks the entire surrounding paragraph as modified, misleading patrollers into thinking text was rewritten.
+# '''Reviewer Fatigue:''' Patrollers waste significant cognitive energy mentally filtering template syntax.
+
+== How RefDiff Works ==
+
+RefDiff runs client-side in the browser and transforms the diff table in-place:
+
+# '''Zero Loss:''' Preserves 100% of Wikipedia's native diff table (line numbers, revision headers, context rows, and the native {{mono|Inline}} checkbox).
+# '''Clean Prose Diffs:''' Inline {{tag|ref}} tags are replaced with clean, unobtrusive mathematical angle-bracket badges (e.g. {{mono|⟨ref1⟩}} or {{mono|⟨~ref2~⟩}}).
+# '''Dedicated Citation Rows:''' If a citation was modified, added, or removed, RefDiff inserts an isolated citation diff row directly underneath the sentence.
+# '''Automatic Context Conversion:''' If an edit ''only'' touched citation metadata, the prose line automatically converts to context appearance (calm gray, no diff markers). Patrollers instantly know the text itself was not altered.
+
+== Visual Guide & Badge Legend ==
+
+RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic collisions with external links ({{mono|[...]}}) and wikilinks ({{mono|[[...]]}}):
+
+{| class="wikitable"
+! Badge !! Meaning !! Appearance !! Reviewer Action
+|-
+| {{mono|⟨ref1⟩}}
+| '''Unmodified Reference'''
+| Subtle neutral gray text, normal weight
+| '''Ignore:''' Identical on both sides; zero prose distraction.
+|-
+| {{mono|⟨~ref2~⟩}}
+| '''Modified Reference'''
+| Amber highlight, bold, hover tooltip
+| '''Review:''' Bibliographic metadata changed; see citation row below.
+|-
+| {{mono|⟨+ref3+⟩}}
+| '''Added Reference'''
+| Crisp green badge, bold
+| '''Verify:''' New source added to the claim.
+|-
+| {{mono|⟨-ref4-⟩}}
+| '''Removed Reference'''
+| Crisp red badge, bold, strikethrough
+| '''Verify:''' Source removed from the claim.
+|}
+
+=== Decoupled Diff Example ===
+<div style="background: #f8f9fa; border: 1px solid #c8ccd1; padding: 12px; margin: 1em 0; font-family: monospace; font-size: 0.9em; line-height: 1.5; color: #202122;">
+'''Line 42:'''<br />
+&nbsp;&nbsp;The atmosphere consists mostly of carbon dioxide <span style="color: #72777d;">⟨ref1⟩</span>, creating an <span style="background: #ffe6e6; color: #7a0000; text-decoration: line-through;">extreme</span> <span style="background: #e6ffe6; color: #006600;">runaway</span> greenhouse effect.<br /><br />
+&nbsp;&nbsp;<span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 0 2px;">⟨~ref1~⟩</span> &nbsp;− &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<span style="background: #ffb3b3;">112–115</span>}}&lt;/ref&gt;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ &lt;ref&gt;{{tlx|Cite book |... |pages&#61;<span style="background: #a3f0a3;">112–125</span>}}&lt;/ref&gt;
+</div>
+
+== Installation ==
+
+=== Option 1: Add to your common.js (Recommended)
+Add the following line to your [[Special:MyPage/common.js|common.js]] page:
+
+<syntaxhighlight lang="javascript">
+// [[File:refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
+</syntaxhighlight>
+
+Then bypass your browser cache ({{kbd|Ctrl}}+{{kbd|F5}} on Windows/Linux, {{kbd|Cmd}}+{{kbd|Shift}}+{{kbd|R}} on macOS).
+
+=== Option 2: Browser Extension (Tampermonkey / Violentmonkey)
+If you prefer running RefDiff across all Wikimedia projects via a browser extension:
+# Open your userscript manager.
+# Create a new script or install from URL using:
+# {{mono|https://raw.githubusercontent.com/m-k/einzelnachweise/main/refdiff.js}}
+# Save and enable. It matches all Wikimedia diff URLs automatically.
+
+== UI Controls & Mode Switching ==
+
+=== Native OOUI Mode Switcher
+On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's native diff mode selector:
+
+{| class="wikitable" style="text-align: center;"
+| {{mono|[ 👁 Visual ]}} || {{mono|[ [[]] Wikitext ]}} || {{mono|'''[ ⧉ RefDiff ]'''}} || {{mono|Inline ( )}}
+|}
+
+* '''Instant Toggle:''' Click {{mono|Wikitext}} to switch back to standard Wikidiff, or click {{mono|RefDiff}} to re-apply decoupling instantly (&lt; 5ms, no page reload).
+* '''Inline Diff Compatibility:''' Fully compatible with Wikipedia's native {{mono|Inline}} checkbox.
+* '''Fallback Mode Bar:''' On older skins without the OOUI button container (e.g. Monobook), RefDiff displays a clean switcher bar above the diff table:
+  : {{mono|Diff view: '''Decoupled (RefDiff)''' • Standard Wikidiff}}
+
+== Themes & Skins ==
+
+RefDiff natively supports all major Wikipedia skins and color schemes:
+* '''Vector 2022:''' Full native Light Mode and Dark Mode ({{mono|skin-theme-clientpref-night}}).
+* '''OS Dark Mode:''' Automatically responds to operating system dark mode settings.
+* '''Vector legacy (2010), Timeless, Monobook, Minerva:''' Fully compatible.
+
+== Complementary Tools & Proposals ==
+
+RefDiff is part of a broader ecosystem for citation management:
+
+{| class="wikitable"
+! Dimension !! Tool !! Target User !! What It Does
+|-
+| '''Reviewing / Diffs'''
+| '''RefDiff''' ({{mono|refdiff.js}})
+| Reviewers, patrollers, fact-checkers
+| Decouples citations in the {{mono|Special:Diff}} view.
+|-
+| '''Writing / Editing'''
+| [[User:PleaseStand/References segregator]]
+| Writers, copyeditors
+| Splits citations into a second pane in the edit window; re-inlines upon save.
+|-
+| '''Storage Concepts'''
+| '''Section-Scoped References''' ({{tag|references|attribs=hidden}} / {{tag|ref|attribs=hidden}})
+| Proposed Wikitext syntax
+| Concepts for section-scoped reference definitions in raw wikitext.
+|}
+
+== Technical Specifications ==
+
+* '''File Size:''' ~23 KB unminified (~7 KB gzipped).
+* '''Execution Time:''' ~2–5 ms on typical 100-hunk diff pages.
+* '''Architecture:''' Universal Module Definition (UMD) with pure-function exports for Node.js testability.
+* '''Compatibility:''' Zero external dependencies; uses native DOM and MediaWiki hooks.
+* '''Repository:''' [https://github.com/m-k/einzelnachweise github.com/m-k/einzelnachweise]
+* '''License:''' MIT License
+
+== See Also ==
+* [[Wikipedia:Diff]] – Understanding Wikipedia diffs
+* [[Help:Diff]] – Help page for diff views
+* [[Wikipedia:Citing sources]] – Wikipedia citation guidelines
+* [[User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
+
+[[Category:Wikipedia user scripts|RefDiff]]
+[[Category:Wikipedia diff tools|RefDiff]]

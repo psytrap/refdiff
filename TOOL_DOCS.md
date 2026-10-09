@@ -216,9 +216,9 @@ Then bypass your browser cache ({{kbd|Ctrl}}+{{kbd|F5}} or {{kbd|Cmd}}+{{kbd|Shi
 |-
 | {{mono|⟨~ref2~⟩}} || Modified citation metadata || Amber highlight (hover tooltip with details)
 |-
-| {{mono|{+ ⟨ref3⟩ +}}} || Added citation || Green insertion badge
+| {{mono|⟨+ref3+⟩}} || Added citation || Crisp green badge, bold
 |-
-| {{mono|[- ⟨ref4⟩ -]}} || Removed citation || Red deletion badge
+| {{mono|⟨-ref4-⟩}} || Removed citation || Crisp red badge, bold, strikethrough
 |}
 
 == See Also ==
