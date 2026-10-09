@@ -12,6 +12,7 @@ This project introduces a model that decouples **Source Organization** (section-
 
 * 💡 **[PROPOSAL.md](PROPOSAL.md)** – Ready-to-submit Phabricator task proposal (clean feature focus, visual diff table, mechanics).
 * 📄 **[CONCEPT.md](CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
+* 🏛️ **[ARCHITECTURE.md](ARCHITECTURE.md)** – Technical architecture and design document (subsystems, state machine, Memento pattern, algorithms).
 * 🔍 **[REFDIFF.md](REFDIFF.md)** – Tool design specification for **RefDiff** (*The Ref-Differentiator*), the diff-decoupling engine for reviewers (`Special:Diff` gadget & CLI).
 * 📖 **[TOOL_DOCS.md](TOOL_DOCS.md)** – User script & gadget documentation page for **RefDiff** (installation, visual walkthrough, badge legend).
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia.

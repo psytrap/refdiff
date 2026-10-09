@@ -164,6 +164,20 @@ This log records the rationale, architectural decisions, completed milestones, a
     * Deleted orphaned `.wiki` sample fixtures (`tests/fixtures/`) leftover from early Python prototype iterations.
     * Wired [`tests/comprehensive_test.html`](tests/comprehensive_test.html) directly into both offline Node unit tests (`tests/test_pairing.js` Test 6) and headless Chromium CDP integration tests (`tests/test_live_cdp.py`).
     * Automated validation of all 5 diff scenarios (sequential ordering, named modification, text+ref added, ref added to existing text, ref removed) with zero-loss Wikitext toggle assertions.
+* **Codebase Refactoring & Architecture Documentation (`refdiff.js` & `ARCHITECTURE.md`):**
+  * **Clean-Code Modularization of `refdiff.js`:**
+    * Encapsulated dispersed mutable variables into a unified `state` namespace (`origTableHtml`, `isDecoupled`, `initRetries`, `diffTypeSwitchWidget`, `modifiedRows`).
+    * Centralized string literals and queries into `SELECTORS`, `CLASSES`, and `HOOKS` registries, eliminating magic strings.
+    * Refactored monolithic procedures into focused single-responsibility functions: `captureRowSnapshot()`, `restoreRowSnapshot()`, `transformProseCells()`, `updateProseRowAppearance()`, `insertCitationRows()`, and `findModeButtons()`.
+    * Enforced full JSDoc typing across all functions.
+    * Retained 100% backward compatibility for all public APIs and 0 ESLint warnings/errors.
+  * **Comprehensive System Architecture Document (`ARCHITECTURE.md`):**
+    * Created dedicated architecture and technical design document featuring Mermaid diagrams for the two-tier system model, subsystem components, and state machine lifecycle.
+    * Formulated the Memento DOM snapshot pattern specification explaining why in-place mutation is mandatory to preserve MediaWiki's `inlineFormatToggle.js` and VisualEditor closures.
+    * Documented the 3-pass heuristic reference pairing algorithm, entity-safe tokenization, cognitive load color ergonomics, and the two-layer verification pipeline (Unit + CDP live automation).
+  * **Verification:**
+    * 23/23 unit tests passing in `tests/test_pairing.js`.
+    * 7/7 live browser CDP verification steps passing in `tests/test_live_cdp.py` (Visual Diff, Wikitext Diff, RefDiff, direct transitions, Inline toggle switch, and Vector 2022 Dark mode).
 
 
 

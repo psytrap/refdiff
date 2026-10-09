@@ -34,13 +34,69 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  // --- Constants & Styles ---
+  // --- Constants & Enums ---
 
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
    * Handles self-closing tags and opening/closing tags with attributes containing HTML entities.
    */
   const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;([\s\S]*?)&lt;\/ref&gt;)/gi;
+
+  const STORAGE_KEY = 'refdiff-active';
+
+  /** Centralized CSS selector registry for MediaWiki diff DOM queries. */
+  const SELECTORS = {
+    DIFF_TABLE: 'table.diff',
+    DIFF_HEADER_TITLE: 'tr.diff-title',
+    DIFF_MULTI_OR_NOTICE: 'td.diff-multi, td.diff-notice',
+    DELETED_LINE: '.diff-deletedline',
+    ADDED_LINE: '.diff-addedline',
+    DIFF_MARKER: '.diff-marker',
+    DIFF_CHANGE: '.diffchange',
+    CIT_ROW: 'tr.refdiff-cit-row',
+    HIDDEN_ROW: 'tr.oo-ui-element-hidden',
+    INLINE_SWITCH: '#mw-diffPage-inline-toggle-switch, .oo-ui-toggleSwitchWidget, input[name="diff-type"]',
+    VE_DIFF_CONTAINER: '.ve-init-mw-diffPage-diffMode',
+    VE_BUTTON_GROUP: '.ve-init-mw-diffPage-diffMode .oo-ui-buttonGroupWidget, .ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget, .ve-init-mw-diffPage-diffMode > *',
+    VE_OPTION_WIDGET: '.ve-init-mw-diffPage-diffMode .oo-ui-optionWidget',
+    VE_DIFF_ELEMENT: '.ve-ui-diffElement, .ve-init-mw-diffPage-diff',
+    VE_VISUAL_BUTTON: '.ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child',
+    REFDIFF_BTN_OOUI: '#refdiff-ooui-btn',
+    REFDIFF_MODE_BAR: '#refdiff-mode-bar',
+    REFDIFF_BTN_DECOUPLED: '#refdiff-btn-decoupled',
+    REFDIFF_BTN_STANDARD: '#refdiff-btn-standard',
+    STYLE_BADGE: '#refdiff-badge-styles'
+  };
+
+  /** Centralized CSS class registry. */
+  const CLASSES = {
+    CIT_ROW: 'refdiff-cit-row',
+    HIDDEN: 'oo-ui-element-hidden',
+    BADGE: 'ref-badge',
+    BADGE_MOD: 'ref-badge-mod',
+    BADGE_ADD: 'ref-badge-add',
+    BADGE_DEL: 'ref-badge-del',
+    DIFF_CONTEXT: 'diff-context',
+    DELETED_LINE: 'diff-deletedline',
+    ADDED_LINE: 'diff-addedline',
+    DIFF_SIDE_DELETED: 'diff-side-deleted',
+    DIFF_SIDE_ADDED: 'diff-side-added',
+    DIFFCHANGE: 'diffchange',
+    DIFFCHANGE_INLINE: 'diffchange-inline',
+    OO_BTN_ACTIVE: 'oo-ui-buttonElement-active',
+    OO_OPTION_SELECTED: 'oo-ui-optionWidget-selected',
+    OO_IMAGE_INVERT: 'oo-ui-image-invert',
+    OO_WIDGET_DISABLED: 'oo-ui-widget-disabled',
+    OO_WIDGET_ENABLED: 'oo-ui-widget-enabled',
+    OO_FIELD_DISABLED: 'oo-ui-fieldLayout-disabled'
+  };
+
+  /** MediaWiki hook names. */
+  const HOOKS = {
+    DIFF_TYPE_SWITCH: 'wikipage.diff.diffTypeSwitch',
+    DIFF_PAGE: 'wikipage.diff',
+    BODY_UPDATE: 'wikipage.diff.wikitextBodyUpdate'
+  };
 
   const BADGE_STYLES = `
     .ref-badge {
@@ -139,11 +195,19 @@
     }
   `;
 
-  // --- State ---
+  // --- State Management ---
 
-  let origTableHtml = null;
-  let isDecoupled = false;
-  let initRetries = 0;
+  /**
+   * Internal state encapsulation for RefDiff lifecycle.
+   * Uses Memento pattern for modified DOM rows to keep native MediaWiki closures attached.
+   */
+  const state = {
+    origTableHtml: null,
+    isDecoupled: false,
+    initRetries: 0,
+    diffTypeSwitchWidget: null,
+    modifiedRows: []
+  };
 
   // --- String & Parsing Utilities ---
 
@@ -153,6 +217,13 @@
    * @returns {string}
    */
   const stripHtml = (str) => (str ? str.replace(/<[^>]+>/g, '').trim() : '');
+
+  /**
+   * Escapes special characters for use in regular expressions.
+   * @param {string} str
+   * @returns {string}
+   */
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   /**
    * Extracts the reference name attribute from a tag attributes string.
@@ -177,7 +248,7 @@
     let m;
     REF_REGEX.lastIndex = 0;
     while ((m = REF_REGEX.exec(html)) !== null) {
-      const hasChange = m[0].includes('diffchange');
+      const hasChange = m[0].includes(CLASSES.DIFFCHANGE);
       refs.push({ raw: m[0], attrs: m[1], content: m[2], hasChange });
     }
     return refs;
@@ -198,10 +269,7 @@
     const matchedDel = new Set();
     const matchedAdd = new Set();
 
-    const cleanContent = (r) => {
-      if (!r) return '';
-      return stripHtml(r.content || r.raw);
-    };
+    const cleanContent = (r) => (r ? stripHtml(r.content || r.raw) : '');
 
     // Pass 1: Match by explicit name
     for (let i = 0; i < delRefs.length; i++) {
@@ -274,9 +342,7 @@
     return pairs;
   }
 
-  // --- DOM Helpers ---
-
-  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // --- Badge & DOM Creation Helpers ---
 
   /**
    * Replaces raw reference wikitext with a badge, stripping surrounding diffchange wrappers if present.
@@ -304,24 +370,29 @@
   function createProseBadge(type, label) {
     switch (type) {
       case 'mod':
-        return `<span class="ref-badge-mod" title="Citation metadata modified: ⟨~${label}~⟩">⟨~${label}~⟩</span>`;
+        return `<span class="${CLASSES.BADGE_MOD}" title="Citation metadata modified: ⟨~${label}~⟩">⟨~${label}~⟩</span>`;
       case 'add':
-        return `<span class="ref-badge-add" title="Added citation: ⟨+${label}+⟩">⟨+${label}+⟩</span>`;
+        return `<span class="${CLASSES.BADGE_ADD}" title="Added citation: ⟨+${label}+⟩">⟨+${label}+⟩</span>`;
       case 'del':
-        return `<span class="ref-badge-del" title="Removed citation: ⟨-${label}-⟩">⟨-${label}-⟩</span>`;
+        return `<span class="${CLASSES.BADGE_DEL}" title="Removed citation: ⟨-${label}-⟩">⟨-${label}-⟩</span>`;
       default:
-        return `<span class="ref-badge" title="Citation: ⟨${label}⟩">⟨${label}⟩</span>`;
+        return `<span class="${CLASSES.BADGE}" title="Citation: ⟨${label}⟩">⟨${label}⟩</span>`;
     }
   }
 
   /**
    * Creates a decoupled citation diff table row (`<tr>`).
-   * @param {Object} mc
+   * @param {Object} mc Modified citation model
+   * @param {string} mc.label Badge label
+   * @param {string} mc.oldRaw Previous raw reference wikitext
+   * @param {string} mc.newRaw Updated raw reference wikitext
+   * @param {boolean} [mc.isAdd] True if citation was purely added
+   * @param {boolean} [mc.isDel] True if citation was purely deleted
    * @returns {HTMLTableRowElement}
    */
   function createCitRow(mc) {
     const citRow = document.createElement('tr');
-    citRow.className = 'refdiff-cit-row';
+    citRow.className = CLASSES.CIT_ROW;
 
     let delPrefix = '';
     let addPrefix = '';
@@ -329,33 +400,289 @@
     let addContent = mc.newRaw;
 
     if (mc.isAdd) {
-      addPrefix = `<span class="ref-badge-add" title="Added citation">⟨+${mc.label}+⟩</span> `;
-      if (addContent && !addContent.includes('diffchange')) {
-        addContent = `<ins class="diffchange diffchange-inline">${addContent}</ins>`;
+      addPrefix = `<span class="${CLASSES.BADGE_ADD}" title="Added citation">⟨+${mc.label}+⟩</span> `;
+      if (addContent && !addContent.includes(CLASSES.DIFFCHANGE)) {
+        addContent = `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${addContent}</ins>`;
       }
     } else if (mc.isDel) {
-      delPrefix = `<span class="ref-badge-del" title="Removed citation">⟨-${mc.label}-⟩</span> `;
-      if (delContent && !delContent.includes('diffchange')) {
-        delContent = `<del class="diffchange diffchange-inline">${delContent}</del>`;
+      delPrefix = `<span class="${CLASSES.BADGE_DEL}" title="Removed citation">⟨-${mc.label}-⟩</span> `;
+      if (delContent && !delContent.includes(CLASSES.DIFFCHANGE)) {
+        delContent = `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${delContent}</del>`;
       }
     } else {
-      const modBadge = `<span class="ref-badge-mod" title="Citation metadata modified">⟨~${mc.label}~⟩</span> `;
+      const modBadge = `<span class="${CLASSES.BADGE_MOD}" title="Citation metadata modified">⟨~${mc.label}~⟩</span> `;
       delPrefix = modBadge;
       addPrefix = modBadge;
     }
 
     citRow.innerHTML = `
       <td class="diff-marker" data-marker="${mc.isAdd ? '' : '−'}"></td>
-      <td class="${mc.isAdd ? 'diff-context' : 'diff-deletedline diff-side-deleted'}"><div>${delPrefix}${delContent}</div></td>
+      <td class="${mc.isAdd ? CLASSES.DIFF_CONTEXT : `${CLASSES.DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`}"><div>${delPrefix}${delContent}</div></td>
       <td class="diff-marker" data-marker="${mc.isDel ? '' : '+'}"></td>
-      <td class="${mc.isDel ? 'diff-context' : 'diff-addedline diff-side-added'}"><div>${addPrefix}${addContent}</div></td>
+      <td class="${mc.isDel ? CLASSES.DIFF_CONTEXT : `${CLASSES.ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`}"><div>${addPrefix}${addContent}</div></td>
     `;
     return citRow;
   }
 
-  // --- UI State & Persistence ---
+  // --- Row Snapshot & Memento Pattern ---
 
-  const STORAGE_KEY = 'refdiff-active';
+  /**
+   * Captures a non-destructive DOM snapshot of a diff row before transformation.
+   * @param {HTMLTableRowElement} row
+   * @returns {Object} Row snapshot memento
+   */
+  function captureRowSnapshot(row) {
+    const delDiv = row.querySelector(`${SELECTORS.DELETED_LINE} div`);
+    const addDiv = row.querySelector(`${SELECTORS.ADDED_LINE} div`);
+    const delTd = row.querySelector(SELECTORS.DELETED_LINE);
+    const addTd = row.querySelector(SELECTORS.ADDED_LINE);
+    const markers = Array.from(row.querySelectorAll(SELECTORS.DIFF_MARKER));
+
+    return {
+      row,
+      delDiv,
+      addDiv,
+      delTd,
+      addTd,
+      delHtml: delDiv ? delDiv.innerHTML : null,
+      addHtml: addDiv ? addDiv.innerHTML : null,
+      delTdClass: delTd ? delTd.className : null,
+      addTdClass: addTd ? addTd.className : null,
+      markers: markers.map(mk => ({ el: mk, marker: mk.getAttribute('data-marker') }))
+    };
+  }
+
+  /**
+   * Restores a captured row snapshot back to its original DOM state in-place.
+   * @param {Object} item Snapshot memento
+   */
+  function restoreRowSnapshot(item) {
+    if (item.delDiv && item.delHtml !== null) {
+      item.delDiv.innerHTML = item.delHtml;
+    }
+    if (item.addDiv && item.addHtml !== null) {
+      item.addDiv.innerHTML = item.addHtml;
+    }
+    if (item.delTd && item.delTdClass !== null) {
+      item.delTd.className = item.delTdClass;
+    }
+    if (item.addTd && item.addTdClass !== null) {
+      item.addTd.className = item.addTdClass;
+    }
+    if (item.markers) {
+      for (let m = 0; m < item.markers.length; m++) {
+        const mkInfo = item.markers[m];
+        if (mkInfo.marker !== null) {
+          mkInfo.el.setAttribute('data-marker', mkInfo.marker);
+        } else {
+          mkInfo.el.removeAttribute('data-marker');
+        }
+      }
+    }
+  }
+
+  // --- Core Decoupling Transformation Pipeline ---
+
+  /**
+   * Transforms prose cell HTML by replacing raw references with badges and extracting modified citations.
+   * @param {string} initialDelHtml
+   * @param {string} initialAddHtml
+   * @param {Array<Object>} pairs
+   * @param {number} startCounter
+   * @returns {{ newDelHtml: string, newAddHtml: string, modifiedCits: Array<Object>, nextCounter: number }}
+   */
+  function transformProseCells(initialDelHtml, initialAddHtml, pairs, startCounter) {
+    let citCounter = startCounter;
+    const modifiedCits = [];
+    let newDelHtml = initialDelHtml;
+    let newAddHtml = initialAddHtml;
+
+    for (const pair of pairs) {
+      const d = pair.d;
+      const a = pair.a;
+      const label = pair.name || `ref${citCounter++}`;
+
+      if (d && a) {
+        const isMod = a.hasChange || (stripHtml(d.raw) !== stripHtml(a.raw));
+        if (isMod) {
+          modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
+          const badge = createProseBadge('mod', label);
+          newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
+          newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
+        } else {
+          const badge = createProseBadge('norm', label);
+          newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
+          newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
+        }
+      } else if (a && !d) {
+        const badge = createProseBadge('add', label);
+        newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
+        modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
+      } else if (d && !a) {
+        const badge = createProseBadge('del', label);
+        newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
+        modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
+      }
+    }
+
+    return { newDelHtml, newAddHtml, modifiedCits, nextCounter: citCounter };
+  }
+
+  /**
+   * Applies prose row styling updates when all inline diff changes were extracted citations.
+   * @param {HTMLTableRowElement} row
+   * @param {string} newDelHtml
+   * @param {string} newAddHtml
+   */
+  function updateProseRowAppearance(row, newDelHtml, newAddHtml) {
+    const hasProseChanges = newDelHtml.includes(CLASSES.DIFFCHANGE) || newAddHtml.includes(CLASSES.DIFFCHANGE);
+    if (!hasProseChanges) {
+      const delTd = row.querySelector(SELECTORS.DELETED_LINE);
+      const addTd = row.querySelector(SELECTORS.ADDED_LINE);
+      if (delTd) delTd.className = `${CLASSES.DIFF_CONTEXT} ${CLASSES.DIFF_SIDE_DELETED}`;
+      if (addTd) addTd.className = `${CLASSES.DIFF_CONTEXT} ${CLASSES.DIFF_SIDE_ADDED}`;
+      const markers = row.querySelectorAll(SELECTORS.DIFF_MARKER);
+      markers.forEach(mk => mk.removeAttribute('data-marker'));
+    }
+  }
+
+  /**
+   * Inserts decoupled citation diff rows sequentially directly below the anchor row.
+   * @param {HTMLTableRowElement} anchorRow
+   * @param {Array<Object>} modifiedCits
+   */
+  function insertCitationRows(anchorRow, modifiedCits) {
+    let prevRow = anchorRow;
+    for (const mc of modifiedCits) {
+      const citRow = createCitRow(mc);
+      if (prevRow.parentNode) {
+        prevRow.parentNode.insertBefore(citRow, prevRow.nextSibling);
+      }
+      prevRow = citRow;
+    }
+  }
+
+  /**
+   * Applies the decoupled citation diff view to a MediaWiki diff table.
+   * Preserves 100% of native DOM elements in-place to avoid detaching MediaWiki event listeners.
+   * @param {HTMLTableElement} table
+   */
+  function applyDecoupling(table) {
+    if (!table || typeof table.querySelectorAll !== 'function' || state.isDecoupled) return;
+
+    if (!state.origTableHtml) {
+      state.origTableHtml = table.innerHTML;
+    }
+
+    const changeRows = Array.from(table.querySelectorAll('tr')).filter(
+      r => r.querySelector(`${SELECTORS.DELETED_LINE}, ${SELECTORS.ADDED_LINE}`) &&
+           !r.classList.contains(CLASSES.CIT_ROW)
+    );
+
+    let citCounter = 1;
+
+    for (const row of changeRows) {
+      const delDiv = row.querySelector(`${SELECTORS.DELETED_LINE} div`);
+      const addDiv = row.querySelector(`${SELECTORS.ADDED_LINE} div`);
+      if (!delDiv && !addDiv) continue;
+
+      const delRefs = parseRefs(delDiv ? delDiv.innerHTML : '');
+      const addRefs = parseRefs(addDiv ? addDiv.innerHTML : '');
+      if (delRefs.length === 0 && addRefs.length === 0) continue;
+
+      // 1. Capture snapshot before mutation
+      state.modifiedRows.push(captureRowSnapshot(row));
+
+      // 2. Pair references and transform prose
+      const pairs = pairReferences(delRefs, addRefs);
+      const { newDelHtml, newAddHtml, modifiedCits, nextCounter } = transformProseCells(
+        delDiv ? delDiv.innerHTML : '',
+        addDiv ? addDiv.innerHTML : '',
+        pairs,
+        citCounter
+      );
+      citCounter = nextCounter;
+
+      // 3. Mutate prose row DOM
+      if (delDiv) delDiv.innerHTML = newDelHtml;
+      if (addDiv) addDiv.innerHTML = newAddHtml;
+      if (delDiv && addDiv) {
+        updateProseRowAppearance(row, newDelHtml, newAddHtml);
+      }
+
+      // 4. Insert citation diff rows
+      insertCitationRows(row, modifiedCits);
+    }
+
+    state.isDecoupled = true;
+    notifyBodyUpdate(table);
+  }
+
+  /**
+   * Restores the diff table to its original native MediaWiki HTML in-place.
+   * Ensures closures in inlineFormatToggle.js and VisualEditor stay bound to live DOM nodes.
+   * @param {HTMLTableElement} table
+   */
+  function restoreOriginal(table) {
+    if (!table || !state.isDecoupled) return;
+
+    if (typeof table.querySelectorAll === 'function') {
+      const citRows = table.querySelectorAll(SELECTORS.CIT_ROW);
+      for (let i = 0; i < citRows.length; i++) {
+        citRows[i].remove();
+      }
+    }
+
+    if (state.modifiedRows && state.modifiedRows.length > 0) {
+      for (let i = 0; i < state.modifiedRows.length; i++) {
+        restoreRowSnapshot(state.modifiedRows[i]);
+      }
+      state.modifiedRows = [];
+    } else if (state.origTableHtml) {
+      table.innerHTML = state.origTableHtml;
+    }
+
+    state.isDecoupled = false;
+    notifyBodyUpdate(table);
+  }
+
+  // --- DOM Query & Synchronization Helpers ---
+
+  /**
+   * Returns all non-header diff rows from a MediaWiki diff table.
+   * Matches VisualEditor's row categorization (excluding diff-title, diff-multi, diff-notice).
+   * @param {HTMLTableElement} table
+   * @returns {HTMLTableRowElement[]}
+   */
+  function getDiffBodyRows(table) {
+    if (!table || typeof table.querySelectorAll !== 'function') return [];
+    const headerSet = new Set(table.querySelectorAll(SELECTORS.DIFF_HEADER_TITLE));
+    const multiOrNotice = table.querySelectorAll(SELECTORS.DIFF_MULTI_OR_NOTICE);
+    for (let i = 0; i < multiOrNotice.length; i++) {
+      if (multiOrNotice[i].parentElement) {
+        headerSet.add(multiOrNotice[i].parentElement);
+      }
+    }
+    return Array.from(table.querySelectorAll('tr')).filter(r => !headerSet.has(r));
+  }
+
+  /**
+   * Fires MediaWiki's native 'wikipage.diff.wikitextBodyUpdate' hook so VisualEditor
+   * synchronizes its internal $wikitextDiffBody reference with the live table rows.
+   * @param {HTMLTableElement} table
+   */
+  function notifyBodyUpdate(table) {
+    if (!table) return;
+    if (typeof window !== 'undefined' && window.mw && window.mw.hook) {
+      const $ = window.$ || window.jQuery;
+      if ($) {
+        const bodyRows = getDiffBodyRows(table);
+        window.mw.hook(HOOKS.BODY_UPDATE).fire($(bodyRows));
+      }
+    }
+  }
+
+  // --- UI State & Persistence ---
 
   /**
    * Checks whether RefDiff should be active based on stored user preference or URL override.
@@ -407,14 +734,14 @@
    */
   function setElementActive(el, active, isSelect) {
     if (!el) return;
-    el.classList.toggle('oo-ui-buttonElement-active', active);
+    el.classList.toggle(CLASSES.OO_BTN_ACTIVE, active);
     if (isSelect) {
-      el.classList.toggle('oo-ui-optionWidget-selected', active);
+      el.classList.toggle(CLASSES.OO_OPTION_SELECTED, active);
       el.setAttribute('aria-selected', String(active));
     }
     const icon = el.querySelector('.oo-ui-iconElement-icon');
     if (icon) {
-      icon.classList.toggle('oo-ui-image-invert', active);
+      icon.classList.toggle(CLASSES.OO_IMAGE_INVERT, active);
     }
   }
 
@@ -424,7 +751,7 @@
    */
   function getDiffModeWidget() {
     if (typeof document === 'undefined') return null;
-    const opt = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-optionWidget');
+    const opt = document.querySelector(SELECTORS.VE_OPTION_WIDGET);
     if (!opt) return null;
     const $ = window.jQuery || window.$;
     if ($) {
@@ -442,41 +769,38 @@
    */
   function isVisualDiffActive() {
     if (typeof document === 'undefined') return false;
-    const veDiff = document.querySelector('.ve-ui-diffElement, .ve-init-mw-diffPage-diff');
+    const veDiff = document.querySelector(SELECTORS.VE_DIFF_ELEMENT);
     if (veDiff && veDiff.offsetParent !== null) return true;
-    const visualBtn = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child');
-    if (visualBtn && (visualBtn.classList.contains('oo-ui-optionWidget-selected') || visualBtn.getAttribute('aria-selected') === 'true')) {
+    const visualBtn = document.querySelector(SELECTORS.VE_VISUAL_BUTTON);
+    if (visualBtn && (visualBtn.classList.contains(CLASSES.OO_OPTION_SELECTED) || visualBtn.getAttribute('aria-selected') === 'true')) {
       return true;
     }
     return false;
   }
-
-  let diffTypeSwitchWidget = null;
 
   /**
    * Helper to retrieve the native MediaWiki inline diff toggle switch widget.
    * @returns {Object|null}
    */
   function getInlineSwitchWidget() {
-    if (diffTypeSwitchWidget && typeof diffTypeSwitchWidget.setDisabled === 'function') {
-      return diffTypeSwitchWidget;
+    if (state.diffTypeSwitchWidget && typeof state.diffTypeSwitchWidget.setDisabled === 'function') {
+      return state.diffTypeSwitchWidget;
     }
     if (typeof document !== 'undefined') {
-      const swEl = document.getElementById('mw-diffPage-inline-toggle-switch') ||
-                   document.querySelector('.oo-ui-toggleSwitchWidget, input[name="diff-type"]');
+      const swEl = document.querySelector(SELECTORS.INLINE_SWITCH);
       if (swEl) {
         if (typeof window !== 'undefined' && (window.$ || window.jQuery)) {
           const $ = window.$ || window.jQuery;
           const infused = $(swEl).data('oouiInfused');
           if (infused && typeof infused.setDisabled === 'function') {
-            diffTypeSwitchWidget = infused;
-            return diffTypeSwitchWidget;
+            state.diffTypeSwitchWidget = infused;
+            return state.diffTypeSwitchWidget;
           }
         }
         if (typeof window !== 'undefined' && window.OO && window.OO.ui && typeof window.OO.ui.infuse === 'function') {
           try {
-            diffTypeSwitchWidget = window.OO.ui.infuse(swEl);
-            return diffTypeSwitchWidget;
+            state.diffTypeSwitchWidget = window.OO.ui.infuse(swEl);
+            return state.diffTypeSwitchWidget;
           } catch (e) {
             // Silently ignore infusion errors
           }
@@ -499,11 +823,10 @@
       swWidget.setDisabled(disabled);
     }
     if (typeof document !== 'undefined') {
-      const swEl = document.getElementById('mw-diffPage-inline-toggle-switch') ||
-                   document.querySelector('.oo-ui-toggleSwitchWidget, input[name="diff-type"]');
+      const swEl = document.querySelector(SELECTORS.INLINE_SWITCH);
       if (swEl) {
-        swEl.classList.toggle('oo-ui-widget-disabled', disabled);
-        swEl.classList.toggle('oo-ui-widget-enabled', !disabled);
+        swEl.classList.toggle(CLASSES.OO_WIDGET_DISABLED, disabled);
+        swEl.classList.toggle(CLASSES.OO_WIDGET_ENABLED, !disabled);
         swEl.setAttribute('aria-disabled', String(disabled));
         if (swEl.tagName === 'INPUT') {
           swEl.disabled = disabled;
@@ -511,11 +834,33 @@
       }
       const field = swEl ? swEl.closest('.oo-ui-fieldLayout') : null;
       if (field) {
-        field.classList.toggle('oo-ui-widget-disabled', disabled);
-        field.classList.toggle('oo-ui-widget-enabled', !disabled);
-        field.classList.toggle('oo-ui-fieldLayout-disabled', disabled);
+        field.classList.toggle(CLASSES.OO_WIDGET_DISABLED, disabled);
+        field.classList.toggle(CLASSES.OO_WIDGET_ENABLED, !disabled);
+        field.classList.toggle(CLASSES.OO_FIELD_DISABLED, disabled);
       }
     }
+  }
+
+  /**
+   * Identifies the Wikitext and Visual button elements in a button group.
+   * @param {HTMLElement|null} group
+   * @param {HTMLElement|null} refBtn
+   * @returns {{ wikiBtn: HTMLElement|null, visualBtn: HTMLElement|null }}
+   */
+  function findModeButtons(group, refBtn) {
+    if (!group) return { wikiBtn: null, visualBtn: null };
+    const children = Array.from(group.children);
+    const wikiBtn = children.find(c => {
+      if (c === refBtn) return false;
+      const text = c.textContent.toLowerCase();
+      return text.includes('wiki') || c.querySelector('.oo-ui-icon-wikiText');
+    }) || null;
+    const visualBtn = children.find(c => {
+      if (c === refBtn) return false;
+      const text = c.textContent.toLowerCase();
+      return text.includes('visu') || c.querySelector('.oo-ui-icon-eye');
+    }) || null;
+    return { wikiBtn, visualBtn };
   }
 
   /**
@@ -524,21 +869,12 @@
    * @param {HTMLTableElement} [table]
    */
   function selectMode(mode, table) {
-    table = table || (typeof document !== 'undefined' ? document.querySelector('table.diff') : null);
+    table = table || (typeof document !== 'undefined' ? document.querySelector(SELECTORS.DIFF_TABLE) : null);
     const widget = getDiffModeWidget();
     const refBtn = typeof document !== 'undefined' ? document.getElementById('refdiff-ooui-btn') : null;
     const group = refBtn ? refBtn.parentElement : null;
-    const currentWiki = group ? Array.from(group.children).find(c => {
-      if (c === refBtn) return false;
-      const text = c.textContent.toLowerCase();
-      return text.includes('wiki') || c.querySelector('.oo-ui-icon-wikiText');
-    }) : null;
-    const currentVisual = group ? Array.from(group.children).find(c => {
-      if (c === refBtn) return false;
-      const text = c.textContent.toLowerCase();
-      return text.includes('visu') || c.querySelector('.oo-ui-icon-eye');
-    }) : null;
     const isSelect = group && group.classList.contains('oo-ui-buttonSelectWidget');
+    const { wikiBtn, visualBtn } = findModeButtons(group, refBtn);
 
     // Fallback mode bar elements
     const btnDecoupled = typeof document !== 'undefined' ? document.getElementById('refdiff-btn-decoupled') : null;
@@ -548,7 +884,7 @@
       restoreOriginal(table);
       if (table && typeof table.querySelectorAll === 'function') {
         const bodyRows = getDiffBodyRows(table);
-        bodyRows.forEach(r => r.classList.add('oo-ui-element-hidden'));
+        bodyRows.forEach(r => r.classList.add(CLASSES.HIDDEN));
         notifyBodyUpdate(table);
       }
       setInlineSwitchDisabled(true);
@@ -556,15 +892,15 @@
         widget.selectItemByData('visual');
       }
       setElementActive(refBtn, false, isSelect);
-      setElementActive(currentWiki, false, isSelect);
-      setElementActive(currentVisual, true, isSelect);
+      setElementActive(wikiBtn, false, isSelect);
+      setElementActive(visualBtn, true, isSelect);
       if (btnStandard) btnStandard.classList.remove('active');
       if (btnDecoupled) btnDecoupled.classList.remove('active');
     } else if (mode === 'wikitext') {
       restoreOriginal(table);
       if (table && typeof table.querySelectorAll === 'function') {
         const bodyRows = getDiffBodyRows(table);
-        bodyRows.forEach(r => r.classList.remove('oo-ui-element-hidden'));
+        bodyRows.forEach(r => r.classList.remove(CLASSES.HIDDEN));
         notifyBodyUpdate(table);
       }
       setRefDiffPreferred(false);
@@ -573,26 +909,26 @@
         widget.selectItemByData('source');
       }
       setElementActive(refBtn, false, isSelect);
-      setElementActive(currentVisual, false, isSelect);
-      setElementActive(currentWiki, true, isSelect);
+      setElementActive(visualBtn, false, isSelect);
+      setElementActive(wikiBtn, true, isSelect);
       if (btnStandard) btnStandard.classList.add('active');
       if (btnDecoupled) btnDecoupled.classList.remove('active');
     } else if (mode === 'refdiff') {
       if (table && typeof table.querySelectorAll === 'function') {
         const bodyRows = getDiffBodyRows(table);
-        bodyRows.forEach(r => r.classList.remove('oo-ui-element-hidden'));
+        bodyRows.forEach(r => r.classList.remove(CLASSES.HIDDEN));
       }
       if (isVisualDiffActive()) {
         if (widget) {
           widget.selectItemByData('source');
-        } else if (currentWiki) {
-          currentWiki.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        } else if (wikiBtn) {
+          wikiBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         }
       }
       setRefDiffPreferred(true);
       setInlineSwitchDisabled(true);
-      setElementActive(currentVisual, false, isSelect);
-      setElementActive(currentWiki, false, isSelect);
+      setElementActive(visualBtn, false, isSelect);
+      setElementActive(wikiBtn, false, isSelect);
       setElementActive(refBtn, true, isSelect);
       if (btnDecoupled) btnDecoupled.classList.add('active');
       if (btnStandard) btnStandard.classList.remove('active');
@@ -613,197 +949,6 @@
     selectMode(active ? 'refdiff' : 'wikitext', table);
   }
 
-  // --- Core Decoupling Transformation ---
-
-  let modifiedRows = [];
-
-  /**
-   * Applies the decoupled citation diff view to a MediaWiki diff table.
-   * @param {HTMLTableElement} table
-   */
-  function applyDecoupling(table) {
-    if (!table || typeof table.querySelectorAll !== 'function' || isDecoupled) return;
-
-    if (!origTableHtml) {
-      origTableHtml = table.innerHTML;
-    }
-
-    const changeRows = Array.from(table.querySelectorAll('tr')).filter(
-      r => r.querySelector('.diff-deletedline, .diff-addedline') && !r.classList.contains('refdiff-cit-row')
-    );
-
-    let citCounter = 1;
-
-    for (const row of changeRows) {
-      const delDiv = row.querySelector('.diff-deletedline div');
-      const addDiv = row.querySelector('.diff-addedline div');
-      if (!delDiv && !addDiv) continue;
-
-      const delRefs = parseRefs(delDiv ? delDiv.innerHTML : '');
-      const addRefs = parseRefs(addDiv ? addDiv.innerHTML : '');
-
-      if (delRefs.length === 0 && addRefs.length === 0) continue;
-
-      const delTd = row.querySelector('.diff-deletedline');
-      const addTd = row.querySelector('.diff-addedline');
-      const markers = Array.from(row.querySelectorAll('.diff-marker'));
-
-      modifiedRows.push({
-        row,
-        delDiv,
-        addDiv,
-        delTd,
-        addTd,
-        delHtml: delDiv ? delDiv.innerHTML : null,
-        addHtml: addDiv ? addDiv.innerHTML : null,
-        delTdClass: delTd ? delTd.className : null,
-        addTdClass: addTd ? addTd.className : null,
-        markers: markers.map(mk => ({ el: mk, marker: mk.getAttribute('data-marker') }))
-      });
-
-      const pairs = pairReferences(delRefs, addRefs);
-      const modifiedCits = [];
-      let newDelHtml = delDiv ? delDiv.innerHTML : '';
-      let newAddHtml = addDiv ? addDiv.innerHTML : '';
-
-      for (const pair of pairs) {
-        const d = pair.d;
-        const a = pair.a;
-        const label = pair.name || `ref${citCounter++}`;
-
-        if (d && a) {
-          const isMod = a.hasChange || (stripHtml(d.raw) !== stripHtml(a.raw));
-          if (isMod) {
-            modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
-            const badge = createProseBadge('mod', label);
-            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
-            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
-          } else {
-            const badge = createProseBadge('norm', label);
-            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
-            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
-          }
-        } else if (a && !d) {
-          const badge = createProseBadge('add', label);
-          newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
-          modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
-        } else if (d && !a) {
-          const badge = createProseBadge('del', label);
-          newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
-          modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
-        }
-      }
-
-      if (delDiv) delDiv.innerHTML = newDelHtml;
-      if (addDiv) addDiv.innerHTML = newAddHtml;
-
-      // If no remaining diffchanges in prose, convert line to context appearance
-      if (delDiv && addDiv) {
-        const hasProseChanges = newDelHtml.includes('diffchange') || newAddHtml.includes('diffchange');
-        if (!hasProseChanges) {
-          if (delTd) delTd.className = 'diff-context diff-side-deleted';
-          if (addTd) addTd.className = 'diff-context diff-side-added';
-          markers.forEach(mk => mk.removeAttribute('data-marker'));
-        }
-      }
-
-      // Insert citation diff rows directly below this prose row
-      let prevRow = row;
-      for (const mc of modifiedCits) {
-        const citRow = createCitRow(mc);
-        prevRow.parentNode.insertBefore(citRow, prevRow.nextSibling);
-        prevRow = citRow;
-      }
-    }
-
-    isDecoupled = true;
-    notifyBodyUpdate(table);
-  }
-
-  /**
-   * Returns all non-header diff rows from a MediaWiki diff table.
-   * Matches VisualEditor's row categorization (excluding diff-title, diff-multi, diff-notice).
-   * @param {HTMLTableElement} table
-   * @returns {HTMLTableRowElement[]}
-   */
-  function getDiffBodyRows(table) {
-    if (!table || typeof table.querySelectorAll !== 'function') return [];
-    const headerSet = new Set(table.querySelectorAll('tr.diff-title'));
-    const multiOrNotice = table.querySelectorAll('td.diff-multi, td.diff-notice');
-    for (let i = 0; i < multiOrNotice.length; i++) {
-      if (multiOrNotice[i].parentElement) {
-        headerSet.add(multiOrNotice[i].parentElement);
-      }
-    }
-    return Array.from(table.querySelectorAll('tr')).filter(r => !headerSet.has(r));
-  }
-
-  /**
-   * Fires MediaWiki's native 'wikipage.diff.wikitextBodyUpdate' hook so VisualEditor
-   * synchronizes its internal $wikitextDiffBody reference with the live table rows.
-   * @param {HTMLTableElement} table
-   */
-  function notifyBodyUpdate(table) {
-    if (!table) return;
-    if (typeof window !== 'undefined' && window.mw && window.mw.hook) {
-      const $ = window.$ || window.jQuery;
-      if ($) {
-        const bodyRows = getDiffBodyRows(table);
-        window.mw.hook('wikipage.diff.wikitextBodyUpdate').fire($(bodyRows));
-      }
-    }
-  }
-
-  /**
-   * Restores the diff table to its original native MediaWiki HTML.
-   * Restores rows in-place to keep native closures and DOM nodes intact.
-   * @param {HTMLTableElement} table
-   */
-  function restoreOriginal(table) {
-    if (!table || !isDecoupled) return;
-
-    if (typeof table.querySelectorAll === 'function') {
-      const citRows = table.querySelectorAll('tr.refdiff-cit-row');
-      for (let i = 0; i < citRows.length; i++) {
-        citRows[i].remove();
-      }
-    }
-
-    if (modifiedRows && modifiedRows.length > 0) {
-      for (let i = 0; i < modifiedRows.length; i++) {
-        const item = modifiedRows[i];
-        if (item.delDiv && item.delHtml !== null) {
-          item.delDiv.innerHTML = item.delHtml;
-        }
-        if (item.addDiv && item.addHtml !== null) {
-          item.addDiv.innerHTML = item.addHtml;
-        }
-        if (item.delTd && item.delTdClass !== null) {
-          item.delTd.className = item.delTdClass;
-        }
-        if (item.addTd && item.addTdClass !== null) {
-          item.addTd.className = item.addTdClass;
-        }
-        if (item.markers) {
-          for (let m = 0; m < item.markers.length; m++) {
-            const mkInfo = item.markers[m];
-            if (mkInfo.marker !== null) {
-              mkInfo.el.setAttribute('data-marker', mkInfo.marker);
-            } else {
-              mkInfo.el.removeAttribute('data-marker');
-            }
-          }
-        }
-      }
-      modifiedRows = [];
-    } else if (origTableHtml) {
-      table.innerHTML = origTableHtml;
-    }
-
-    isDecoupled = false;
-    notifyBodyUpdate(table);
-  }
-
   // --- Environment & Page Detection ---
 
   /**
@@ -814,7 +959,7 @@
     if (typeof window === 'undefined' || typeof document === 'undefined') return false;
     return !!(
       (window.mw && window.mw.config && (window.mw.config.get('wgDiffNewId') || window.mw.config.get('wgDiffOldId'))) ||
-      document.querySelector('table.diff') ||
+      document.querySelector(SELECTORS.DIFF_TABLE) ||
       document.getElementById('wikiDiff') ||
       /[?&]diff=/.test(location.search) ||
       /\/wiki\/Special:Diff\//.test(location.pathname)
@@ -824,11 +969,51 @@
   // --- Initialization & UI Wiring ---
 
   /**
+   * Creates the OOUI RefDiff button element matching MediaWiki's ButtonOptionWidget.
+   * @param {boolean} isSelect True if part of an OOUI ButtonSelectWidget
+   * @returns {HTMLElement}
+   */
+  function createRefDiffButton(isSelect) {
+    const refBtn = document.createElement(isSelect ? 'div' : 'span');
+    refBtn.id = 'refdiff-ooui-btn';
+    refBtn.className = isSelect
+      ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
+      : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget';
+    refBtn.setAttribute('role', isSelect ? 'option' : 'button');
+    refBtn.setAttribute('title', 'RefDiff: Decoupled citation diff view');
+    refBtn.innerHTML = `
+      <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
+        <span class="oo-ui-iconElement-icon oo-ui-icon-diffs"></span>
+        <span class="oo-ui-labelElement-label">RefDiff</span>
+        <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator"></span>
+      </a>
+    `;
+    return refBtn;
+  }
+
+  /**
+   * Creates a fallback mode bar for MediaWiki skins lacking the OOUI diff mode switcher.
+   * @param {boolean} shouldDecouple
+   * @returns {HTMLDivElement}
+   */
+  function createFallbackModeBar(shouldDecouple) {
+    const modeBar = document.createElement('div');
+    modeBar.id = 'refdiff-mode-bar';
+    modeBar.className = 'refdiff-mode-bar';
+    modeBar.innerHTML = `
+      <strong>Diff view:</strong>
+      <a href="#" id="refdiff-btn-decoupled" class="${shouldDecouple ? 'active' : ''}">Decoupled (RefDiff)</a> &bull;
+      <a href="#" id="refdiff-btn-standard" class="${shouldDecouple ? '' : 'active'}">Standard Wikidiff</a>
+    `;
+    return modeBar;
+  }
+
+  /**
    * Initializes the RefDiff gadget on the current page.
    */
   function init() {
     if (typeof document === 'undefined') return;
-    const table = document.querySelector('table.diff');
+    const table = document.querySelector(SELECTORS.DIFF_TABLE);
     if (!table || document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-mode-bar')) return;
 
     // Inject minimal badge styling
@@ -839,16 +1024,12 @@
       document.head.appendChild(styleEl);
     }
 
-    const buttonGroup = document.querySelector(
-      '.ve-init-mw-diffPage-diffMode .oo-ui-buttonGroupWidget, ' +
-      '.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget, ' +
-      '.ve-init-mw-diffPage-diffMode > *'
-    );
+    const buttonGroup = document.querySelector(SELECTORS.VE_BUTTON_GROUP);
+    const diffModeContainer = document.querySelector(SELECTORS.VE_DIFF_CONTAINER);
 
     // If diffMode container is present but buttonGroup children are not yet populated, retry briefly
-    const diffModeContainer = document.querySelector('.ve-init-mw-diffPage-diffMode');
-    if (!buttonGroup && diffModeContainer && initRetries < 5) {
-      initRetries++;
+    if (!buttonGroup && diffModeContainer && state.initRetries < 5) {
+      state.initRetries++;
       setTimeout(init, 100);
       return;
     }
@@ -860,22 +1041,7 @@
       if (document.getElementById('refdiff-ooui-btn')) return;
 
       const isSelect = buttonGroup.classList.contains('oo-ui-buttonSelectWidget');
-
-      // Create native OOUI RefDiff button
-      const refBtn = document.createElement(isSelect ? 'div' : 'span');
-      refBtn.id = 'refdiff-ooui-btn';
-      refBtn.className = isSelect
-        ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
-        : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget';
-      refBtn.setAttribute('role', isSelect ? 'option' : 'button');
-      refBtn.setAttribute('title', 'RefDiff: Decoupled citation diff view');
-      refBtn.innerHTML = `
-        <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
-          <span class="oo-ui-iconElement-icon oo-ui-icon-diffs"></span>
-          <span class="oo-ui-labelElement-label">RefDiff</span>
-          <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator"></span>
-        </a>
-      `;
+      const refBtn = createRefDiffButton(isSelect);
       buttonGroup.appendChild(refBtn);
 
       // Initialize button states according to user preference and initial view
@@ -933,29 +1099,25 @@
       }
     } else {
       if (document.getElementById('refdiff-mode-bar')) return;
-      // Fallback mode switcher bar for skins without OOUI diff-mode switcher
-      const modeBar = document.createElement('div');
-      modeBar.id = 'refdiff-mode-bar';
-      modeBar.className = 'refdiff-mode-bar';
-      modeBar.innerHTML = `
-        <strong>Diff view:</strong>
-        <a href="#" id="refdiff-btn-decoupled" class="${shouldDecouple ? 'active' : ''}">Decoupled (RefDiff)</a> &bull;
-        <a href="#" id="refdiff-btn-standard" class="${shouldDecouple ? '' : 'active'}">Standard Wikidiff</a>
-      `;
+      const modeBar = createFallbackModeBar(shouldDecouple);
       table.parentNode.insertBefore(modeBar, table);
 
       const btnDecoupled = document.getElementById('refdiff-btn-decoupled');
       const btnStandard = document.getElementById('refdiff-btn-standard');
 
-      btnStandard.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectMode('wikitext', table);
-      });
+      if (btnStandard) {
+        btnStandard.addEventListener('click', (e) => {
+          e.preventDefault();
+          selectMode('wikitext', table);
+        });
+      }
 
-      btnDecoupled.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectMode('refdiff', table);
-      });
+      if (btnDecoupled) {
+        btnDecoupled.addEventListener('click', (e) => {
+          e.preventDefault();
+          selectMode('refdiff', table);
+        });
+      }
     }
 
     // Apply decoupled transformation if preferred and not in visual diff mode
@@ -970,13 +1132,13 @@
   // --- Auto-start in browser environment ---
   if (typeof window !== 'undefined' && isDiffPage()) {
     if (window.mw && window.mw.hook) {
-      window.mw.hook('wikipage.diff.diffTypeSwitch').add((sw) => {
-        diffTypeSwitchWidget = sw;
+      window.mw.hook(HOOKS.DIFF_TYPE_SWITCH).add((sw) => {
+        state.diffTypeSwitchWidget = sw;
         if (isRefDiffPreferred() && !isVisualDiffActive()) {
           setInlineSwitchDisabled(true);
         }
       });
-      window.mw.hook('wikipage.diff').add(init);
+      window.mw.hook(HOOKS.DIFF_PAGE).add(init);
       if (document.readyState === 'complete' || document.readyState === 'interactive') {
         setTimeout(init, 50);
       }
@@ -989,15 +1151,23 @@
 
   return {
     STORAGE_KEY,
+    SELECTORS,
+    CLASSES,
+    HOOKS,
+    state,
     isRefDiffPreferred,
     setRefDiffPreferred,
     REF_REGEX,
     stripHtml,
+    escapeRegex,
     extractName,
     parseRefs,
     pairReferences,
     createProseBadge,
     createCitRow,
+    captureRowSnapshot,
+    restoreRowSnapshot,
+    transformProseCells,
     applyDecoupling,
     restoreOriginal,
     getDiffBodyRows,
