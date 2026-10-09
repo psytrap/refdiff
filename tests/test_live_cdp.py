@@ -77,6 +77,7 @@ class CDPClient:
             (() => {{
                 const el = document.querySelector('{selector}');
                 if (!el) return null;
+                el.scrollIntoView({{ block: 'center', inline: 'nearest' }});
                 const r = el.getBoundingClientRect();
                 return {{ x: r.left + r.width / 2, y: r.top + r.height / 2 }};
             }})()
@@ -92,6 +93,24 @@ class CDPClient:
         })
         await self.send("Input.dispatchMouseEvent", {
             "type": "mouseReleased", "x": coords["x"], "y": coords["y"], "button": "left", "clickCount": 1
+        })
+
+    async def hover(self, selector: str) -> None:
+        """Dispatches native pointer move event to the center of an element."""
+        coords = await self.evaluate(f"""
+            (() => {{
+                const el = document.querySelector('{selector}');
+                if (!el) return null;
+                el.scrollIntoView({{ block: 'center', inline: 'nearest' }});
+                const r = el.getBoundingClientRect();
+                return {{ x: r.left + r.width / 2, y: r.top + r.height / 2 }};
+            }})()
+        """)
+        if not coords:
+            raise ValueError(f"Cannot hover element; selector not found in DOM: '{selector}'")
+
+        await self.send("Input.dispatchMouseEvent", {
+            "type": "mouseMoved", "x": coords["x"], "y": coords["y"]
         })
 
     async def capture_screenshot(self, filepath: str) -> None:
@@ -200,7 +219,7 @@ async def run_suite(args: argparse.Namespace) -> int:
             # 4. Mode Switch: Visual Diff
             print("[Step 4] Switching to Visual Diff mode...")
             visual_btn = ".ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child"
-            has_ve = await client.evaluate(f"!!document.querySelector('{visual_btn}')")
+            has_ve = await client.evaluate(f"typeof ve !== 'undefined' && !!document.querySelector('{visual_btn}')")
             if has_ve:
                 await client.click(visual_btn)
                 await asyncio.sleep(args.wait_ve)
@@ -261,6 +280,33 @@ async def run_suite(args: argparse.Namespace) -> int:
                 await asyncio.sleep(0.5)
                 await client.capture_screenshot(os.path.join(screenshots_dir, "02c_refdiff_line164_ryanair.png"))
             test_steps.append(("Switch to RefDiff (citations decoupled, inline switch disabled)", True))
+
+            # 5a. Reference Badge Linking & Anchor Discovery
+            print("[Step 5a] Verifying reference badge linking & anchor discovery...")
+            badge_link_info = await client.evaluate("""
+                (() => {
+                    const supBadges = document.querySelectorAll('sup.reference.refdiff-ref');
+                    const linkedBadges = document.querySelectorAll('sup.reference.refdiff-ref a[href]');
+                    const citeNoteLinks = document.querySelectorAll('sup.reference.refdiff-ref a[href^="#cite_note-"]');
+                    const citRowLinks = document.querySelectorAll('sup.reference.refdiff-ref a[href^="#refdiff-cit-"]');
+                    return {
+                        totalSup: supBadges.length,
+                        totalLinked: linkedBadges.length,
+                        citeNoteCount: citeNoteLinks.length,
+                        citRowCount: citRowLinks.length
+                    };
+                })()
+            """)
+            assert badge_link_info["totalSup"] > 0, "Badges should be wrapped in <sup class='reference refdiff-ref'>"
+            assert badge_link_info["totalLinked"] > 0, "Badges should have interactive href links"
+            print(f"       -> Found {badge_link_info['totalSup']} sup elements, {badge_link_info['totalLinked']} interactive links "
+                  f"({badge_link_info['citeNoteCount']} cite_notes, {badge_link_info['citRowCount']} cit_rows)")
+
+            first_badge_sel = "sup.reference.refdiff-ref a[href]"
+            await client.hover(first_badge_sel)
+            await asyncio.sleep(0.5)
+            await client.capture_screenshot(os.path.join(screenshots_dir, "02d_badge_hover_link.png"))
+            test_steps.append(("Reference badge linking (<sup class='reference'> + href anchors)", True))
 
             # 5b. Direct Transition: RefDiff -> Visual Diff
             if has_ve:

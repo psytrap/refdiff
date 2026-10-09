@@ -95,6 +95,7 @@ Line 42:
   6. **Context Line Auto-Conversion:** If 100% of differences on a line are citations, the prose row automatically converts to neutral context appearance (`diff-context`), eliminating false text diff alerts.
   7. **Prefixed Citation Diff Rows:** Injects matching citation diff rows (`<tr class="refdiff-cit-row">`) directly underneath each prose line, prefixed with their corresponding amber (`⟨~ref3~⟩`), green (`⟨+ref4+⟩`), or red (`⟨-ref5-⟩`) badge.
   8. **Tag-Boundary Normalization & Cascading Protection:** Normalizes character-level boundary splits from `wikidiff2` (`&lt;/ref<del>&gt;` / `/<del>&gt;`) before regex matching, and uses lookahead-constrained tokenization to prevent unclosed tags from swallowing subsequent citations in high-density tables.
+  9. **Interactive Reference Badges & Native Reference Previews (`Extension:Popups`):** Badges are generated as semantic `<sup class="reference refdiff-ref"><a href="...">⟨label⟩</a></sup>`. Hovering over a badge displays Wikipedia's standard **Reference Preview hovercard** from Read mode. Clicking a modified/added citation badge smoothly scrolls and flashes the corresponding citation diff row (`#refdiff-cit-...`).
 
 ### Target B: Git External Diff Driver (`git-refdiff`)
 * **Runtime:** Standalone CLI tool written in Python or Rust.

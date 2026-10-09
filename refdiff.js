@@ -76,6 +76,9 @@
     BADGE_MOD: 'ref-badge-mod',
     BADGE_ADD: 'ref-badge-add',
     BADGE_DEL: 'ref-badge-del',
+    REF_CONTAINER: 'reference refdiff-ref',
+    FLASH_CIT: 'refdiff-cit-flash',
+    FLASH_TARGET: 'refdiff-target-flash',
     DIFF_CONTEXT: 'diff-context',
     DELETED_LINE: 'diff-deletedline',
     ADDED_LINE: 'diff-addedline',
@@ -99,11 +102,29 @@
   };
 
   const BADGE_STYLES = `
+    .refdiff-ref {
+      unicode-bidi: isolate;
+      white-space: nowrap;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 0.85em;
+      vertical-align: super;
+      line-height: 1;
+    }
+    .refdiff-ref a {
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .refdiff-ref a:hover,
+    .refdiff-ref a:focus {
+      text-decoration: underline;
+    }
     .ref-badge {
       font-weight: normal;
       color: #72777d;
       color: var(--color-subtle, #72777d);
-      cursor: default;
+      cursor: pointer;
+      text-decoration: none;
     }
     .ref-badge-mod {
       font-weight: bold;
@@ -111,7 +132,7 @@
       background: rgba(255, 215, 0, 0.25);
       border-radius: 2px;
       padding: 0 3px;
-      cursor: help;
+      cursor: pointer;
     }
     .ref-badge-add {
       font-weight: bold;
@@ -119,7 +140,7 @@
       background: rgba(0, 175, 137, 0.2);
       border-radius: 2px;
       padding: 0 3px;
-      cursor: help;
+      cursor: pointer;
       text-decoration: none;
     }
     .ref-badge-del {
@@ -128,8 +149,22 @@
       background: rgba(211, 51, 51, 0.2);
       border-radius: 2px;
       padding: 0 3px;
-      cursor: help;
+      cursor: pointer;
       text-decoration: line-through;
+    }
+    .refdiff-cit-flash {
+      animation: refdiff-flash 1.5s ease-out;
+    }
+    @keyframes refdiff-flash {
+      0% { background-color: rgba(255, 215, 0, 0.4); }
+      100% { background-color: transparent; }
+    }
+    .refdiff-target-flash {
+      animation: refdiff-target-pulse 2s ease-out;
+    }
+    @keyframes refdiff-target-pulse {
+      0% { background-color: rgba(54, 195, 154, 0.4); }
+      100% { background-color: transparent; }
     }
     html.skin-theme-clientpref-night .ref-badge,
     body.skin-theme-clientpref-night .ref-badge {
@@ -206,6 +241,7 @@
     isDecoupled: false,
     initRetries: 0,
     diffTypeSwitchWidget: null,
+    onTableClickHandler: null,
     modifiedRows: []
   };
 
@@ -368,6 +404,71 @@
     return pairs;
   }
 
+  /**
+   * Sanitizes a string for use in HTML element ID attributes.
+   * @param {string} str
+   * @returns {string}
+   */
+  function sanitizeAnchor(str) {
+    return String(str || '').trim().replace(/[^a-zA-Z0-9_\-.:]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
+  /**
+   * Discovers the corresponding #cite_note anchor ID in the live document, if present.
+   * Matches by explicit reference name or unique URL in rendered references.
+   * @param {string|null} name Reference name attribute
+   * @param {string} rawContent Raw wikitext content of the reference
+   * @returns {string|null} Anchor element ID (e.g. 'cite_note-AlicanteRyanair-57') or null
+   */
+  function findCiteNoteAnchor(name, rawContent) {
+    if (typeof document === 'undefined' || !document.querySelector) return null;
+
+    // 1. Try explicit reference name (e.g. cite_note-name-1 or cite_note-name)
+    if (name) {
+      try {
+        const safe = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(name) : name.replace(/["\\]/g, '\\$&');
+        const el = document.querySelector(`[id^="cite_note-${safe}-"], [id="cite_note-${safe}"]`);
+        if (el && el.id) return el.id;
+      } catch (_e) {
+        // Fallback manual scan if selector query fails
+        const allNotes = document.querySelectorAll('[id^="cite_note-"]');
+        const prefix = `cite_note-${name}-`.toLowerCase();
+        const exact = `cite_note-${name}`.toLowerCase();
+        for (let i = 0; i < allNotes.length; i++) {
+          const id = allNotes[i].id.toLowerCase();
+          if (id === exact || id.startsWith(prefix)) return allNotes[i].id;
+        }
+      }
+    }
+
+    // 2. Try matching unique URL in rendered reference list
+    if (rawContent && typeof rawContent === 'string') {
+      const urlMatch = rawContent.match(/https?:\/\/[^\s|}<>"]+/);
+      if (urlMatch) {
+        const url = urlMatch[0];
+        try {
+          const safeUrl = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(url) : url.replace(/["\\]/g, '\\$&');
+          const link = document.querySelector(`.references a[href*="${safeUrl}"], #mw-content-text a.external[href*="${safeUrl}"]`);
+          if (link && link.closest) {
+            const li = link.closest('li[id^="cite_note-"]');
+            if (li && li.id) return li.id;
+          }
+        } catch (_e) {
+          const refLinks = document.querySelectorAll('.references a[href]');
+          for (let i = 0; i < refLinks.length; i++) {
+            const href = refLinks[i].getAttribute('href');
+            if (href && href.includes(url)) {
+              const li = refLinks[i].closest ? refLinks[i].closest('li[id^="cite_note-"]') : null;
+              if (li && li.id) return li.id;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   // --- Badge & DOM Creation Helpers ---
 
   /**
@@ -382,28 +483,46 @@
     const escaped = escapeRegex(rawRef);
     const diffchangeWrapper = new RegExp('<(ins|del)[^>]*class="[^"]*diffchange[^"]*"[^>]*>\\s*' + escaped + '\\s*<\\/\\1>', 'i');
     if (diffchangeWrapper.test(html)) {
-      return html.replace(diffchangeWrapper, badgeHtml);
+      return html.replace(diffchangeWrapper, () => badgeHtml);
     }
-    return html.replace(rawRef, badgeHtml);
+    return html.replace(rawRef, () => badgeHtml);
   }
 
   /**
-   * Generates inline prose badge HTML.
+   * Generates inline prose badge HTML with reference link.
    * @param {'mod'|'add'|'del'|'norm'} type
    * @param {string} label
+   * @param {string|null} [href] Target anchor or jump link
    * @returns {string}
    */
-  function createProseBadge(type, label) {
+  function createProseBadge(type, label, href) {
+    let badgeClass = CLASSES.BADGE;
+    let title = `Citation: ⟨${label}⟩`;
+    let inner = `⟨${label}⟩`;
+
     switch (type) {
       case 'mod':
-        return `<span class="${CLASSES.BADGE_MOD}" title="Citation metadata modified: ⟨~${label}~⟩">⟨~${label}~⟩</span>`;
+        badgeClass = CLASSES.BADGE_MOD;
+        title = `Citation metadata modified: ⟨~${label}~⟩`;
+        inner = `⟨~${label}~⟩`;
+        break;
       case 'add':
-        return `<span class="${CLASSES.BADGE_ADD}" title="Added citation: ⟨+${label}+⟩">⟨+${label}+⟩</span>`;
+        badgeClass = CLASSES.BADGE_ADD;
+        title = `Added citation: ⟨+${label}+⟩`;
+        inner = `⟨+${label}+⟩`;
+        break;
       case 'del':
-        return `<span class="${CLASSES.BADGE_DEL}" title="Removed citation: ⟨-${label}-⟩">⟨-${label}-⟩</span>`;
-      default:
-        return `<span class="${CLASSES.BADGE}" title="Citation: ⟨${label}⟩">⟨${label}⟩</span>`;
+        badgeClass = CLASSES.BADGE_DEL;
+        title = `Removed citation: ⟨-${label}-⟩`;
+        inner = `⟨-${label}-⟩`;
+        break;
     }
+
+    if (href) {
+      const escapedHref = href.replace(/"/g, '&quot;');
+      return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}" title="${title}">${inner}</a></sup>`;
+    }
+    return `<sup class="${CLASSES.REF_CONTAINER}"><span class="${badgeClass}" title="${title}">${inner}</span></sup>`;
   }
 
   /**
@@ -412,6 +531,8 @@
    * @param {string} mc.label Badge label
    * @param {string} mc.oldRaw Previous raw reference wikitext
    * @param {string} mc.newRaw Updated raw reference wikitext
+   * @param {string} [mc.rowId] Row anchor ID
+   * @param {string|null} [mc.citeNoteId] Target cite_note anchor in live article
    * @param {boolean} [mc.isAdd] True if citation was purely added
    * @param {boolean} [mc.isDel] True if citation was purely deleted
    * @returns {HTMLTableRowElement}
@@ -419,24 +540,28 @@
   function createCitRow(mc) {
     const citRow = document.createElement('tr');
     citRow.className = CLASSES.CIT_ROW;
+    if (mc.rowId) {
+      citRow.id = mc.rowId;
+    }
 
     let delPrefix = '';
     let addPrefix = '';
     let delContent = mc.oldRaw;
     let addContent = mc.newRaw;
+    const badgeHref = mc.citeNoteId ? ` href="#${mc.citeNoteId.replace(/"/g, '&quot;')}"` : '';
 
     if (mc.isAdd) {
-      addPrefix = `<span class="${CLASSES.BADGE_ADD}" title="Added citation">⟨+${mc.label}+⟩</span> `;
+      addPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_ADD}" title="Added citation">⟨+${mc.label}+⟩</a></sup> `;
       if (addContent && !addContent.includes(CLASSES.DIFFCHANGE)) {
         addContent = `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${addContent}</ins>`;
       }
     } else if (mc.isDel) {
-      delPrefix = `<span class="${CLASSES.BADGE_DEL}" title="Removed citation">⟨-${mc.label}-⟩</span> `;
+      delPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><span class="${CLASSES.BADGE_DEL}" title="Removed citation">⟨-${mc.label}-⟩</span></sup> `;
       if (delContent && !delContent.includes(CLASSES.DIFFCHANGE)) {
         delContent = `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${delContent}</del>`;
       }
     } else {
-      const modBadge = `<span class="${CLASSES.BADGE_MOD}" title="Citation metadata modified">⟨~${mc.label}~⟩</span> `;
+      const modBadge = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_MOD}" title="Citation metadata modified">⟨~${mc.label}~⟩</a></sup> `;
       delPrefix = modBadge;
       addPrefix = modBadge;
     }
@@ -527,27 +652,36 @@
       const d = pair.d;
       const a = pair.a;
       const label = pair.name || `ref${citCounter++}`;
+      const refContent = (a && (a.content || a.raw)) || (d && (d.content || d.raw)) || '';
+      const citeNoteId = findCiteNoteAnchor(pair.name, refContent);
 
       if (d && a) {
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
         if (isMod) {
-          modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
-          const badge = createProseBadge('mod', label);
+          const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
+          modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw, rowId, citeNoteId });
+          const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
+          const badge = createProseBadge('mod', label, href);
           newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
           newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         } else {
-          const badge = createProseBadge('norm', label);
+          const href = citeNoteId ? `#${citeNoteId}` : null;
+          const badge = createProseBadge('norm', label, href);
           newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
           newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         }
       } else if (a && !d) {
-        const badge = createProseBadge('add', label);
+        const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
+        const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
+        const badge = createProseBadge('add', label, href);
         newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
-        modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
+        modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true, rowId, citeNoteId });
       } else if (d && !a) {
-        const badge = createProseBadge('del', label);
+        const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
+        const href = `#${rowId}`;
+        const badge = createProseBadge('del', label, href);
         newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
-        modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
+        modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true, rowId });
       }
     }
 
@@ -644,7 +778,53 @@
     }
 
     state.isDecoupled = true;
+
+    // Attach click handler for smooth scrolling and flashing jump targets
+    if (!state.onTableClickHandler && typeof table.addEventListener === 'function') {
+      state.onTableClickHandler = onTableClick;
+      table.addEventListener('click', state.onTableClickHandler);
+    }
+
     notifyBodyUpdate(table);
+  }
+
+  /**
+   * Click event listener for table.diff to handle smooth scrolling and highlighting
+   * when reference badges or citation jump links are clicked.
+   * @param {MouseEvent} e
+   */
+  function onTableClick(e) {
+    const a = (e.target && e.target.closest) ? e.target.closest('.refdiff-ref a') : null;
+    if (!a) return;
+    const href = a.getAttribute('href');
+    if (!href) return;
+
+    if (href.startsWith('#refdiff-cit-')) {
+      const target = document.getElementById(href.slice(1));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        target.classList.remove(CLASSES.FLASH_CIT);
+        void target.offsetWidth;
+        target.classList.add(CLASSES.FLASH_CIT);
+      }
+    } else if (href.startsWith('#cite_note-')) {
+      const target = document.getElementById(href.slice(1));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try {
+          if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', href);
+          }
+        } catch (_err) {
+          // Ignore history pushState failures in sandbox/restricted iframes
+        }
+        target.classList.remove(CLASSES.FLASH_TARGET);
+        void target.offsetWidth;
+        target.classList.add(CLASSES.FLASH_TARGET);
+      }
+    }
   }
 
   /**
@@ -654,6 +834,11 @@
    */
   function restoreOriginal(table) {
     if (!table || !state.isDecoupled) return;
+
+    if (state.onTableClickHandler && typeof table.removeEventListener === 'function') {
+      table.removeEventListener('click', state.onTableClickHandler);
+      state.onTableClickHandler = null;
+    }
 
     if (typeof table.querySelectorAll === 'function') {
       const citRows = table.querySelectorAll(SELECTORS.CIT_ROW);
@@ -698,6 +883,7 @@
   /**
    * Fires MediaWiki's native 'wikipage.diff.wikitextBodyUpdate' hook so VisualEditor
    * synchronizes its internal $wikitextDiffBody reference with the live table rows.
+   * Also fires 'wikipage.content' so Extension:Popups hooks into new reference links.
    * @param {HTMLTableElement} table
    */
   function notifyBodyUpdate(table) {
@@ -707,6 +893,11 @@
       if ($) {
         const bodyRows = getDiffBodyRows(table);
         window.mw.hook(HOOKS.BODY_UPDATE).fire($(bodyRows));
+        try {
+          window.mw.hook('wikipage.content').fire($(table));
+        } catch (_e) {
+          // Ignore failures if wikipage.content hook listeners throw
+        }
       }
     }
   }
@@ -1193,6 +1384,8 @@
     normalizeDiffTags,
     parseRefs,
     pairReferences,
+    sanitizeAnchor,
+    findCiteNoteAnchor,
     createProseBadge,
     createCitRow,
     captureRowSnapshot,

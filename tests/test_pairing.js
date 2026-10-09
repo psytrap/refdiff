@@ -16,6 +16,9 @@ const {
   parseRefs,
   pairReferences,
   createProseBadge,
+  createCitRow,
+  sanitizeAnchor,
+  findCiteNoteAnchor,
   stripHtml,
   isRefDiffPreferred,
   setRefDiffPreferred,
@@ -566,6 +569,98 @@ suite('8. Stress Test: High-Density Airport Destinations Table (enwiki diff=1379
     const avgMs = totalElapsedMs / 10;
 
     assert.strictEqual(avgMs < 50, true, `Processing must be fast (took ${avgMs.toFixed(2)}ms per full table pass, limit is 50ms)`);
+  });
+});
+
+suite('9. Reference Linking & Anchor Discovery (Native Extension:Popups Integration)', () => {
+  test('sanitizeAnchor sanitizes strings into valid DOM ID tokens', () => {
+    assert.strictEqual(sanitizeAnchor('AlicanteRyanair'), 'AlicanteRyanair');
+    assert.strictEqual(sanitizeAnchor('exyu_240625'), 'exyu_240625');
+    assert.strictEqual(sanitizeAnchor('ref 12! & special'), 'ref_12_special');
+  });
+
+  test('createProseBadge renders interactive <sup class="reference refdiff-ref"><a href="..."> when href is provided', () => {
+    const badge = createProseBadge('norm', 'ref1', '#cite_note-ref1-1');
+    assert.strictEqual(badge.includes('<sup class="reference refdiff-ref">'), true, 'Should wrap in sup.reference for ext.popups');
+    assert.strictEqual(badge.includes('<a href="#cite_note-ref1-1" class="ref-badge"'), true, 'Should contain link with href');
+    assert.strictEqual(badge.includes('⟨ref1⟩'), true);
+
+    const modBadge = createProseBadge('mod', 'testRef', '#refdiff-cit-testRef-1');
+    assert.strictEqual(modBadge.includes('<a href="#refdiff-cit-testRef-1" class="ref-badge-mod"'), true);
+    assert.strictEqual(modBadge.includes('⟨~testRef~⟩'), true);
+  });
+
+  test('createProseBadge renders non-link <span> inside <sup class="reference refdiff-ref"> when href is null', () => {
+    const badge = createProseBadge('norm', 'ref1', null);
+    assert.strictEqual(badge.includes('<sup class="reference refdiff-ref">'), true);
+    assert.strictEqual(badge.includes('<span class="ref-badge"'), true);
+    assert.strictEqual(badge.includes('<a'), false, 'Should not render anchor tag when href is null');
+  });
+
+  test('findCiteNoteAnchor returns null when document is undefined or absent', () => {
+    const anchor = findCiteNoteAnchor('test', '{{cite web|url=https://example.com}}');
+    assert.strictEqual(anchor, null, 'Should return null safely in non-browser Node environment');
+  });
+
+  test('findCiteNoteAnchor discovers explicit named references in mock DOM', () => {
+    const mockElements = {
+      '[id^="cite_note-AlicanteRyanair-"], [id="cite_note-AlicanteRyanair"]': { id: 'cite_note-AlicanteRyanair-57' }
+    };
+    global.document = {
+      querySelector: (sel) => mockElements[sel] || null
+    };
+
+    try {
+      const anchor = findCiteNoteAnchor('AlicanteRyanair', '{{cite news}}');
+      assert.strictEqual(anchor, 'cite_note-AlicanteRyanair-57');
+    } finally {
+      delete global.document;
+    }
+  });
+
+  test('findCiteNoteAnchor discovers anonymous references by matching URL in mock DOM', () => {
+    const targetUrl = 'https://www.croatianaviation.com/post/eurowings-test';
+    global.document = {
+      querySelector: (sel) => {
+        if (sel.includes(targetUrl)) {
+          return {
+            closest: (parentSel) => {
+              if (parentSel.includes('cite_note-')) return { id: 'cite_note-59' };
+              return null;
+            }
+          };
+        }
+        return null;
+      }
+    };
+
+    try {
+      const rawContent = `{{cite web |url=${targetUrl} |title=Test}}`;
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-59');
+    } finally {
+      delete global.document;
+    }
+  });
+
+  test('createCitRow assigns rowId and links prefix badge when citeNoteId is present', () => {
+    global.document = {
+      createElement: () => ({ className: '', innerHTML: '', set id(val) { this._id = val; }, get id() { return this._id; } })
+    };
+
+    try {
+      const row = createCitRow({
+        label: 'exyu_240625',
+        oldRaw: '<ref name="exyu_240625">old</ref>',
+        newRaw: '<ref name="exyu_240625">new</ref>',
+        rowId: 'refdiff-cit-exyu_240625-1',
+        citeNoteId: 'cite_note-exyu_240625-58'
+      });
+      assert.strictEqual(row.id, 'refdiff-cit-exyu_240625-1', 'Row should have rowId assigned');
+      assert.strictEqual(row.innerHTML.includes('href="#cite_note-exyu_240625-58"'), true, 'Prefix badge should link to cite_note');
+    } finally {
+      delete global.document;
+    }
   });
 });
 

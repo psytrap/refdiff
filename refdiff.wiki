@@ -7,7 +7,7 @@
 | style="padding: 3px 0;" | [[Wikipedia:User scripts|User script]]
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Status:
-| style="padding: 3px 0; color: #14866d; font-weight: bold;" | Stable (v1.1.0)
+| style="padding: 3px 0; color: #14866d; font-weight: bold;" | Stable (v1.2.0)
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Target:
 | style="padding: 3px 0;" | {{mono|Special:Diff}}
@@ -51,6 +51,7 @@ RefDiff runs client-side in the browser and transforms the diff table in-place:
 # '''Clean Prose Diffs:''' Inline {{tag|ref}} tags are replaced with clean, unobtrusive mathematical angle-bracket badges (e.g. {{mono|⟨ref1⟩}} or {{mono|⟨~ref2~⟩}}).
 # '''Dedicated Citation Rows:''' If a citation was modified, added, or removed, RefDiff inserts an isolated citation diff row directly underneath the sentence.
 # '''Automatic Context Conversion:''' If an edit ''only'' touched citation metadata, the prose line automatically converts to context appearance (calm gray, no diff markers). Patrollers instantly know the text itself was not altered.
+# '''Interactive Reference Links & Hover Previews:''' Badges are rendered as standard footnote links ({{tag|sup|params=class="reference"|content=&lt;a href="..."&gt;}}). Hovering over any badge displays Wikipedia's standard '''Reference Preview hovercard''' (from Read mode), and clicking modified/added citations jumps directly to their citation diff row below.
 
 == Visual Guide & Badge Legend ==
 

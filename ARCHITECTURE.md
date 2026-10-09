@@ -110,11 +110,12 @@ classDiagram
 | **State Manager** | Lines 198–211 | Encapsulates runtime state and modified row mementos. |
 | **Parser Engine** | Lines 212–370 | Preprocesses diff boundary splits (`normalizeDiffTags`), extracts, validates, and decodes HTML-escaped `<ref>` tags. |
 | **Pairing Engine** | Lines 371–452 | 3-pass heuristic matching associating deleted citations with added citations. |
-| **Badge & Row Renderer** | Lines 453–509 | Constructs mathematical angle bracket badges and decoupled citation rows. |
-| **Memento Manager** | Lines 510–677 | Preserves live DOM references for non-destructive in-place restoration. |
-| **Transformation Pipeline** | Lines 678–713 | Orchestrates prose badge substitution and citation row insertion. |
-| **Mode Coordinator** | Lines 714–980 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes. |
-| **UI & Hook Integration** | Lines 981–1160 | Handles OOUI ButtonSelectWidget, DOM mutations, and MediaWiki hooks. |
+| **Badge & Row Renderer** | Lines 453–530 | Constructs mathematical angle bracket badges and decoupled citation rows. |
+| **Anchor Discovery Engine** | Lines 531–590 | Scans live article preview for matching footnote IDs (`cite_note-*`) and binds native `ext.popups`. |
+| **Memento Manager** | Lines 591–750 | Preserves live DOM references for non-destructive in-place restoration. |
+| **Transformation Pipeline** | Lines 751–790 | Orchestrates prose badge substitution and citation row insertion. |
+| **Mode Coordinator** | Lines 791–1050 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes. |
+| **UI & Hook Integration** | Lines 1051–1230 | Handles OOUI ButtonSelectWidget, DOM mutations, and MediaWiki hooks. |
 
 ---
 
@@ -306,6 +307,26 @@ In earlier prototypes, unchanged reference badges were colored blue. Reviewers r
 * **Added Citation (`add`):** Green tint (`#36c39a` / `#14866d`), pluses `⟨+name+⟩`.
 * **Removed Citation (`del`):** Red tint (`#ff6e6e` / `#b32424`), minuses and strikethrough `⟨-name-⟩`.
 
+### 6.3 Interactive Reference Badges & Native Extension:Popups Integration
+
+RefDiff seamlessly bridges the diff table with Wikipedia's native reading infrastructure:
+
+1. **Native Reference Previews (`Extension:Popups`):**
+   * Badges in the diff prose are wrapped in standard MediaWiki footnote markup:
+     ```html
+     <sup class="reference refdiff-ref"><a href="#cite_note-name-num" class="ref-badge ...">⟨label⟩</a></sup>
+     ```
+   * RefDiff fires `mw.hook('wikipage.content').fire($(table))` upon rendering.
+   * As a result, hovering over any reference badge triggers Wikipedia's standard **Reference Preview hovercard (`ext.popups`)** completely out-of-the-box, displaying the full formatted citation card without requiring custom popup logic.
+
+2. **Anchor Discovery Engine (`findCiteNoteAnchor`):**
+   * **Named Citations:** Automatically queries the live article preview below the diff for `[id^="cite_note-${name}-"]` or `[id="cite_note-${name}"]`.
+   * **Anonymous Citations:** Extracts the URL from the citation template (e.g. `|url=https://...`) and queries matching external links in `.references a[href*="${url}"]`, discovering the parent `cite_note-*` list item.
+
+3. **In-Table Citation Row Jumping:**
+   * For modified, added, or deleted citations, the badge links to its injected citation diff row (`#refdiff-cit-${label}-${index}`).
+   * Clicking the badge smoothly scrolls the diff table to the row and triggers a subtle `@keyframes refdiff-flash` highlight animation.
+
 ---
 
 ## 7. MediaWiki Integration Matrix
@@ -316,6 +337,7 @@ In earlier prototypes, unchanged reference badges were colored blue. Reviewers r
 | **Fallback Skins** | Injects `#refdiff-mode-bar` above table if OOUI is absent | Compatibility with Monobook, Timeless, and legacy skins |
 | **VisualEditor Bridge** | Listens to `wikipage.diff.wikitextBodyUpdate` & applies `oo-ui-element-hidden` | Visual Diff row leakage and phantom table stacking |
 | **Inline Toggle Switch** | Infuses `mw-diffPage-inline-toggle-switch` & locks disabled during RefDiff | Preventing contradictory side-by-side vs inline states |
+| **Reference Previews (Extension:Popups)** | Semantic `<sup class="reference refdiff-ref"><a href="...">` + `mw.hook('wikipage.content')` | Displays native reading-mode citation cards on hover |
 | **Vector 2022 Dark Mode** | Uses `skin-theme-clientpref-night` and CSS variables | High-contrast dark theme without flash-of-unstyled-content |
 
 ---
@@ -325,11 +347,12 @@ In earlier prototypes, unchanged reference badges were colored blue. Reviewers r
 The codebase enforces a rigorous two-layer verification pipeline:
 
 1. **Unit Testing (`tests/test_pairing.js`):**
-   * 27 zero-dependency tests across 8 comprehensive suites running in pure Node.js.
+   * 34 zero-dependency tests across 9 comprehensive suites running in pure Node.js.
    * Exercises regex edge cases (HTML entities, self-closing tags, diffchange nesting, tag-boundary normalization).
    * Validates the 3-pass pairing algorithm, DOM memento snapshotting, and fallback storage engines (`mw.storage` / `localStorage`).
-   * Real-world stress testing on high-density changesets (e.g. enwiki diff=1379409916, airport destination tables with 100+ dense citations verified in <50ms with 0 leaks).
+   * Real-world stress testing on high-density changesets (e.g. enwiki diff=1379409916, airport destination tables with 114 dense citations verified in <50ms with 0 leaks).
+   * **Suite 9 (Reference Linking & Anchor Discovery):** Validates anchor sanitization, semantic `<sup class="reference">` generation, anchor discovery across named and URL-matched anonymous citations, and row linkage.
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
-   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff and standalone stress fixtures via `--stress`).
-   * Verifies visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.
+   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, and standalone stress fixtures via `--stress`).
+   * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards, visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.

@@ -30,6 +30,7 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
 * **Mathematical Angle Bracket Badges:** Uses `⟨ref1⟩` and `⟨~ref3~⟩` to prevent syntactic conflict with Wikipedia's external links `[...]` and wikilinks `[[...]]`.
 * **Subtle, Ergonomic Badge Highlighting:** Unmodified citations use native subtle secondary text (`var(--color-subtle, #72777d)` / `#8c9196`, normal font weight) with zero blue highlight, so only genuine modifications (amber `⟨~ref3~⟩`) draw the reviewer's attention.
 * **Prefixed Citation Diff Rows:** Inserts citation diffs directly below the affected prose row, prefixed with their corresponding amber badge (`⟨~ref3~⟩ <ref>...`).
+* **Interactive Reference Badges & Native Reference Previews:** Badges are rendered as semantic `<sup class="reference">` links. Hovering over a badge displays Wikipedia's standard **Reference Preview popup** from Read mode (`Extension:Popups`), and clicking modified badges jumps straight to their citation diff row.
 * **Instant Installation:** Add this one line to your `Special:MyPage/common.js` on English Wikipedia (or any MediaWiki wiki):
   ```javascript
   // [[File:refdiff.js]] - Decoupled citation diffs for Special:Diff
