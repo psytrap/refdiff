@@ -115,7 +115,7 @@ Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, 
 
 == UI Controls & Mode Switching ==
 
-=== Native OOUI Mode Switcher
+=== Native OOUI Mode Switcher ===
 On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's native diff mode selector:
 
 {| class="wikitable" style="text-align: center;"
@@ -123,6 +123,7 @@ On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's 
 |}
 
 * '''Instant Toggle:''' Click {{mono|Wikitext}} to switch back to standard Wikidiff, or click {{mono|RefDiff}} to re-apply decoupling instantly (&lt; 5ms, no page reload).
+* '''State Persistence:''' Remembers your latest mode selection across diff pages via {{mono|mw.storage}}. If you toggle back to Wikitext, diffs remain in standard view until you click RefDiff again.
 * '''Inline Diff Compatibility:''' Fully compatible with Wikipedia's native {{mono|Inline}} checkbox.
 * '''Fallback Mode Bar:''' On older skins without the OOUI button container (e.g. Monobook), RefDiff displays a clean switcher bar above the diff table:
   : {{mono|Diff view: '''Decoupled (RefDiff)''' • Standard Wikidiff}}
