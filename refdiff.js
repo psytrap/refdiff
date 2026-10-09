@@ -54,8 +54,26 @@
       color: #9a6700;
       background: rgba(255, 215, 0, 0.25);
       border-radius: 2px;
-      padding: 0 2px;
+      padding: 0 3px;
       cursor: help;
+    }
+    .ref-badge-add {
+      font-weight: bold;
+      color: #14866d;
+      background: rgba(0, 175, 137, 0.2);
+      border-radius: 2px;
+      padding: 0 3px;
+      cursor: help;
+      text-decoration: none;
+    }
+    .ref-badge-del {
+      font-weight: bold;
+      color: #b32424;
+      background: rgba(211, 51, 51, 0.2);
+      border-radius: 2px;
+      padding: 0 3px;
+      cursor: help;
+      text-decoration: line-through;
     }
     html.skin-theme-clientpref-night .ref-badge,
     body.skin-theme-clientpref-night .ref-badge {
@@ -67,6 +85,16 @@
       color: #ffd043;
       background: rgba(255, 208, 67, 0.2);
     }
+    html.skin-theme-clientpref-night .ref-badge-add,
+    body.skin-theme-clientpref-night .ref-badge-add {
+      color: #36c39a;
+      background: rgba(54, 195, 154, 0.2);
+    }
+    html.skin-theme-clientpref-night .ref-badge-del,
+    body.skin-theme-clientpref-night .ref-badge-del {
+      color: #ff6e6e;
+      background: rgba(255, 110, 110, 0.2);
+    }
     @media (prefers-color-scheme: dark) {
       html.skin-theme-clientpref-os .ref-badge,
       body.skin-theme-clientpref-os .ref-badge {
@@ -77,6 +105,16 @@
       body.skin-theme-clientpref-os .ref-badge-mod {
         color: #ffd043;
         background: rgba(255, 208, 67, 0.2);
+      }
+      html.skin-theme-clientpref-os .ref-badge-add,
+      body.skin-theme-clientpref-os .ref-badge-add {
+        color: #36c39a;
+        background: rgba(54, 195, 154, 0.2);
+      }
+      html.skin-theme-clientpref-os .ref-badge-del,
+      body.skin-theme-clientpref-os .ref-badge-del {
+        color: #ff6e6e;
+        background: rgba(255, 110, 110, 0.2);
       }
     }
     .refdiff-mode-bar {
@@ -229,6 +267,25 @@
 
   // --- DOM Helpers ---
 
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  /**
+   * Replaces raw reference wikitext with a badge, stripping surrounding diffchange wrappers if present.
+   * @param {string} html
+   * @param {string} rawRef
+   * @param {string} badgeHtml
+   * @returns {string}
+   */
+  function replaceRefInHtml(html, rawRef, badgeHtml) {
+    if (!html || !rawRef) return html;
+    const escaped = escapeRegex(rawRef);
+    const diffchangeWrapper = new RegExp('<(ins|del)[^>]*class="[^"]*diffchange[^"]*"[^>]*>\\s*' + escaped + '\\s*<\\/\\1>', 'i');
+    if (diffchangeWrapper.test(html)) {
+      return html.replace(diffchangeWrapper, badgeHtml);
+    }
+    return html.replace(rawRef, badgeHtml);
+  }
+
   /**
    * Generates inline prose badge HTML.
    * @param {'mod'|'add'|'del'|'norm'} type
@@ -240,9 +297,9 @@
       case 'mod':
         return `<span class="ref-badge-mod" title="Citation metadata modified: ⟨~${label}~⟩">⟨~${label}~⟩</span>`;
       case 'add':
-        return `<ins class="diffchange diffchange-inline" title="Added citation: ${label}">{+ ⟨${label}⟩ +}</ins>`;
+        return `<span class="ref-badge-add" title="Added citation: ⟨+${label}+⟩">⟨+${label}+⟩</span>`;
       case 'del':
-        return `<del class="diffchange diffchange-inline" title="Removed citation: ${label}">[- ⟨${label}⟩ -]</del>`;
+        return `<span class="ref-badge-del" title="Removed citation: ⟨-${label}-⟩">⟨-${label}-⟩</span>`;
       default:
         return `<span class="ref-badge" title="Citation: ⟨${label}⟩">⟨${label}⟩</span>`;
     }
@@ -259,10 +316,19 @@
 
     let delPrefix = '';
     let addPrefix = '';
+    let delContent = mc.oldRaw;
+    let addContent = mc.newRaw;
+
     if (mc.isAdd) {
-      addPrefix = `<ins class="diffchange diffchange-inline">{+ ⟨${mc.label}⟩ +}</ins> `;
+      addPrefix = `<span class="ref-badge-add" title="Added citation">⟨+${mc.label}+⟩</span> `;
+      if (addContent && !addContent.includes('diffchange')) {
+        addContent = `<ins class="diffchange diffchange-inline">${addContent}</ins>`;
+      }
     } else if (mc.isDel) {
-      delPrefix = `<del class="diffchange diffchange-inline">[- ⟨${mc.label}⟩ -]</del> `;
+      delPrefix = `<span class="ref-badge-del" title="Removed citation">⟨-${mc.label}-⟩</span> `;
+      if (delContent && !delContent.includes('diffchange')) {
+        delContent = `<del class="diffchange diffchange-inline">${delContent}</del>`;
+      }
     } else {
       const modBadge = `<span class="ref-badge-mod" title="Citation metadata modified">⟨~${mc.label}~⟩</span> `;
       delPrefix = modBadge;
@@ -271,9 +337,9 @@
 
     citRow.innerHTML = `
       <td class="diff-marker" data-marker="${mc.isAdd ? '' : '−'}"></td>
-      <td class="${mc.isAdd ? 'diff-context' : 'diff-deletedline diff-side-deleted'}"><div>${delPrefix}${mc.oldRaw}</div></td>
+      <td class="${mc.isAdd ? 'diff-context' : 'diff-deletedline diff-side-deleted'}"><div>${delPrefix}${delContent}</div></td>
       <td class="diff-marker" data-marker="${mc.isDel ? '' : '+'}"></td>
-      <td class="${mc.isDel ? 'diff-context' : 'diff-addedline diff-side-added'}"><div>${addPrefix}${mc.newRaw}</div></td>
+      <td class="${mc.isDel ? 'diff-context' : 'diff-addedline diff-side-added'}"><div>${addPrefix}${addContent}</div></td>
     `;
     return citRow;
   }
@@ -356,20 +422,20 @@
           if (isMod) {
             modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
             const badge = createProseBadge('mod', label);
-            newDelHtml = newDelHtml.replace(d.raw, badge);
-            newAddHtml = newAddHtml.replace(a.raw, badge);
+            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
+            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
           } else {
             const badge = createProseBadge('norm', label);
-            newDelHtml = newDelHtml.replace(d.raw, badge);
-            newAddHtml = newAddHtml.replace(a.raw, badge);
+            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
+            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
           }
         } else if (a && !d) {
           const badge = createProseBadge('add', label);
-          newAddHtml = newAddHtml.replace(a.raw, badge);
+          newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
           modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true });
         } else if (d && !a) {
           const badge = createProseBadge('del', label);
-          newDelHtml = newDelHtml.replace(d.raw, badge);
+          newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
         }
       }

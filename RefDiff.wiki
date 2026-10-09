@@ -54,14 +54,14 @@ RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic
 | Amber highlight, bold, hover tooltip
 | '''Review:''' Bibliographic metadata changed; see citation row below.
 |-
-| {{mono|{+ ⟨ref3⟩ +}}}
+| {{mono|⟨+ref3+⟩}}
 | '''Added Reference'''
-| Green inline insertion badge
+| Crisp green badge, bold
 | '''Verify:''' New source added to the claim.
 |-
-| {{mono|[- ⟨ref4⟩ -]}}
+| {{mono|⟨-ref4-⟩}}
 | '''Removed Reference'''
-| Red inline deletion badge
+| Crisp red badge, bold, strikethrough
 | '''Verify:''' Source removed from the claim.
 |}
 

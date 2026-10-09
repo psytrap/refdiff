@@ -67,8 +67,8 @@ RefDiff uses mathematical angle brackets (`⟨...⟩`) to avoid collisions with 
 | :--- | :--- | :--- | :--- |
 | `⟨ref1⟩` | **Unmodified Reference** | Subtle neutral gray text (`var(--color-subtle)`), normal weight | **Ignore:** Identical on both sides; zero prose distraction |
 | `⟨~ref2~⟩` | **Modified Reference** | Warm amber highlight (`#9a6700` / `#ffd043`), bold, hover tooltip | **Review:** Bibliographic metadata changed; see citation row below |
-| `{+ ⟨ref3⟩ +}` | **Added Reference** | Green insertion badge (`diffchange-inline`) | **Verify:** New citation introduced |
-| `[- ⟨ref4⟩ -]` | **Removed Reference** | Red deletion badge (`diffchange-inline`) | **Verify:** Citation removed from text |
+| `⟨+ref3+⟩` | **Added Reference** | Crisp green badge (`.ref-badge-add`), bold | **Verify:** New citation introduced |
+| `⟨-ref4-⟩` | **Removed Reference** | Crisp red badge (`.ref-badge-del`), bold, strikethrough | **Verify:** Citation removed from text |
 
 ### 2. Side-by-Side Comparison
 
