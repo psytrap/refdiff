@@ -40,7 +40,7 @@
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
    * Handles self-closing tags and opening/closing tags with attributes containing HTML entities.
    */
-  const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;([\s\S]*?)&lt;\/ref&gt;)/gi;
+  const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;((?:(?!&lt;ref\b)[\s\S])*?)&lt;\/ref&gt;)/gi;
 
   const STORAGE_KEY = 'refdiff-active';
 
@@ -238,16 +238,42 @@
   }
 
   /**
+   * Normalizes diffchange tag boundaries that cross HTML-escaped <ref> syntax markers.
+   * MediaWiki's wikidiff2 tokenizes at word/character level, which can place <del> or <ins>
+   * tags directly between '&lt;/ref' and '&gt;', or between '/' and '&gt;'.
+   * This aligns diff markers cleanly with reference tag boundaries.
+   *
+   * @param {string} [str] Raw cell HTML with diffchange tags
+   * @returns {string} Normalized cell HTML
+   */
+  function normalizeDiffTags(str) {
+    if (!str || typeof str !== 'string') return str || '';
+    let res = str;
+    // 1. Closing tag: &lt;/ref<del...>&gt; -> &lt;/ref&gt;<del...>
+    res = res.replace(/(&lt;\/(?:ref|references)\b[^&]*?)<(del|ins)([^>]*)>&gt;/gi, '$1&gt;<$2$3>');
+    // 2. Self-closing tag where </del> or </ins> splits / and &gt;: /</del>&gt; -> /&gt;</del>
+    res = res.replace(/(\/|\/&gt;)<\/(del|ins)>&gt;/gi, '/&gt;</$2>');
+    // 3. Self-closing tag where <del> splits / and &gt;: /<del...>&gt; -> /&gt;<del...>
+    res = res.replace(/(\/|\/&gt;)<(del|ins)([^>]*)>&gt;/gi, '/&gt;<$2$3>');
+    // 4. Opening tag: &lt;ref...<del...>&gt; -> &lt;ref...&gt;<del...>
+    res = res.replace(/(&lt;ref\b(?:(?!&gt;)[\s\S])*?)<(del|ins)([^>]*)>&gt;/gi, '$1&gt;<$2$3>');
+    // 5. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
+    res = res.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
+    return res;
+  }
+
+  /**
    * Parses all HTML-escaped <ref> tags from a diff table cell HTML string.
    * @param {string} [html]
    * @returns {Array<{ raw: string, attrs: string, content: string|undefined, hasChange: boolean }>}
    */
   function parseRefs(html) {
     if (!html) return [];
+    const normalized = normalizeDiffTags(html);
     const refs = [];
     let m;
     REF_REGEX.lastIndex = 0;
-    while ((m = REF_REGEX.exec(html)) !== null) {
+    while ((m = REF_REGEX.exec(normalized)) !== null) {
       const hasChange = m[0].includes(CLASSES.DIFFCHANGE);
       refs.push({ raw: m[0], attrs: m[1], content: m[2], hasChange });
     }
@@ -494,8 +520,8 @@
   function transformProseCells(initialDelHtml, initialAddHtml, pairs, startCounter) {
     let citCounter = startCounter;
     const modifiedCits = [];
-    let newDelHtml = initialDelHtml;
-    let newAddHtml = initialAddHtml;
+    let newDelHtml = normalizeDiffTags(initialDelHtml);
+    let newAddHtml = normalizeDiffTags(initialAddHtml);
 
     for (const pair of pairs) {
       const d = pair.d;
@@ -503,7 +529,7 @@
       const label = pair.name || `ref${citCounter++}`;
 
       if (d && a) {
-        const isMod = a.hasChange || (stripHtml(d.raw) !== stripHtml(a.raw));
+        const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
         if (isMod) {
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw });
           const badge = createProseBadge('mod', label);
@@ -524,6 +550,9 @@
         modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true });
       }
     }
+
+    newDelHtml = newDelHtml.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
+    newAddHtml = newAddHtml.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
 
     return { newDelHtml, newAddHtml, modifiedCits, nextCounter: citCounter };
   }
@@ -1161,6 +1190,7 @@
     stripHtml,
     escapeRegex,
     extractName,
+    normalizeDiffTags,
     parseRefs,
     pairReferences,
     createProseBadge,

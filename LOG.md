@@ -178,6 +178,19 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Verification:**
     * 23/23 unit tests passing in `tests/test_pairing.js`.
     * 7/7 live browser CDP verification steps passing in `tests/test_live_cdp.py` (Visual Diff, Wikitext Diff, RefDiff, direct transitions, Inline toggle switch, and Vector 2022 Dark mode).
+* **Tag-Boundary Normalization, Hardened Tokenization & Stress Testing:**
+  * **Root Cause Discovery (`wikidiff2` Boundary Shifts):** Identified that MediaWiki's character-level diff engine cuts across HTML entities at edit boundaries (e.g. `&lt;/ref<del>&gt;` or `/<del>&gt;`). Because `&gt;` was placed inside `<del>`, the parser's closing tag regex failed to match, causing unclosed lookaheads to swallow adjacent citations and surrounding article text in high-density tables (such as airline destination lists).
+  * **Boundary Preprocessor (`normalizeDiffTags`):** Implemented pre-tokenization normalization in `refdiff.js` that safely shifts misplaced `<del>`/`<ins>` tags outside tag delimiters (`&lt;/ref...&gt;` and `/<del>&gt;`), cleanly removing empty diffchange spans.
+  * **Lookahead-Protected Tokenization:** Hardened `REF_REGEX` content capture to `((?:(?!&lt;ref\b)[\s\S])*?)` to guarantee an unclosed citation tag can never swallow subsequent tags.
+  * **Bilateral Modification Tracking:** Updated `transformProseCells` to evaluate `(d && d.hasChange) || (a && a.hasChange)`, accurately detecting modified references regardless of diffchange placement.
+  * **High-Density Real-World Stress Test:**
+    * Captured standalone test fixture [`tests/stress_test_1379409916.html`](tests/stress_test_1379409916.html) (enwiki diff=1379409916, Zagreb Airport, 114 citations across 4 change rows).
+    * Added Suite 8 to [`tests/test_pairing.js`](tests/test_pairing.js) with 4 new tests validating boundary normalization, 114 citation parses, 57 1:1 pairs with 0 unparsed leaks, and sub-50ms execution speed.
+    * Expanded test suite to **27/27 unit tests passing**.
+    * Enhanced live CDP test runner (`tests/test_live_cdp.py`) with `--stress` and `--diff-url` flags, validating clean rendering in headless Chromium.
+* **On-Wiki Documentation Refinements (`refdiff.wiki`):**
+  * Expanded example diff table 2 to include the full citation markup on both sides with precise digit diff highlighting.
+  * Streamlined headings ("English Wikipedia (Recommended)"), eliminated filler words, and removed arbitrary numbering for clear, publication-grade documentation.
 
 
 

@@ -103,13 +103,30 @@ class CDPClient:
             f.write(img_bytes)
 
 
-def find_target_page(host: str, port: int) -> tuple[Dict[str, Any], Optional[str]]:
-    """Discovers an existing MediaWiki diff tab, or opens the local comprehensive diff fixture."""
-    list_url = f"http://{host}:{port}/json/list"
+def find_target_page(args: argparse.Namespace) -> tuple[Dict[str, Any], Optional[str]]:
+    """Discovers an existing MediaWiki diff tab, or opens the requested diff fixture."""
+    list_url = f"http://{args.host}:{args.port}/json/list"
     with urllib.request.urlopen(list_url, timeout=3) as resp:
         tabs = json.loads(resp.read().decode("utf-8"))
 
-    # Priority 1: Live diff page on Wikimedia / Wikipedia
+    # Priority 1: Explicit diff URL
+    if getattr(args, "diff_url", None):
+        new_url = f"http://{args.host}:{args.port}/json/new?{args.diff_url}"
+        req = urllib.request.Request(new_url, method="PUT")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            created = json.loads(resp.read().decode("utf-8"))
+            return created, created["id"]
+
+    # Priority 2: Stress test (enwiki diff=1379409916)
+    if getattr(args, "stress", False):
+        target_url = "https://en.wikipedia.org/w/index.php?diff=1379409916"
+        new_url = f"http://{args.host}:{args.port}/json/new?{target_url}"
+        req = urllib.request.Request(new_url, method="PUT")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            created = json.loads(resp.read().decode("utf-8"))
+            return created, created["id"]
+
+    # Priority 3: Live diff page on Wikimedia / Wikipedia
     diff_tab = next(
         (t for t in tabs if t.get("type") == "page" and any(k in t.get("url", "") for k in ("wikimedia.org", "wikipedia.org", "diff="))),
         None
@@ -117,9 +134,9 @@ def find_target_page(host: str, port: int) -> tuple[Dict[str, Any], Optional[str
     if diff_tab:
         return diff_tab, None
 
-    # Priority 2: Fall back to local comprehensive test fixture
+    # Priority 4: Fall back to local comprehensive test fixture
     fixture_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "comprehensive_test.html"))
-    new_url = f"http://{host}:{port}/json/new?file://{fixture_path}"
+    new_url = f"http://{args.host}:{args.port}/json/new?file://{fixture_path}"
     req = urllib.request.Request(new_url, method="PUT")
     with urllib.request.urlopen(req, timeout=5) as resp:
         created = json.loads(resp.read().decode("utf-8"))
@@ -133,7 +150,7 @@ async def run_suite(args: argparse.Namespace) -> int:
     print("=" * 60)
 
     try:
-        page, created_tab_id = find_target_page(args.host, args.port)
+        page, created_tab_id = find_target_page(args)
     except Exception as e:
         print(f"[-] Chromium CDP not reachable on {args.host}:{args.port} ({e}).")
         print("    Ensure Chromium was started with --remote-debugging-port.")
@@ -229,10 +246,20 @@ async def run_suite(args: argparse.Namespace) -> int:
                     };
                 })()
             """)
-            assert state_refdiff["citRowsVisible"] > 0, "Decoupled citation rows should be rendered and visible"
+            if not getattr(args, "stress", False):
+                assert state_refdiff["citRowsVisible"] > 0, "Decoupled citation rows should be rendered and visible"
             assert state_refdiff["badgeCount"] > 0, "Prose citation badges should be visible"
             assert state_refdiff["inlineDisabled"], "Inline diff switch must be disabled during RefDiff"
             await client.capture_screenshot(os.path.join(screenshots_dir, "02_refdiff_decoupled.png"))
+            if getattr(args, "stress", False):
+                await client.evaluate("""
+                    (() => {
+                        const el = Array.from(document.querySelectorAll('.diff-lineno')).find(x => x.textContent.includes('164'));
+                        if (el) el.scrollIntoView({ block: 'start' });
+                    })()
+                """)
+                await asyncio.sleep(0.5)
+                await client.capture_screenshot(os.path.join(screenshots_dir, "02c_refdiff_line164_ryanair.png"))
             test_steps.append(("Switch to RefDiff (citations decoupled, inline switch disabled)", True))
 
             # 5b. Direct Transition: RefDiff -> Visual Diff
@@ -365,6 +392,8 @@ def main():
     parser = argparse.ArgumentParser(description="RefDiff Live CDP Browser Test Runner")
     parser.add_argument("--host", default="127.0.0.1", help="CDP host (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=9222, help="CDP port (default: 9222)")
+    parser.add_argument("--stress", action="store_true", help="Run live stress test on enwiki diff=1379409916 fixture")
+    parser.add_argument("--diff-url", default=None, help="Explicit diff URL to test against")
     parser.add_argument("--wait-reload", type=float, default=2.5, help="Seconds to wait after page reload")
     parser.add_argument("--wait-ve", type=float, default=3.0, help="Seconds to wait for VisualEditor to render")
     parser.add_argument(

@@ -63,6 +63,7 @@ classDiagram
 
     class ParserEngine {
         +REF_REGEX: RegExp
+        +normalizeDiffTags(html): string
         +parseRefs(html): RefMatch[]
         +extractName(attrs): string
         +stripHtml(str): string
@@ -105,15 +106,15 @@ classDiagram
 
 | Subsystem | File Location | Responsibility |
 | :--- | :--- | :--- |
-| **Constants & Selectors** | Lines 39–140 | Centralizes regex patterns, CSS selectors, theme variables, and color schemes. |
-| **State Manager** | Lines 142–156 | Encapsulates runtime state and modified row mementos. |
-| **Parser Engine** | Lines 158–260 | Extracts, validates, and decodes HTML-escaped `<ref>` tags. |
-| **Pairing Engine** | Lines 262–341 | 3-pass heuristic matching associating deleted citations with added citations. |
-| **Badge & Row Renderer** | Lines 343–425 | Constructs mathematical angle bracket badges and decoupled citation rows. |
-| **Memento Manager** | Lines 427–475 | Preserves live DOM references for non-destructive in-place restoration. |
-| **Transformation Pipeline** | Lines 477–645 | Orchestrates prose badge substitution and citation row insertion. |
-| **Mode Coordinator** | Lines 647–880 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes. |
-| **UI & Hook Integration** | Lines 882–1045 | Handles OOUI ButtonSelectWidget, DOM mutations, and MediaWiki hooks. |
+| **Constants & Selectors** | Lines 37–197 | Centralizes regex patterns, CSS selectors, theme variables, and color schemes. |
+| **State Manager** | Lines 198–211 | Encapsulates runtime state and modified row mementos. |
+| **Parser Engine** | Lines 212–370 | Preprocesses diff boundary splits (`normalizeDiffTags`), extracts, validates, and decodes HTML-escaped `<ref>` tags. |
+| **Pairing Engine** | Lines 371–452 | 3-pass heuristic matching associating deleted citations with added citations. |
+| **Badge & Row Renderer** | Lines 453–509 | Constructs mathematical angle bracket badges and decoupled citation rows. |
+| **Memento Manager** | Lines 510–677 | Preserves live DOM references for non-destructive in-place restoration. |
+| **Transformation Pipeline** | Lines 678–713 | Orchestrates prose badge substitution and citation row insertion. |
+| **Mode Coordinator** | Lines 714–980 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes. |
+| **UI & Hook Integration** | Lines 981–1160 | Handles OOUI ButtonSelectWidget, DOM mutations, and MediaWiki hooks. |
 
 ---
 
@@ -243,17 +244,27 @@ During `restoreOriginal()`:
 
 ## 5. Algorithmic Specifications
 
-### 5.1 Regex Tokenization & Entity Handling
+### 5.1 Regex Tokenization, Entity Handling & Boundary Normalization
 MediaWiki's diff engine escapes raw HTML wikitext into HTML entities:
 * `<ref>` becomes `&lt;ref&gt;`
 * `</ref>` becomes `&lt;/ref&gt;`
 * Attributes may contain `&quot;` or `&apos;`
-* Diff spans (`<ins class="diffchange">` or `<del class="diffchange">`) may wrap whole tags or slice across attributes.
+* Diff spans (`<ins class="diffchange">` or `<del class="diffchange">`) may wrap whole tags, slice across attributes, or cut through tag delimiters.
 
-The regular expression handles self-closing and paired tags across multiple lines:
+#### Diffchange Boundary Normalization (`normalizeDiffTags`)
+When common characters (such as `>`) border deleted or added text, MediaWiki's character-level diff engine (`wikidiff2`) shifts `<del>` or `<ins>` tags across the boundary, splitting HTML entity sequences:
+* `&lt;/ref<del class="diffchange">&gt;` (opening `del` splits closing tag delimiter)
+* `/<del class="diffchange">&gt;` or `/(</del>|</ins>)&gt;` (`del`/`ins` boundaries split self-closing delimiters)
+* `&lt;ref...<del...>&gt;` (opening tag split before delimiter)
+
+Before executing regular expressions, `normalizeDiffTags(html)` safely shifts split delimiters outside diffchange spans so that tags remain structurally well-formed, and purges empty diffchange spans (`<del></del>`).
+
+#### Robust Lookahead-Constrained Tokenization (`REF_REGEX`)
 ```javascript
-const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;([\s\S]*?)&lt;\/ref&gt;)/gi;
+const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;((?:(?!&lt;ref\b)[\s\S])*?)&lt;\/ref&gt;)/gi;
 ```
+* **Inner Content Constraint:** Rather than unconstrained non-greedy matching (`[\s\S]*?`), the content capture group enforces a negative lookahead assertion `((?:(?!&lt;ref\b)[\s\S])*?)`.
+* **Failure Cascading Prevention:** Even if an article contains unclosed or malformed markup, an unclosed tag can never swallow subsequent `<ref>` tags or surrounding prose.
 
 ### 5.2 Heuristic Reference Pairing (3-Pass Algorithm)
 
@@ -314,10 +325,11 @@ In earlier prototypes, unchanged reference badges were colored blue. Reviewers r
 The codebase enforces a rigorous two-layer verification pipeline:
 
 1. **Unit Testing (`tests/test_pairing.js`):**
-   * 23 zero-dependency tests running in pure Node.js.
-   * Exercises regex edge cases (HTML entities, self-closing tags, diffchange nesting).
+   * 27 zero-dependency tests across 8 comprehensive suites running in pure Node.js.
+   * Exercises regex edge cases (HTML entities, self-closing tags, diffchange nesting, tag-boundary normalization).
    * Validates the 3-pass pairing algorithm, DOM memento snapshotting, and fallback storage engines (`mw.storage` / `localStorage`).
+   * Real-world stress testing on high-density changesets (e.g. enwiki diff=1379409916, airport destination tables with 100+ dense citations verified in <50ms with 0 leaks).
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
-   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff).
-   * Verifies visual diff transitions, inline toggle switch lock/unlock, and dark mode tokens.
+   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff and standalone stress fixtures via `--stress`).
+   * Verifies visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.

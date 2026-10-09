@@ -94,6 +94,7 @@ Line 42:
   5. **3-Pass Reference Pairing Engine:** Correlates deleted and added references using (1) explicit `name="..."` matching, (2) content-addressed string equality, and (3) positional order fallback. Anonymous citations count sequentially (`⟨ref1⟩`, `⟨ref2⟩`, `⟨ref3⟩`) in natural document reading order.
   6. **Context Line Auto-Conversion:** If 100% of differences on a line are citations, the prose row automatically converts to neutral context appearance (`diff-context`), eliminating false text diff alerts.
   7. **Prefixed Citation Diff Rows:** Injects matching citation diff rows (`<tr class="refdiff-cit-row">`) directly underneath each prose line, prefixed with their corresponding amber (`⟨~ref3~⟩`), green (`⟨+ref4+⟩`), or red (`⟨-ref5-⟩`) badge.
+  8. **Tag-Boundary Normalization & Cascading Protection:** Normalizes character-level boundary splits from `wikidiff2` (`&lt;/ref<del>&gt;` / `/<del>&gt;`) before regex matching, and uses lookahead-constrained tokenization to prevent unclosed tags from swallowing subsequent citations in high-density tables.
 
 ### Target B: Git External Diff Driver (`git-refdiff`)
 * **Runtime:** Standalone CLI tool written in Python or Rust.
@@ -223,7 +224,7 @@ The tool compares `RawRefsA` against `RawRefsB`:
   * **Cognitive Load Color Ergonomics:** Subtle secondary styling for unmodified references (zero blue highlight, normal font weight); amber gold for edits.
   * **Prefixed Citation Diff Rows:** Injects citation diff rows directly underneath each prose line, prefixed with matching badges.
   * **Clean-Code Modular Architecture:** Centralized state object, CSS selector/class registries, and single-responsibility helper decomposition (see [**`ARCHITECTURE.md`**](ARCHITECTURE.md)).
-  * **Two-Layer Automated Verification:** 23/23 unit tests passing in `tests/test_pairing.js` and 7/7 live browser automation steps passing in `tests/test_live_cdp.py`.
+  * **Two-Layer Automated Verification:** 27/27 unit tests across 8 suites passing in `tests/test_pairing.js` (including real-world high-density stress testing on enwiki diff=1379409916) and live browser automation in `tests/test_live_cdp.py`.
   * **Global On-Wiki Deployment:** Published globally to Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)) for cross-wiki use.
 * [ ] **Phase 4: Upstream Phabricator Feature Request**
   * Submit RFC to Wikimedia Phabricator for native Parsoid/`wikidiff2` integration.
