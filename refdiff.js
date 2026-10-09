@@ -128,6 +128,14 @@
       text-decoration: none;
       cursor: default;
     }
+    /* Ensure citation diff rows are never visible when Visual diff is active */
+    .ve-init-mw-diffPage-diff ~ table.diff .refdiff-cit-row,
+    .ve-ui-diffElement ~ table.diff .refdiff-cit-row,
+    body.ve-diff-visual table.diff .refdiff-cit-row,
+    tr.oo-ui-element-hidden + tr.refdiff-cit-row,
+    .refdiff-cit-row.oo-ui-element-hidden {
+      display: none !important;
+    }
   `;
 
   // --- State ---
@@ -410,18 +418,103 @@
   }
 
   /**
-   * Synchronizes RefDiff button state with Wikitext button in the diff mode selector.
-   * @param {boolean} active
+   * Helper to retrieve the OOUI ButtonSelectWidget instance for diff mode, if present.
+   * @returns {Object|null}
    */
-  function updateButtonState(active) {
-    const btn = document.getElementById('refdiff-ooui-btn');
-    if (!btn) return;
-    const group = btn.parentElement;
-    const currentWiki = group ? Array.from(group.children).find(c => c.textContent.includes('Wikitext')) : null;
-    const currentIsSelect = group && group.classList.contains('oo-ui-buttonSelectWidget');
+  function getDiffModeWidget() {
+    if (typeof document === 'undefined') return null;
+    const opt = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-optionWidget');
+    if (!opt) return null;
+    const $ = window.jQuery || window.$;
+    if ($) {
+      const optWidget = $(opt).data('oo-ui-optionWidget');
+      if (optWidget && typeof optWidget.getElementGroup === 'function') {
+        return optWidget.getElementGroup();
+      }
+    }
+    return null;
+  }
 
-    setElementActive(btn, active, currentIsSelect);
-    setElementActive(currentWiki, !active, currentIsSelect);
+  /**
+   * Checks whether VisualEditor visual diff mode is currently active.
+   * @returns {boolean}
+   */
+  function isVisualDiffActive() {
+    if (typeof document === 'undefined') return false;
+    const veDiff = document.querySelector('.ve-ui-diffElement, .ve-init-mw-diffPage-diff');
+    if (veDiff && veDiff.offsetParent !== null) return true;
+    const visualBtn = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child');
+    if (visualBtn && (visualBtn.classList.contains('oo-ui-optionWidget-selected') || visualBtn.getAttribute('aria-selected') === 'true')) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Switches the diff view mode between 'visual', 'wikitext', and 'refdiff'.
+   * @param {'visual'|'wikitext'|'refdiff'} mode
+   * @param {HTMLTableElement} [table]
+   */
+  function selectMode(mode, table) {
+    table = table || (typeof document !== 'undefined' ? document.querySelector('table.diff') : null);
+    const widget = getDiffModeWidget();
+    const refBtn = typeof document !== 'undefined' ? document.getElementById('refdiff-ooui-btn') : null;
+    const group = refBtn ? refBtn.parentElement : null;
+    const currentWiki = group ? Array.from(group.children).find(c => c.textContent.includes('Wikitext')) : null;
+    const currentVisual = group ? Array.from(group.children).find(c => c.textContent.includes('Visual')) : null;
+    const isSelect = group && group.classList.contains('oo-ui-buttonSelectWidget');
+
+    // Fallback mode bar elements
+    const btnDecoupled = typeof document !== 'undefined' ? document.getElementById('refdiff-btn-decoupled') : null;
+    const btnStandard = typeof document !== 'undefined' ? document.getElementById('refdiff-btn-standard') : null;
+
+    if (mode === 'visual') {
+      restoreOriginal(table);
+      if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'visual') {
+        widget.selectItemByData('visual');
+      }
+      setElementActive(refBtn, false, isSelect);
+      setElementActive(currentWiki, false, isSelect);
+      setElementActive(currentVisual, true, isSelect);
+      if (btnStandard) btnStandard.classList.remove('active');
+      if (btnDecoupled) btnDecoupled.classList.remove('active');
+    } else if (mode === 'wikitext') {
+      restoreOriginal(table);
+      setRefDiffPreferred(false);
+      if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'source') {
+        widget.selectItemByData('source');
+      }
+      setElementActive(refBtn, false, isSelect);
+      setElementActive(currentVisual, false, isSelect);
+      setElementActive(currentWiki, true, isSelect);
+      if (btnStandard) btnStandard.classList.add('active');
+      if (btnDecoupled) btnDecoupled.classList.remove('active');
+    } else if (mode === 'refdiff') {
+      if (isVisualDiffActive()) {
+        if (widget) {
+          widget.selectItemByData('source');
+        } else if (currentWiki) {
+          currentWiki.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        }
+      }
+      setRefDiffPreferred(true);
+      setElementActive(currentVisual, false, isSelect);
+      setElementActive(currentWiki, false, isSelect);
+      setElementActive(refBtn, true, isSelect);
+      if (btnDecoupled) btnDecoupled.classList.add('active');
+      if (btnStandard) btnStandard.classList.remove('active');
+      applyDecoupling(table);
+    }
+  }
+
+  /**
+   * Synchronizes RefDiff button state with Wikitext and Visual buttons in the diff mode selector.
+   * Backward-compatible alias for selectMode.
+   * @param {boolean} active
+   * @param {HTMLTableElement} [table]
+   */
+  function updateButtonState(active, table) {
+    selectMode(active ? 'refdiff' : 'wikitext', table);
   }
 
   // --- Core Decoupling Transformation ---
@@ -431,7 +524,7 @@
    * @param {HTMLTableElement} table
    */
   function applyDecoupling(table) {
-    if (!table || isDecoupled) return;
+    if (!table || typeof table.querySelectorAll !== 'function' || isDecoupled) return;
 
     if (!origTableHtml) {
       origTableHtml = table.innerHTML;
@@ -573,7 +666,8 @@
       return;
     }
 
-    const shouldDecouple = isRefDiffPreferred();
+    const isVisual = isVisualDiffActive();
+    const shouldDecouple = isVisual ? false : isRefDiffPreferred();
 
     if (buttonGroup) {
       if (document.getElementById('refdiff-ooui-btn')) return;
@@ -597,8 +691,12 @@
       `;
       buttonGroup.appendChild(refBtn);
 
-      // Initialize button states according to user preference
-      updateButtonState(shouldDecouple);
+      // Initialize button states according to user preference and initial view
+      if (isVisual) {
+        setElementActive(refBtn, false, isSelect);
+      } else {
+        selectMode(shouldDecouple ? 'refdiff' : 'wikitext', table);
+      }
 
       // Delegated click handling on diffModeContainer with capture phase
       if (diffModeContainer && !diffModeContainer._refdiffBound) {
@@ -609,22 +707,28 @@
           if (btn.id === 'refdiff-ooui-btn' || btn.closest('#refdiff-ooui-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            setRefDiffPreferred(true);
-            updateButtonState(true);
-            applyDecoupling(table);
+            selectMode('refdiff', table);
           } else if (btn.textContent.includes('Wikitext')) {
-            setRefDiffPreferred(false);
-            updateButtonState(false);
-            restoreOriginal(table);
+            selectMode('wikitext', table);
           } else if (btn.textContent.includes('Visual')) {
-            const rBtn = document.getElementById('refdiff-ooui-btn');
-            if (rBtn) {
-              rBtn.classList.remove('oo-ui-buttonElement-active', 'oo-ui-optionWidget-selected');
-              const icon = rBtn.querySelector('.oo-ui-iconElement-icon');
-              if (icon) icon.classList.remove('oo-ui-image-invert');
-            }
+            selectMode('visual', table);
           }
         }, true);
+
+        // Also synchronize with OOUI widget select event if available
+        const widget = getDiffModeWidget();
+        if (widget && !widget._refdiffBound) {
+          widget._refdiffBound = true;
+          widget.on('select', (item) => {
+            if (!item) return;
+            const data = item.getData();
+            if (data === 'visual') {
+              selectMode('visual', table);
+            } else if (data === 'source' && !isRefDiffPreferred()) {
+              selectMode('wikitext', table);
+            }
+          });
+        }
 
         // Watch for VisualEditor DOM re-renders of the button container
         const observer = new MutationObserver(() => {
@@ -652,23 +756,17 @@
 
       btnStandard.addEventListener('click', (e) => {
         e.preventDefault();
-        setRefDiffPreferred(false);
-        btnStandard.classList.add('active');
-        btnDecoupled.classList.remove('active');
-        restoreOriginal(table);
+        selectMode('wikitext', table);
       });
 
       btnDecoupled.addEventListener('click', (e) => {
         e.preventDefault();
-        setRefDiffPreferred(true);
-        btnDecoupled.classList.add('active');
-        btnStandard.classList.remove('active');
-        applyDecoupling(table);
+        selectMode('refdiff', table);
       });
     }
 
-    // Apply decoupled transformation if preferred
-    if (shouldDecouple) {
+    // Apply decoupled transformation if preferred and not in visual diff mode
+    if (shouldDecouple && !isVisual) {
       applyDecoupling(table);
     }
   }
@@ -701,6 +799,9 @@
     applyDecoupling,
     restoreOriginal,
     isDiffPage,
+    isVisualDiffActive,
+    selectMode,
+    updateButtonState,
     init
   };
 });

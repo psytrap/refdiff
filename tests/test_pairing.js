@@ -222,6 +222,30 @@ setRefDiffPreferred(true);
 assert.strictEqual(mwStore[STORAGE_KEY], 'true');
 assert.strictEqual(isRefDiffPreferred(), true);
 
+// 8. Visual Diff & Selection Mode Tests
+const { isVisualDiffActive, selectMode, updateButtonState } = require('../refdiff.js');
+
+// Test 8.1: isVisualDiffActive returns false in Node environment
+assert.strictEqual(isVisualDiffActive(), false);
+
+// Test 8.2: selectMode switches modes cleanly
+const mockTable = { innerHTML: '<tr><td>diff</td></tr>' };
+selectMode('refdiff', mockTable);
+assert.strictEqual(isRefDiffPreferred(), true);
+
+selectMode('wikitext', mockTable);
+assert.strictEqual(isRefDiffPreferred(), false);
+
+selectMode('visual', mockTable);
+// Visual mode should not set RefDiff preferred
+assert.strictEqual(isRefDiffPreferred(), false);
+
+updateButtonState(true, mockTable);
+assert.strictEqual(isRefDiffPreferred(), true);
+
+updateButtonState(false, mockTable);
+assert.strictEqual(isRefDiffPreferred(), false);
+
 // Clean up globals
 delete global.window;
 
