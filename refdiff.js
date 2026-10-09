@@ -107,9 +107,9 @@
       white-space: nowrap;
       font-weight: normal;
       font-style: normal;
-      font-size: 0.85em;
-      vertical-align: super;
-      line-height: 1;
+      font-size: 0.9em;
+      vertical-align: baseline;
+      line-height: inherit;
     }
     .refdiff-ref a {
       text-decoration: none;
