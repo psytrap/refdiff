@@ -12,12 +12,6 @@
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Target:
 | style="padding: 3px 0;" | {{mono|Special:Diff}}
 |-
-| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Source:
-| style="padding: 3px 0; word-break: break-all;" | [https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js refdiff.js (CDN)]
-|-
-| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Repository:
-| style="padding: 3px 0;" | [https://github.com/m-k/einzelnachweise GitHub]
-|-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Showcase:
 | style="padding: 3px 0;" | [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
 |-
