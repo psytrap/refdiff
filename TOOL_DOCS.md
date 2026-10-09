@@ -153,7 +153,7 @@ RefDiff is part of a complete ecosystem for citation management:
 | :--- | :--- | :--- | :--- |
 | **Reviewing / Diffs** | **RefDiff** (`refdiff.js`) | Reviewers, patrollers, fact-checkers | Decouples citations in the **`Special:Diff`** view |
 | **Writing / Editing** | [**References Segregator**](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator) | Writers, copyeditors | Splits citations into a second pane in the **edit window**; re-inlines upon save |
-| **Storage Architecture** | [**`<references hidden>` Proposal**](CONCEPT.md) | MediaWiki upstream / RFC | Server-side section-scoped reference definitions in wikitext |
+| **Storage Concepts** | **Section-Scoped References** (`<references hidden>` / `<ref hidden>`) | Proposed Wikitext syntax | Concepts for section-scoped reference definitions in raw wikitext |
 
 > [!TIP]
 > **Recommended Editor Workflow:** Use **References Segregator** when writing or editing articles, and **RefDiff** when reviewing diffs and recent changes. Together, they provide a seamless decoupled citation experience without modifying raw database wikitext or conflicting with `WP:CITEVAR`.
