@@ -29,7 +29,7 @@
   if (typeof module === 'object' && typeof module.exports === 'object') {
     module.exports = factory();
   } else {
-    factory();
+    root.RefDiff = factory();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
@@ -454,15 +454,49 @@
   let diffTypeSwitchWidget = null;
 
   /**
+   * Helper to retrieve the native MediaWiki inline diff toggle switch widget.
+   * @returns {Object|null}
+   */
+  function getInlineSwitchWidget() {
+    if (diffTypeSwitchWidget && typeof diffTypeSwitchWidget.setDisabled === 'function') {
+      return diffTypeSwitchWidget;
+    }
+    if (typeof document !== 'undefined') {
+      const swEl = document.getElementById('mw-diffPage-inline-toggle-switch') ||
+                   document.querySelector('.oo-ui-toggleSwitchWidget, input[name="diff-type"]');
+      if (swEl) {
+        if (typeof window !== 'undefined' && (window.$ || window.jQuery)) {
+          const $ = window.$ || window.jQuery;
+          const infused = $(swEl).data('oouiInfused');
+          if (infused && typeof infused.setDisabled === 'function') {
+            diffTypeSwitchWidget = infused;
+            return diffTypeSwitchWidget;
+          }
+        }
+        if (typeof window !== 'undefined' && window.OO && window.OO.ui && typeof window.OO.ui.infuse === 'function') {
+          try {
+            diffTypeSwitchWidget = window.OO.ui.infuse(swEl);
+            return diffTypeSwitchWidget;
+          } catch (e) {
+            // Silently ignore infusion errors
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Sets the disabled/inactive state of the native MediaWiki inline diff switch.
    * @param {boolean} disabled
    */
   function setInlineSwitchDisabled(disabled) {
-    if (diffTypeSwitchWidget && typeof diffTypeSwitchWidget.setDisabled === 'function') {
-      if (disabled && typeof diffTypeSwitchWidget.getValue === 'function' && diffTypeSwitchWidget.getValue()) {
-        diffTypeSwitchWidget.setValue(false);
+    const swWidget = getInlineSwitchWidget();
+    if (swWidget && typeof swWidget.setDisabled === 'function') {
+      if (disabled && typeof swWidget.getValue === 'function' && swWidget.getValue()) {
+        swWidget.setValue(false);
       }
-      diffTypeSwitchWidget.setDisabled(disabled);
+      swWidget.setDisabled(disabled);
     }
     if (typeof document !== 'undefined') {
       const swEl = document.getElementById('mw-diffPage-inline-toggle-switch') ||
@@ -479,6 +513,7 @@
       if (field) {
         field.classList.toggle('oo-ui-widget-disabled', disabled);
         field.classList.toggle('oo-ui-widget-enabled', !disabled);
+        field.classList.toggle('oo-ui-fieldLayout-disabled', disabled);
       }
     }
   }
@@ -580,6 +615,8 @@
 
   // --- Core Decoupling Transformation ---
 
+  let modifiedRows = [];
+
   /**
    * Applies the decoupled citation diff view to a MediaWiki diff table.
    * @param {HTMLTableElement} table
@@ -606,6 +643,23 @@
       const addRefs = parseRefs(addDiv ? addDiv.innerHTML : '');
 
       if (delRefs.length === 0 && addRefs.length === 0) continue;
+
+      const delTd = row.querySelector('.diff-deletedline');
+      const addTd = row.querySelector('.diff-addedline');
+      const markers = Array.from(row.querySelectorAll('.diff-marker'));
+
+      modifiedRows.push({
+        row,
+        delDiv,
+        addDiv,
+        delTd,
+        addTd,
+        delHtml: delDiv ? delDiv.innerHTML : null,
+        addHtml: addDiv ? addDiv.innerHTML : null,
+        delTdClass: delTd ? delTd.className : null,
+        addTdClass: addTd ? addTd.className : null,
+        markers: markers.map(mk => ({ el: mk, marker: mk.getAttribute('data-marker') }))
+      });
 
       const pairs = pairReferences(delRefs, addRefs);
       const modifiedCits = [];
@@ -647,11 +701,8 @@
       if (delDiv && addDiv) {
         const hasProseChanges = newDelHtml.includes('diffchange') || newAddHtml.includes('diffchange');
         if (!hasProseChanges) {
-          const delTd = row.querySelector('.diff-deletedline');
-          const addTd = row.querySelector('.diff-addedline');
           if (delTd) delTd.className = 'diff-context diff-side-deleted';
           if (addTd) addTd.className = 'diff-context diff-side-added';
-          const markers = row.querySelectorAll('.diff-marker');
           markers.forEach(mk => mk.removeAttribute('data-marker'));
         }
       }
@@ -666,6 +717,7 @@
     }
 
     isDecoupled = true;
+    notifyBodyUpdate(table);
   }
 
   /**
@@ -704,11 +756,50 @@
 
   /**
    * Restores the diff table to its original native MediaWiki HTML.
+   * Restores rows in-place to keep native closures and DOM nodes intact.
    * @param {HTMLTableElement} table
    */
   function restoreOriginal(table) {
-    if (!table || !origTableHtml || !isDecoupled) return;
-    table.innerHTML = origTableHtml;
+    if (!table || !isDecoupled) return;
+
+    if (typeof table.querySelectorAll === 'function') {
+      const citRows = table.querySelectorAll('tr.refdiff-cit-row');
+      for (let i = 0; i < citRows.length; i++) {
+        citRows[i].remove();
+      }
+    }
+
+    if (modifiedRows && modifiedRows.length > 0) {
+      for (let i = 0; i < modifiedRows.length; i++) {
+        const item = modifiedRows[i];
+        if (item.delDiv && item.delHtml !== null) {
+          item.delDiv.innerHTML = item.delHtml;
+        }
+        if (item.addDiv && item.addHtml !== null) {
+          item.addDiv.innerHTML = item.addHtml;
+        }
+        if (item.delTd && item.delTdClass !== null) {
+          item.delTd.className = item.delTdClass;
+        }
+        if (item.addTd && item.addTdClass !== null) {
+          item.addTd.className = item.addTdClass;
+        }
+        if (item.markers) {
+          for (let m = 0; m < item.markers.length; m++) {
+            const mkInfo = item.markers[m];
+            if (mkInfo.marker !== null) {
+              mkInfo.el.setAttribute('data-marker', mkInfo.marker);
+            } else {
+              mkInfo.el.removeAttribute('data-marker');
+            }
+          }
+        }
+      }
+      modifiedRows = [];
+    } else if (origTableHtml) {
+      table.innerHTML = origTableHtml;
+    }
+
     isDecoupled = false;
     notifyBodyUpdate(table);
   }

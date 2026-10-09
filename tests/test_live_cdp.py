@@ -285,6 +285,38 @@ async def run_suite(args: argparse.Namespace) -> int:
             await client.capture_screenshot(os.path.join(screenshots_dir, "03_wikitext_standard.png"))
             test_steps.append(("Switch to Wikitext (native table restored, inline switch enabled)", True))
 
+            # 6b. Inline Diff Toggle: Wikitext -> RefDiff -> Wikitext -> Inline Diff
+            inline_sw_sel = "#mw-diffPage-inline-toggle-switch"
+            has_inline = await client.evaluate(f"!!document.querySelector('{inline_sw_sel}')")
+            if has_inline:
+                print("[Step 6b] Testing Inline switch after Wikitext -> RefDiff -> Wikitext...")
+                await client.click(inline_sw_sel)
+                await asyncio.sleep(2.5)
+
+                state_inline = await client.evaluate("""
+                    (() => {
+                        const sw = document.getElementById('mw-diffPage-inline-toggle-switch');
+                        const $ = window.$;
+                        const w = $(sw).data('oouiInfused');
+                        const table = document.querySelector('table.diff');
+                        const rows = Array.from(table.querySelectorAll('tr'));
+                        return {
+                            swVal: w?.getValue(),
+                            swEnabled: sw ? sw.classList.contains('oo-ui-widget-enabled') : true,
+                            hiddenRowsCount: rows.filter(r => r.classList.contains('oo-ui-element-hidden')).length,
+                            hasInlineRow: rows.some(r => r.querySelector('.mw-diff-inline-changed, .mw-diff-inline-added, .mw-diff-inline-deleted'))
+                        };
+                    })()
+                """)
+                assert state_inline["swVal"], "Inline switch value should be true when toggled ON"
+                assert state_inline["hasInlineRow"], "Inline diff rows should be rendered in table.diff"
+                await client.capture_screenshot(os.path.join(screenshots_dir, "03b_inline_diff_active.png"))
+                test_steps.append(("Inline switch toggles ON cleanly after WikiText -> RefDiff -> WikiText", True))
+
+                # Turn inline diff off again
+                await client.click(inline_sw_sel)
+                await asyncio.sleep(1.5)
+
             # 7. Theme Switching: Dark Mode
             print("[Step 7] Testing Dark Mode theme compatibility...")
             await client.click(ref_btn_sel)
