@@ -1,6 +1,6 @@
 // Comprehensive test suite for refdiff.js logic
 const assert = require('assert');
-const { extractName, parseRefs, pairReferences } = require('../refdiff.js');
+const { extractName, parseRefs, pairReferences, isRefDiffPreferred, setRefDiffPreferred, STORAGE_KEY } = require('../refdiff.js');
 
 // 1. Attribute & Tag Regex Matching
 
@@ -172,6 +172,58 @@ assert.strictEqual(sectionPairs[4].length, 1);
 assert.strictEqual(sectionPairs[4][0].name, 'venera1982');
 assert.strictEqual(sectionPairs[4][0].a, null);
 assert.strictEqual(sectionPairs[4][0].d.content.includes('Moroz, V. I.'), true);
+
+// 7. State Persistence & Storage Tests
+// Test 7.1: Defaults to true when no window / storage
+assert.strictEqual(isRefDiffPreferred(), true);
+
+// Test 7.2: localStorage integration
+const mockStore = {};
+global.window = {
+  location: { search: '' },
+  localStorage: {
+    getItem: (key) => mockStore[key] || null,
+    setItem: (key, val) => { mockStore[key] = String(val); }
+  }
+};
+
+assert.strictEqual(isRefDiffPreferred(), true);
+
+setRefDiffPreferred(false);
+assert.strictEqual(mockStore[STORAGE_KEY], 'false');
+assert.strictEqual(isRefDiffPreferred(), false);
+
+setRefDiffPreferred(true);
+assert.strictEqual(mockStore[STORAGE_KEY], 'true');
+assert.strictEqual(isRefDiffPreferred(), true);
+
+// Test 7.3: URL parameter overrides
+global.window.location.search = '?diff=123&refdiff=0';
+assert.strictEqual(isRefDiffPreferred(), false);
+
+global.window.location.search = '?diff=123&refdiff=1';
+assert.strictEqual(isRefDiffPreferred(), true);
+global.window.location.search = '';
+
+// Test 7.4: mw.storage integration
+const mwStore = {};
+global.window.mw = {
+  storage: {
+    get: (key) => mwStore[key] || null,
+    set: (key, val) => { mwStore[key] = String(val); }
+  }
+};
+
+setRefDiffPreferred(false);
+assert.strictEqual(mwStore[STORAGE_KEY], 'false');
+assert.strictEqual(isRefDiffPreferred(), false);
+
+setRefDiffPreferred(true);
+assert.strictEqual(mwStore[STORAGE_KEY], 'true');
+assert.strictEqual(isRefDiffPreferred(), true);
+
+// Clean up globals
+delete global.window;
 
 console.log('All refdiff.js JavaScript unit tests passed successfully!');
 

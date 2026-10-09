@@ -344,6 +344,52 @@
     return citRow;
   }
 
+  // --- UI State & Persistence ---
+
+  const STORAGE_KEY = 'refdiff-active';
+
+  /**
+   * Checks whether RefDiff should be active based on stored user preference or URL override.
+   * Defaults to true if no preference has been saved yet.
+   * @returns {boolean}
+   */
+  function isRefDiffPreferred() {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.location && /[?&]refdiff=0\b/.test(window.location.search)) return false;
+        if (window.location && /[?&]refdiff=1\b/.test(window.location.search)) return true;
+
+        const stored = (window.mw && window.mw.storage)
+          ? window.mw.storage.get(STORAGE_KEY)
+          : (window.localStorage ? window.localStorage.getItem(STORAGE_KEY) : null);
+        if (stored !== null && stored !== undefined) {
+          return stored === 'true';
+        }
+      }
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  /**
+   * Persists the RefDiff active preference to mw.storage / localStorage.
+   * @param {boolean} active
+   */
+  function setRefDiffPreferred(active) {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.mw && window.mw.storage) {
+          window.mw.storage.set(STORAGE_KEY, String(active));
+        } else if (window.localStorage) {
+          window.localStorage.setItem(STORAGE_KEY, String(active));
+        }
+      }
+    } catch (e) {
+      // Silently ignore quota / private mode storage errors
+    }
+  }
+
   /**
    * Toggles active styling on an OOUI button element.
    * @param {HTMLElement|null} el
@@ -527,37 +573,32 @@
       return;
     }
 
+    const shouldDecouple = isRefDiffPreferred();
+
     if (buttonGroup) {
       if (document.getElementById('refdiff-ooui-btn')) return;
 
       const isSelect = buttonGroup.classList.contains('oo-ui-buttonSelectWidget');
-      const wikiBtn = Array.from(buttonGroup.children).find(c => c.textContent.includes('Wikitext'));
 
       // Create native OOUI RefDiff button
       const refBtn = document.createElement(isSelect ? 'div' : 'span');
       refBtn.id = 'refdiff-ooui-btn';
       refBtn.className = isSelect
-        ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget oo-ui-optionWidget-selected oo-ui-buttonElement-active'
-        : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget oo-ui-buttonElement-active';
+        ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
+        : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget';
       refBtn.setAttribute('role', isSelect ? 'option' : 'button');
-      if (isSelect) refBtn.setAttribute('aria-selected', 'true');
       refBtn.setAttribute('title', 'RefDiff: Decoupled citation diff view');
       refBtn.innerHTML = `
         <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
-          <span class="oo-ui-iconElement-icon oo-ui-icon-diffs oo-ui-image-invert"></span>
+          <span class="oo-ui-iconElement-icon oo-ui-icon-diffs"></span>
           <span class="oo-ui-labelElement-label">RefDiff</span>
-          <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator oo-ui-image-invert"></span>
+          <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator"></span>
         </a>
       `;
       buttonGroup.appendChild(refBtn);
 
-      // Deselect Wikitext button initially since RefDiff starts decoupled
-      if (wikiBtn) {
-        wikiBtn.classList.remove('oo-ui-buttonElement-active', 'oo-ui-optionWidget-selected');
-        if (isSelect) wikiBtn.setAttribute('aria-selected', 'false');
-        const wikiIcon = wikiBtn.querySelector('.oo-ui-iconElement-icon');
-        if (wikiIcon) wikiIcon.classList.remove('oo-ui-image-invert');
-      }
+      // Initialize button states according to user preference
+      updateButtonState(shouldDecouple);
 
       // Delegated click handling on diffModeContainer with capture phase
       if (diffModeContainer && !diffModeContainer._refdiffBound) {
@@ -568,9 +609,11 @@
           if (btn.id === 'refdiff-ooui-btn' || btn.closest('#refdiff-ooui-btn')) {
             e.preventDefault();
             e.stopPropagation();
+            setRefDiffPreferred(true);
             updateButtonState(true);
             applyDecoupling(table);
           } else if (btn.textContent.includes('Wikitext')) {
+            setRefDiffPreferred(false);
             updateButtonState(false);
             restoreOriginal(table);
           } else if (btn.textContent.includes('Visual')) {
@@ -599,8 +642,8 @@
       modeBar.className = 'refdiff-mode-bar';
       modeBar.innerHTML = `
         <strong>Diff view:</strong>
-        <a href="#" id="refdiff-btn-decoupled" class="active">Decoupled (RefDiff)</a> &bull;
-        <a href="#" id="refdiff-btn-standard">Standard Wikidiff</a>
+        <a href="#" id="refdiff-btn-decoupled" class="${shouldDecouple ? 'active' : ''}">Decoupled (RefDiff)</a> &bull;
+        <a href="#" id="refdiff-btn-standard" class="${shouldDecouple ? '' : 'active'}">Standard Wikidiff</a>
       `;
       table.parentNode.insertBefore(modeBar, table);
 
@@ -609,6 +652,7 @@
 
       btnStandard.addEventListener('click', (e) => {
         e.preventDefault();
+        setRefDiffPreferred(false);
         btnStandard.classList.add('active');
         btnDecoupled.classList.remove('active');
         restoreOriginal(table);
@@ -616,14 +660,17 @@
 
       btnDecoupled.addEventListener('click', (e) => {
         e.preventDefault();
+        setRefDiffPreferred(true);
         btnDecoupled.classList.add('active');
         btnStandard.classList.remove('active');
         applyDecoupling(table);
       });
     }
 
-    // Apply decoupled transformation by default
-    applyDecoupling(table);
+    // Apply decoupled transformation if preferred
+    if (shouldDecouple) {
+      applyDecoupling(table);
+    }
   }
 
   // --- Auto-start in browser environment ---
@@ -641,6 +688,9 @@
   }
 
   return {
+    STORAGE_KEY,
+    isRefDiffPreferred,
+    setRefDiffPreferred,
     REF_REGEX,
     stripHtml,
     extractName,
