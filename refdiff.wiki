@@ -18,6 +18,9 @@
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Repository:
 | style="padding: 3px 0;" | [https://github.com/m-k/einzelnachweise GitHub]
 |-
+| style="font-weight: bold; padding: 3px 0; color: #54595d;" | Showcase:
+| style="padding: 3px 0;" | [[/Show_case|/Show_case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
+|-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Skins:
 | style="padding: 3px 0;" | Vector 2022, Legacy, Timeless, Monobook
 |}
@@ -149,21 +152,13 @@ RefDiff is part of a broader ecosystem for citation management:
 | Splits citations into a second pane in the edit window; re-inlines upon save.
 |-
 | '''Storage Concepts'''
-| '''Section-Scoped References''' ({{tag|references|attribs=hidden}} / {{tag|ref|attribs=hidden}})
+| '''Section-Scoped References''' ({{tag|references|params=hidden}} / {{tag|ref|params=hidden}})
 | Proposed Wikitext syntax
 | Concepts for section-scoped reference definitions in raw wikitext.
 |}
 
-== Technical Specifications ==
-
-* '''File Size:''' ~23 KB unminified (~7 KB gzipped).
-* '''Execution Time:''' ~2–5 ms on typical 100-hunk diff pages.
-* '''Architecture:''' Universal Module Definition (UMD) with pure-function exports for Node.js testability.
-* '''Compatibility:''' Zero external dependencies; uses native DOM and MediaWiki hooks.
-* '''Repository:''' [https://github.com/m-k/einzelnachweise github.com/m-k/einzelnachweise]
-* '''License:''' MIT License
-
 == See Also ==
+* [[/Show_case|/Show_case]] – Live showcase diff page
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
