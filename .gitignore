@@ -13,4 +13,5 @@ node_modules/
 npm-debug.log*
 # Test artifacts
 tests/screenshots/
+coverage/
 
