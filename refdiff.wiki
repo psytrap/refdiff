@@ -4,7 +4,7 @@
 {| style="width: 100%; border-collapse: collapse; font-size: 100%; background: transparent;"
 |-
 | style="font-weight: bold; padding: 3px 0; width: 35%; color: #54595d;" | Type:
-| style="padding: 3px 0;" | [[Wikipedia:User scripts|User script]]
+| style="padding: 3px 0;" | [[Gadgets|User script / Gadget]]
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Status:
 | style="padding: 3px 0; color: #14866d; font-weight: bold;" | Stable (v1.3.0)
@@ -23,7 +23,7 @@
 |}
 </div>
 
-'''RefDiff''' (''The Ref-Differentiator'') is a [[Wikipedia:User scripts|user script]] for MediaWiki's diff view ({{mono|Special:Diff}}). It decouples inline citation templates from prose in the diff table, eliminating '''"template camouflage"''' so reviewers can focus on text changes.
+'''RefDiff''' (''The Ref-Differentiator'') is a [[Gadgets|user script]] for MediaWiki's diff view ({{mono|Special:Diff}}). It decouples inline citation templates from prose in the diff table, eliminating '''"template camouflage"''' so reviewers can focus on text changes.
 
 == The Problem: Template Camouflage ==
 
@@ -206,5 +206,6 @@ RefDiff is part of a broader ecosystem for citation management:
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
 * {{mono|TEST_PLAN.md}} – Formal test plan and quality assurance specification
 
-[[Category:User scripts]]
-[[Category:Diff tools]]
+[[Category:Gadgets]]
+[[Category:JavaScript]]
+[[Category:Tools and scripts]]
