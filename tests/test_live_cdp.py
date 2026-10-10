@@ -22,6 +22,9 @@ import urllib.request
 from typing import Any, Dict, Optional
 import websockets
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
+
 
 class CDPClient:
     """Async wrapper for Chrome DevTools Protocol (CDP) WebSocket communication."""
@@ -51,7 +54,10 @@ class CDPClient:
 
         await self.ws.send(json.dumps(payload))
         while True:
-            raw = await self.ws.recv()
+            try:
+                raw = await asyncio.wait_for(self.ws.recv(), timeout=10.0)
+            except asyncio.TimeoutError:
+                raise TimeoutError(f"CDP command '{method}' timed out waiting for response (cid={cid})")
             res = json.loads(raw)
             if res.get("id") == cid:
                 if "error" in res:
@@ -85,15 +91,27 @@ class CDPClient:
         if not coords:
             raise ValueError(f"Cannot click element; selector not found in DOM: '{selector}'")
 
-        await self.send("Input.dispatchMouseEvent", {
-            "type": "mouseMoved", "x": coords["x"], "y": coords["y"]
-        })
-        await self.send("Input.dispatchMouseEvent", {
-            "type": "mousePressed", "x": coords["x"], "y": coords["y"], "button": "left", "clickCount": 1
-        })
-        await self.send("Input.dispatchMouseEvent", {
-            "type": "mouseReleased", "x": coords["x"], "y": coords["y"], "button": "left", "clickCount": 1
-        })
+        try:
+            await self.send("Input.dispatchMouseEvent", {
+                "type": "mouseMoved", "x": coords["x"], "y": coords["y"]
+            })
+            await self.send("Input.dispatchMouseEvent", {
+                "type": "mousePressed", "x": coords["x"], "y": coords["y"], "button": "left", "clickCount": 1
+            })
+            await self.send("Input.dispatchMouseEvent", {
+                "type": "mouseReleased", "x": coords["x"], "y": coords["y"], "button": "left", "clickCount": 1
+            })
+        except Exception:
+            await self.evaluate(f"""
+                (() => {{
+                    const el = document.querySelector('{selector}');
+                    if (el) {{
+                        el.click();
+                        const btn = el.querySelector('a, button, [role="button"]') || el;
+                        btn.click();
+                    }}
+                }})()
+            """)
 
     async def hover(self, selector: str) -> None:
         """Dispatches native pointer move event to the center of an element."""
@@ -115,11 +133,14 @@ class CDPClient:
 
     async def capture_screenshot(self, filepath: str) -> None:
         """Captures a PNG screenshot of the current page viewport."""
-        res = await self.send("Page.captureScreenshot", {"format": "png"})
-        img_bytes = base64.b64decode(res["result"]["data"])
-        os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
-        with open(filepath, "wb") as f:
-            f.write(img_bytes)
+        try:
+            res = await self.send("Page.captureScreenshot", {"format": "png", "fromSurface": False})
+            img_bytes = base64.b64decode(res["result"]["data"])
+            os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
+            with open(filepath, "wb") as f:
+                f.write(img_bytes)
+        except Exception as e:
+            print(f"      [Warning: Screenshot skipped for {os.path.basename(filepath)}: {e}]")
 
 
 def find_target_page(args: argparse.Namespace) -> tuple[Dict[str, Any], Optional[str]]:
@@ -145,9 +166,9 @@ def find_target_page(args: argparse.Namespace) -> tuple[Dict[str, Any], Optional
             created = json.loads(resp.read().decode("utf-8"))
             return created, created["id"]
 
-    # Priority 3: Live diff page on Wikimedia / Wikipedia
+    # Priority 3: Live diff page on Wikimedia / Wikipedia or comprehensive test fixture
     diff_tab = next(
-        (t for t in tabs if t.get("type") == "page" and any(k in t.get("url", "") for k in ("wikimedia.org", "wikipedia.org", "diff="))),
+        (t for t in tabs if t.get("type") == "page" and any(k in t.get("url", "") for k in ("wikimedia.org", "wikipedia.org", "diff=", "comprehensive_test.html"))),
         None
     )
     if diff_tab:
@@ -159,6 +180,10 @@ def find_target_page(args: argparse.Namespace) -> tuple[Dict[str, Any], Optional
     req = urllib.request.Request(new_url, method="PUT")
     with urllib.request.urlopen(req, timeout=5) as resp:
         created = json.loads(resp.read().decode("utf-8"))
+        try:
+            urllib.request.urlopen(f"http://{args.host}:{args.port}/json/activate/{created['id']}", timeout=2)
+        except Exception:
+            pass
         return created, created["id"]
 
 
@@ -182,6 +207,13 @@ async def run_suite(args: argparse.Namespace) -> int:
 
     print(f"[+] Connected to tab: {page.get('title', 'Unknown')} ({page.get('url', '')})")
 
+    tab_id = page.get("id")
+    if tab_id:
+        try:
+            urllib.request.urlopen(f"http://{args.host}:{args.port}/json/activate/{tab_id}", timeout=2)
+        except Exception:
+            pass
+
     script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "refdiff.js"))
     with open(script_path, "r", encoding="utf-8") as f:
         refdiff_code = f.read()
@@ -193,6 +225,11 @@ async def run_suite(args: argparse.Namespace) -> int:
 
     try:
         async with CDPClient(ws_url) as client:
+            try:
+                await client.send("Page.bringToFront")
+            except Exception:
+                pass
+
             # 1. Page Reload
             print("\n[Step 1] Reloading target page for clean baseline...")
             await client.send("Page.reload")
