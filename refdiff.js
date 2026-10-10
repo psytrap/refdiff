@@ -42,6 +42,15 @@
    */
   const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;((?:(?!&lt;ref\b)[\s\S])*?)&lt;\/ref&gt;)/gi;
 
+  /**
+   * Matches citation and footnote templates in diff HTML:
+   * - {{sfn|...}}, {{sfnp|...}}, {{sfnm|...}}, {{sfnmp|...}} (Shortened footnotes)
+   * - {{efn|...}}, {{efn-la|...}}, etc. (Explanatory footnotes)
+   * - {{r|...}}, {{rp|...}} (Reference shorthand)
+   * - {{harvnb|...}}, {{harv|...}}, etc. (Harvard citations)
+   */
+  const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|rp|harv|harvnb|harvtxt|harvp)\b((?:(?!\{\{\s*(?:sfn|sfnp|sfnm|sfnmp|efn|r\b|\/)).)*?)\}\}/gi;
+
   const STORAGE_KEY = 'refdiff-active';
 
   /** Centralized CSS selector registry for MediaWiki diff DOM queries. */
@@ -293,26 +302,137 @@
     res = res.replace(/(\/|\/&gt;)<(del|ins)([^>]*)>&gt;/gi, '/&gt;<$2$3>');
     // 4. Opening tag: &lt;ref...<del...>&gt; -> &lt;ref...&gt;<del...>
     res = res.replace(/(&lt;ref\b(?:(?!&gt;)[\s\S])*?)<(del|ins)([^>]*)>&gt;/gi, '$1&gt;<$2$3>');
-    // 5. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
+    // 5. Template opening: {<del/ins...>{ -> <del/ins...>{{
+    res = res.replace(/\{<(del|ins)([^>]*)>\{/gi, '<$1$2>{{');
+    // 6. Template closing: }<del/ins>} -> }}<del/ins>
+    res = res.replace(/\}<(del|ins)([^>]*)>\}/gi, '}}<$1$2>');
+    // 7. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
     res = res.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
     return res;
   }
 
   /**
-   * Parses all HTML-escaped <ref> tags from a diff table cell HTML string.
+   * Extracts author, year, label, and anchor token from an sfn template argument string.
+   * Handles formats:
+   *   {{sfn|Author|Year|p=...}}
+   *   {{sfn|Author1|Author2|Year|pp=...}}
+   *   {{sfn|Author1|Author2|Author3|Year}}
+   *   {{sfn|Author|p=...}}
+   * @param {string} argsStr
+   * @returns {{ label: string, anchorToken: string|null, authors: string[], year: string }}
+   */
+  function extractSfnInfo(argsStr) {
+    if (!argsStr) return { label: 'sfn', anchorToken: null, authors: [], year: '' };
+    const clean = stripHtml(argsStr).replace(/^\|/, '');
+    const parts = clean.split('|').map(s => s.trim()).filter(Boolean);
+    const positional = parts.filter(p => !p.includes('='));
+
+    if (positional.length === 0) {
+      return { label: 'sfn', anchorToken: null, authors: [], year: '' };
+    }
+
+    const lastParam = positional[positional.length - 1];
+    const isYear = /^\d{3,4}[a-z]?$/i.test(lastParam);
+
+    let authors = [];
+    let year = '';
+
+    if (isYear) {
+      year = lastParam;
+      authors = positional.slice(0, -1);
+    } else {
+      authors = positional;
+    }
+
+    let label = '';
+    if (authors.length === 1) {
+      label = authors[0] + (year ? ' ' + year : '');
+    } else if (authors.length === 2) {
+      label = authors[0] + ' & ' + authors[1] + (year ? ' ' + year : '');
+    } else if (authors.length === 3) {
+      label = authors[0] + ', ' + authors[1] + ' & ' + authors[2] + (year ? ' ' + year : '');
+    } else if (authors.length > 3) {
+      label = authors[0] + ' et al.' + (year ? ' ' + year : '');
+    } else {
+      label = year || 'sfn';
+    }
+
+    const anchorToken = authors.length || year ? 'FOOTNOTE' + authors.join('') + year : null;
+    return { label, anchorToken, authors, year };
+  }
+
+  /**
+   * Parses all HTML-escaped <ref> tags and footnote templates ({{sfn}}, {{r}}, {{efn}})
+   * from a diff table cell HTML string, returning them sorted by document position.
    * @param {string} [html]
-   * @returns {Array<{ raw: string, attrs: string, content: string|undefined, hasChange: boolean }>}
+   * @returns {Array<{ raw: string, attrs: string, content: string|undefined, hasChange: boolean, isTemplate: boolean, templateName?: string, label?: string, name?: string|null, index: number }>}
    */
   function parseRefs(html) {
     if (!html) return [];
     const normalized = normalizeDiffTags(html);
     const refs = [];
     let m;
+
+    // 1. Scan <ref> tags
     REF_REGEX.lastIndex = 0;
     while ((m = REF_REGEX.exec(normalized)) !== null) {
       const hasChange = m[0].includes(CLASSES.DIFFCHANGE);
-      refs.push({ raw: m[0], attrs: m[1], content: m[2], hasChange });
+      const name = extractName(m[1]);
+      refs.push({
+        raw: m[0],
+        attrs: m[1],
+        content: m[2],
+        hasChange,
+        index: m.index,
+        isTemplate: false,
+        name,
+        label: name || null
+      });
     }
+
+    // 2. Scan citation & footnote templates ({{sfn}}, {{r}}, {{efn}}, etc.)
+    TEMPLATE_REF_REGEX.lastIndex = 0;
+    while ((m = TEMPLATE_REF_REGEX.exec(normalized)) !== null) {
+      const templateName = m[1].toLowerCase();
+      const rawArgs = m[2];
+      const hasChange = m[0].includes(CLASSES.DIFFCHANGE);
+      let label = templateName;
+      let nameToken = null;
+
+      if (templateName.startsWith('sfn')) {
+        const info = extractSfnInfo(rawArgs);
+        label = info.label;
+        nameToken = info.anchorToken || info.label;
+      } else if (templateName === 'r' || templateName === 'rp') {
+        const parts = stripHtml(rawArgs).split('|').map(s => s.trim()).filter(Boolean);
+        const refName = parts.find(p => !p.includes('=')) || 'ref';
+        label = refName;
+        nameToken = refName;
+      } else if (templateName.startsWith('efn')) {
+        label = 'note';
+        nameToken = null;
+      } else if (templateName.startsWith('harv')) {
+        const info = extractSfnInfo(rawArgs);
+        label = info.label;
+        nameToken = info.anchorToken || info.label;
+      }
+
+      refs.push({
+        raw: m[0],
+        attrs: rawArgs,
+        content: rawArgs,
+        hasChange,
+        index: m.index,
+        isTemplate: true,
+        templateName,
+        label,
+        name: nameToken
+      });
+    }
+
+    // 3. Sort refs by document index to strictly preserve appearance order
+    refs.sort((r1, r2) => r1.index - r2.index);
+
     return refs;
   }
 
@@ -336,16 +456,16 @@
     // Pass 1: Match by explicit name
     for (let i = 0; i < delRefs.length; i++) {
       const d = delRefs[i];
-      const dName = extractName(d.attrs);
+      const dName = d.name || extractName(d.attrs);
       if (!dName) continue;
       for (let j = 0; j < addRefs.length; j++) {
         if (matchedAdd.has(j)) continue;
         const a = addRefs[j];
-        const aName = extractName(a.attrs);
+        const aName = a.name || extractName(a.attrs);
         if (aName && aName.toLowerCase() === dName.toLowerCase()) {
           matchedDel.add(i);
           matchedAdd.add(j);
-          pairs.push({ d, a, name: dName });
+          pairs.push({ d, a, name: a.label || d.label || dName });
           break;
         }
       }
@@ -363,7 +483,7 @@
         if (cleanContent(a) === dClean) {
           matchedDel.add(i);
           matchedAdd.add(j);
-          pairs.push({ d, a, name: extractName(d.attrs) || extractName(a.attrs) });
+          pairs.push({ d, a, name: a.label || d.label || extractName(d.attrs) || extractName(a.attrs) });
           break;
         }
       }
@@ -377,15 +497,15 @@
     for (let k = 0; k < commonCount; k++) {
       const d = remainingDel[k];
       const a = remainingAdd[k];
-      pairs.push({ d, a, name: extractName(d.attrs) || extractName(a.attrs) });
+      pairs.push({ d, a, name: a.label || d.label || extractName(d.attrs) || extractName(a.attrs) });
     }
 
     for (let k = commonCount; k < remainingDel.length; k++) {
-      pairs.push({ d: remainingDel[k], a: null, name: extractName(remainingDel[k].attrs) });
+      pairs.push({ d: remainingDel[k], a: null, name: remainingDel[k].label || extractName(remainingDel[k].attrs) });
     }
 
     for (let k = commonCount; k < remainingAdd.length; k++) {
-      pairs.push({ d: null, a: remainingAdd[k], name: extractName(remainingAdd[k].attrs) });
+      pairs.push({ d: null, a: remainingAdd[k], name: remainingAdd[k].label || extractName(remainingAdd[k].attrs) });
     }
 
     // Sort pairs by appearance order in document
@@ -423,11 +543,12 @@
   function findCiteNoteAnchor(name, rawContent) {
     if (typeof document === 'undefined' || !document.querySelector) return null;
 
-    // 1. Try explicit reference name (e.g. cite_note-name-1 or cite_note-name)
+    // 1. Try explicit reference name (e.g. cite_note-name-1 or cite_note-FOOTNOTE...)
     if (name) {
       try {
         const safe = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(name) : name.replace(/["\\]/g, '\\$&');
-        const el = document.querySelector(`[id^="cite_note-${safe}-"], [id="cite_note-${safe}"]`);
+        const el = document.querySelector(`[id^="cite_note-${safe}-"], [id="cite_note-${safe}"]`) ||
+          (safe.startsWith('FOOTNOTE') ? document.querySelector(`[id*="${safe}"]`) : null);
         if (el && el.id) return el.id;
       } catch (_e) {
         // Fallback manual scan if selector query fails
@@ -436,13 +557,29 @@
         const exact = `cite_note-${name}`.toLowerCase();
         for (let i = 0; i < allNotes.length; i++) {
           const id = allNotes[i].id.toLowerCase();
-          if (id === exact || id.startsWith(prefix)) return allNotes[i].id;
+          if (id === exact || id.startsWith(prefix) || id.includes(name.toLowerCase())) return allNotes[i].id;
         }
       }
     }
 
-    // 2. Try matching unique URL in rendered reference list
+    // 2. If sfn template, match author/year in .references li text
     if (rawContent && typeof rawContent === 'string') {
+      if (/\{\{\s*sfn/i.test(rawContent)) {
+        const info = extractSfnInfo(rawContent.replace(/^\{\{\s*sfn[a-z]*\|?/i, '').replace(/\}\}$/, ''));
+        if (info && info.authors && info.authors.length) {
+          const allNotes = document.querySelectorAll('.references li[id^="cite_note-"]');
+          for (let i = 0; i < allNotes.length; i++) {
+            const text = allNotes[i].textContent;
+            const matchesAuthors = info.authors.every(a => text.includes(a));
+            const matchesYear = !info.year || text.includes(info.year);
+            if (matchesAuthors && matchesYear) {
+              return allNotes[i].id;
+            }
+          }
+        }
+      }
+
+      // 3. Try matching unique URL in rendered reference list
       const urlMatch = rawContent.match(/https?:\/\/[^\s|}<>"]+/);
       if (urlMatch) {
         const url = urlMatch[0];
@@ -651,9 +788,9 @@
     for (const pair of pairs) {
       const d = pair.d;
       const a = pair.a;
-      const label = pair.name || `ref${citCounter++}`;
+      const label = pair.name || (a && a.label) || (d && d.label) || `ref${citCounter++}`;
       const refContent = (a && (a.content || a.raw)) || (d && (d.content || d.raw)) || '';
-      const citeNoteId = findCiteNoteAnchor(pair.name, refContent);
+      const citeNoteId = findCiteNoteAnchor((a && a.name) || (d && d.name) || pair.name, refContent);
 
       if (d && a) {
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
@@ -1378,9 +1515,11 @@
     isRefDiffPreferred,
     setRefDiffPreferred,
     REF_REGEX,
+    TEMPLATE_REF_REGEX,
     stripHtml,
     escapeRegex,
     extractName,
+    extractSfnInfo,
     normalizeDiffTags,
     parseRefs,
     pairReferences,

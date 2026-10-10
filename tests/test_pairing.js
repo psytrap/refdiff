@@ -30,7 +30,9 @@ const {
   applyDecoupling,
   restoreOriginal,
   getDiffBodyRows,
-  notifyBodyUpdate
+  notifyBodyUpdate,
+  extractSfnInfo,
+  TEMPLATE_REF_REGEX
 } = require('../refdiff.js');
 
 // --- Lightweight Test Runner ---
@@ -658,6 +660,121 @@ suite('9. Reference Linking & Anchor Discovery (Native Extension:Popups Integrat
       });
       assert.strictEqual(row.id, 'refdiff-cit-exyu_240625-1', 'Row should have rowId assigned');
       assert.strictEqual(row.innerHTML.includes('href="#cite_note-exyu_240625-58"'), true, 'Prefix badge should link to cite_note');
+    } finally {
+      delete global.document;
+    }
+  });
+});
+
+suite('10. Shortened Footnote & Template Reference Support ({{sfn}}, {{r}}, {{efn}})', () => {
+  test('extractSfnInfo parses single author and year correctly', () => {
+    const info = extractSfnInfo('|Castritius|2005');
+    assert.strictEqual(info.label, 'Castritius 2005');
+    assert.strictEqual(info.anchorToken, 'FOOTNOTECastritius2005');
+    assert.deepStrictEqual(info.authors, ['Castritius']);
+    assert.strictEqual(info.year, '2005');
+  });
+
+  test('extractSfnInfo parses two authors, year, and page parameters', () => {
+    const info = extractSfnInfo('|Reichert|Wolfram|2010|p=574');
+    assert.strictEqual(info.label, 'Reichert & Wolfram 2010');
+    assert.strictEqual(info.anchorToken, 'FOOTNOTEReichertWolfram2010');
+    assert.deepStrictEqual(info.authors, ['Reichert', 'Wolfram']);
+    assert.strictEqual(info.year, '2010');
+  });
+
+  test('extractSfnInfo parses three and four-plus authors', () => {
+    const three = extractSfnInfo('|Smith|Jones|Brown|2020|pp=12-15');
+    assert.strictEqual(three.label, 'Smith, Jones & Brown 2020');
+    assert.strictEqual(three.anchorToken, 'FOOTNOTESmithJonesBrown2020');
+
+    const fourPlus = extractSfnInfo('|Alpha|Beta|Gamma|Delta|2023');
+    assert.strictEqual(fourPlus.label, 'Alpha et al. 2023');
+    assert.strictEqual(fourPlus.anchorToken, 'FOOTNOTEAlphaBetaGammaDelta2023');
+  });
+
+  test('extractSfnInfo handles missing year or empty parameters gracefully', () => {
+    const empty = extractSfnInfo('');
+    assert.strictEqual(empty.label, 'sfn');
+    assert.strictEqual(empty.anchorToken, null);
+
+    const authorOnly = extractSfnInfo('|AuthorOnly');
+    assert.strictEqual(authorOnly.label, 'AuthorOnly');
+    assert.strictEqual(authorOnly.year, '');
+    assert.strictEqual(authorOnly.anchorToken, 'FOOTNOTEAuthorOnly');
+  });
+
+  test('TEMPLATE_REF_REGEX matches supported footnote templates and ignores non-citation templates', () => {
+    const sample = 'Prose {{sfn|Reichert|Wolfram|2010|p=574}} and {{sfnp|Castritius|2005}} and {{r|Smith2020}} and {{efn|A note}} plus {{harvnb|Jones|1999}} but ignore {{cite web|url=test}} and {{lang|de|Gothisch}}.';
+    const matches = sample.match(TEMPLATE_REF_REGEX) || [];
+    assert.strictEqual(matches.length, 5, 'Should match exactly 5 footnote/shortened citation templates');
+    assert.strictEqual(matches.some(m => m.includes('cite web')), false, 'Must not match {{cite web}}');
+    assert.strictEqual(matches.some(m => m.includes('lang')), false, 'Must not match {{lang}}');
+  });
+
+  test('parseRefs parses both <ref> tags and {{sfn}} templates in sequential document order', () => {
+    const html = 'Prose 1&lt;ref name="foo"&gt;Cite A&lt;/ref&gt; prose 2{{sfn|Reichert|Wolfram|2010|p=574}} prose 3&lt;ref&gt;Cite B&lt;/ref&gt; prose 4{{r|bar}}';
+    const refs = parseRefs(html);
+
+    assert.strictEqual(refs.length, 4, 'Should parse all 4 mixed citations');
+
+    // 1: <ref name="foo">
+    assert.strictEqual(refs[0].isTemplate, false);
+    assert.strictEqual(refs[0].name, 'foo');
+    assert.strictEqual(refs[0].label, 'foo');
+
+    // 2: {{sfn}}
+    assert.strictEqual(refs[1].isTemplate, true);
+    assert.strictEqual(refs[1].templateName, 'sfn');
+    assert.strictEqual(refs[1].label, 'Reichert & Wolfram 2010');
+    assert.strictEqual(refs[1].name, 'FOOTNOTEReichertWolfram2010');
+
+    // 3: <ref>Cite B</ref>
+    assert.strictEqual(refs[2].isTemplate, false);
+    assert.strictEqual(refs[2].name, null);
+
+    // 4: {{r|bar}}
+    assert.strictEqual(refs[3].isTemplate, true);
+    assert.strictEqual(refs[3].templateName, 'r');
+    assert.strictEqual(refs[3].label, 'bar');
+    assert.strictEqual(refs[3].name, 'bar');
+  });
+
+  test('normalizeDiffTags repairs template delimiters split by diffchange spans', () => {
+    const rawOpeningSplit = '{<del class="diffchange diffchange-inline">{sfn|Reichert|Wolfram|2010|p=574}}</del>';
+    const norm1 = normalizeDiffTags(rawOpeningSplit);
+    assert.strictEqual(norm1.includes('{{sfn'), true, 'Should reconstruct opening {{ template syntax');
+
+    const rawClosingSplit = '{{sfn|Reichert|Wolfram|2010|p=574}<ins class="diffchange diffchange-inline">}</ins>';
+    const norm2 = normalizeDiffTags(rawClosingSplit);
+    assert.strictEqual(norm2.includes('}}'), true, 'Should reconstruct closing }} template syntax');
+  });
+
+  test('pairReferences accurately pairs modified {{sfn}} citations by label', () => {
+    const delRefs = parseRefs('{{sfn|Voyles|1992|p=140}}');
+    const addRefs = parseRefs('{{sfn|Voyles|1992|p=141}}');
+    const pairs = pairReferences(delRefs, addRefs);
+
+    assert.strictEqual(pairs.length, 1, 'Should pair the two Voyles 1992 citations');
+    assert.strictEqual(pairs[0].d.label, 'Voyles 1992');
+    assert.strictEqual(pairs[0].a.label, 'Voyles 1992');
+    assert.strictEqual(pairs[0].name, 'Voyles 1992');
+  });
+
+  test('findCiteNoteAnchor discovers cite_note-FOOTNOTE anchors for shortened footnotes in DOM', () => {
+    const mockElement = { id: 'cite_note-FOOTNOTEReichertWolfram2010574-1' };
+    global.document = {
+      querySelector(selector) {
+        if (selector.includes('FOOTNOTEReichertWolfram2010')) {
+          return mockElement;
+        }
+        return null;
+      }
+    };
+
+    try {
+      const anchor = findCiteNoteAnchor('FOOTNOTEReichertWolfram2010', '{{sfn|Reichert|Wolfram|2010|p=574}}');
+      assert.strictEqual(anchor, 'cite_note-FOOTNOTEReichertWolfram2010574-1', 'Should locate FOOTNOTE anchor');
     } finally {
       delete global.document;
     }

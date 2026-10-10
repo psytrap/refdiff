@@ -108,7 +108,7 @@ classDiagram
 | :--- | :--- | :--- |
 | **Constants & Selectors** | Lines 37–197 | Centralizes regex patterns, CSS selectors, theme variables, and color schemes. |
 | **State Manager** | Lines 198–211 | Encapsulates runtime state and modified row mementos. |
-| **Parser Engine** | Lines 212–370 | Preprocesses diff boundary splits (`normalizeDiffTags`), extracts, validates, and decodes HTML-escaped `<ref>` tags. |
+| **Parser Engine** | Lines 212–440 | Preprocesses diff boundary splits (`normalizeDiffTags`), extracts, validates, and decodes HTML-escaped `<ref>` tags as well as Wikipedia footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`). |
 | **Pairing Engine** | Lines 371–452 | 3-pass heuristic matching associating deleted citations with added citations. |
 | **Badge & Row Renderer** | Lines 453–530 | Constructs mathematical angle bracket badges and decoupled citation rows. |
 | **Anchor Discovery Engine** | Lines 531–590 | Scans live article preview for matching footnote IDs (`cite_note-*`) and binds native `ext.popups`. |
@@ -267,6 +267,22 @@ const REF_REGEX = /&lt;ref\b((?:(?!&gt;|\/&gt;)[\s\S])*?)(?:\/&gt;|&gt;((?:(?!&l
 * **Inner Content Constraint:** Rather than unconstrained non-greedy matching (`[\s\S]*?`), the content capture group enforces a negative lookahead assertion `((?:(?!&lt;ref\b)[\s\S])*?)`.
 * **Failure Cascading Prevention:** Even if an article contains unclosed or malformed markup, an unclosed tag can never swallow subsequent `<ref>` tags or surrounding prose.
 
+#### Shortened Footnote & Template Reference Support (`TEMPLATE_REF_REGEX` & `extractSfnInfo`)
+In addition to standard `<ref>` tags, millions of Wikipedia articles use Shortened Footnotes (`{{sfn|...}}`, `{{sfnp|...}}`, `{{sfnm|...}}`), Explanatory Footnotes (`{{efn|...}}`), Shorthand references (`{{r|...}}`), and Harvard citations (`{{harvnb|...}}`).
+
+RefDiff integrates dedicated lexing and parsing for footnote templates:
+```javascript
+const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|rp|harv|harvnb|harvtxt|harvp)\b((?:(?!\{\{\s*(?:sfn|sfnp|sfnm|sfnmp|efn|r\b|\/)).)*?)\}\}/gi;
+```
+
+* **Intelligent Author & Year Labeling (`extractSfnInfo`):** Positional parameters are extracted and formatted into human-readable scholarly labels:
+  * `{{sfn|Castritius|2005}}` $\rightarrow$ `⟨Castritius 2005⟩`
+  * `{{sfn|Reichert|Wolfram|2010|p=574}}` $\rightarrow$ `⟨Reichert & Wolfram 2010⟩` (page arguments cleanly omitted from prose badges)
+  * `{{sfn|Smith|Jones|Brown|2020|pp=12-15}}` $\rightarrow$ `⟨Smith, Jones & Brown 2020⟩`
+  * `{{sfn|Author1|Author2|Author3|Author4|2023}}` $\rightarrow$ `⟨Author1 et al. 2023⟩`
+* **FOOTNOTE Anchor Synthesis:** Generates MediaWiki-compatible anchor tokens (`FOOTNOTE<Author1><Author2><Year>`), enabling instant DOM query correlation with generated `cite_note-FOOTNOTE*` footnote entries and hovercard activations.
+* **Unified Document-Order Sorting:** `parseRefs` merges `<ref>` tags and citation templates into a single stream sorted by character position, preserving the author's exact narrative order.
+
 ### 5.2 Heuristic Reference Pairing (3-Pass Algorithm)
 
 ```mermaid
@@ -321,6 +337,7 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 
 2. **Anchor Discovery Engine (`findCiteNoteAnchor`):**
    * **Named Citations:** Automatically queries the live article preview below the diff for `[id^="cite_note-${name}-"]` or `[id="cite_note-${name}"]`.
+   * **Shortened Footnotes (`{{sfn}}`):** Queries synthesized `cite_note-FOOTNOTE*` anchor IDs or text matching author-year strings across `.references li`.
    * **Anonymous Citations:** Extracts the URL from the citation template (e.g. `|url=https://...`) and queries matching external links in `.references a[href*="${url}"]`, discovering the parent `cite_note-*` list item.
 
 3. **In-Table Citation Row Jumping:**
@@ -347,12 +364,13 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 The codebase enforces a rigorous two-layer verification pipeline:
 
 1. **Unit Testing (`tests/test_pairing.js`):**
-   * 34 zero-dependency tests across 9 comprehensive suites running in pure Node.js.
+   * 43 zero-dependency tests across 10 comprehensive suites running in pure Node.js.
    * Exercises regex edge cases (HTML entities, self-closing tags, diffchange nesting, tag-boundary normalization).
    * Validates the 3-pass pairing algorithm, DOM memento snapshotting, and fallback storage engines (`mw.storage` / `localStorage`).
    * Real-world stress testing on high-density changesets (e.g. enwiki diff=1379409916, airport destination tables with 114 dense citations verified in <50ms with 0 leaks).
    * **Suite 9 (Reference Linking & Anchor Discovery):** Validates anchor sanitization, semantic `<sup class="reference">` generation, anchor discovery across named and URL-matched anonymous citations, and row linkage.
+   * **Suite 10 (Shortened Footnotes & Citation Templates):** Validates `extractSfnInfo` parameter parsing across 1, 2, 3, and 4+ authors, year extraction, `TEMPLATE_REF_REGEX` matching across `{{sfn}}`, `{{sfnp}}`, `{{sfnm}}`, `{{efn}}`, `{{r}}`, `{{harvnb}}`, and `FOOTNOTE` anchor discovery.
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
-   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, and standalone stress fixtures via `--stress`).
+   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer diff=1379486498 with 10 shortened footnotes).
    * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards, visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.
