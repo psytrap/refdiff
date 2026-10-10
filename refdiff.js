@@ -25,19 +25,19 @@
  * Repository: https://github.com/m-k/einzelnachweise
  *
  * Virtual File Hierarchy:
- *  1. [src/constants.js]       - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
- *  2. [src/state.js]           - State management and memento registry
- *  3. [src/utils.js]           - String sanitization, entity extraction, boundary normalization
- *  4. [src/parser.js]          - Unified reference and template parser
- *  5. [src/pairing.js]         - 3-pass heuristic reference pairing engine
- *  6. [src/anchor.js]          - Live DOM footnote anchor discovery and popup integration
- *  7. [src/renderer.js]        - Badge generation and citation diff row construction
- *  8. [src/memento.js]         - Non-destructive DOM row snapshot and restore memento
- *  9. [src/pipeline.js]        - Core decoupling transformation and table mutator pipeline
- * 10. [src/dom_helpers.js]     - DOM query, categorization, and hook notification helpers
- * 11. [src/mode_coordinator.js] - 3-way mode switching (visual/wikitext/refdiff) & switch locks
- * 12. [src/init.js]            - Page detection, UI button wiring, and lifecycle auto-start
- * 13. [src/exports.js]         - Public API return and UMD module exports
+ *  1. [src/constants.js]        (first line: 52)   - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
+ *  2. [src/state.js]            (first line: 262)  - State management and memento registry
+ *  3. [src/utils.js]            (first line: 282)  - String sanitization, entity extraction, boundary normalization
+ *  4. [src/parser.js]           (first line: 394)  - Unified reference and template parser
+ *  5. [src/pairing.js]          (first line: 477)  - 3-pass heuristic reference pairing engine
+ *  6. [src/anchor.js]           (first line: 573)  - Live DOM footnote anchor discovery and popup integration
+ *  7. [src/renderer.js]         (first line: 663)  - Badge generation and citation diff row construction
+ *  8. [src/memento.js]          (first line: 774)  - Non-destructive DOM row snapshot and restore memento
+ *  9. [src/pipeline.js]         (first line: 837)  - Core decoupling transformation and table mutator pipeline
+ * 10. [src/dom_helpers.js]      (first line: 1071) - DOM query, categorization, and hook notification helpers
+ * 11. [src/mode_coordinator.js]  (first line: 1118) - 3-way mode switching (visual/wikitext/refdiff) & switch locks
+ * 12. [src/init.js]             (first line: 1390) - Page detection, UI button wiring, and lifecycle auto-start
+ * 13. [src/exports.js]          (first line: 1597) - Public API return and UMD module exports
  */
 
 (function (root, factory) {
