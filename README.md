@@ -14,6 +14,7 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📄 **[CONCEPT.md](CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
 * 🏛️ **[ARCHITECTURE.md](ARCHITECTURE.md)** – Technical architecture and design document (subsystems, state machine, Memento pattern, algorithms).
 * 🔍 **[REFDIFF.md](REFDIFF.md)** – Tool design specification for **RefDiff** (*The Ref-Differentiator*), the diff-decoupling engine for reviewers (`Special:Diff` gadget & CLI).
+* 🧪 **[TEST_PLAN.md](TEST_PLAN.md)** – Comprehensive test plan, coverage evaluation (82% headless / 100% browser runtime), test pyramid, and modular test suite architecture.
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
 * 📝 **[POST.md](POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
@@ -48,7 +49,28 @@ Together, they form a complete virtual decoupling workflow:
 * **Writing / Editing:** [References Segregator](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator)
 * **Reviewing / Diffs:** **RefDiff** ([`refdiff.js`](refdiff.js))
 
-### 3. Archived: Python Prototype (`archive/python-prototype/`)
+### 3. Automated Testing & Verification
+
+RefDiff enforces 100% test pass rate across 13 modular unit and component test suites, benchmark stress tests, and live browser automation (see [**TEST_PLAN.md**](TEST_PLAN.md)):
+
+```bash
+# 1. Run ESLint code quality & style checks (0 warnings allowed)
+npm run lint
+
+# 2. Run the fast headless unit & component test suite (48 tests in ~20ms)
+npm test
+
+# 3. Run combined CI checks
+npm run ci
+
+# 4. Run an individual test file in isolation (e.g. parser tests)
+node tests/test_parser.js
+
+# 5. Run live Chromium CDP browser integration suite (port 9222)
+npm run test:live
+```
+
+### 4. Archived: Python Prototype (`archive/python-prototype/`)
 
 The repository includes the archived proof-of-concept Python 3 engine and Git external diff driver in [`archive/python-prototype/`](archive/python-prototype/):
 

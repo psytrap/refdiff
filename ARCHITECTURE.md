@@ -370,16 +370,22 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 
 ## 8. Verification & Test Architecture
 
-The codebase enforces a rigorous two-layer verification pipeline:
+RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification):
 
-1. **Unit Testing (`tests/test_pairing.js`):**
-   * 43 zero-dependency tests across 10 comprehensive suites running in pure Node.js.
-   * Exercises regex edge cases (HTML entities, self-closing tags, diffchange nesting, tag-boundary normalization).
-   * Validates the 3-pass pairing algorithm, DOM memento snapshotting, and fallback storage engines (`mw.storage` / `localStorage`).
-   * Real-world stress testing on high-density changesets (e.g. enwiki diff=1379409916, airport destination tables with 114 dense citations verified in <50ms with 0 leaks).
-   * **Suite 9 (Reference Linking & Anchor Discovery):** Validates anchor sanitization, semantic `<sup class="reference">` generation, anchor discovery across named and URL-matched anonymous citations, and row linkage.
-   * **Suite 10 (Shortened Footnotes & Citation Templates):** Validates `extractSfnInfo` parameter parsing across 1, 2, 3, and 4+ authors, year extraction, `TEMPLATE_REF_REGEX` matching across `{{sfn}}`, `{{sfnp}}`, `{{sfnm}}`, `{{efn}}`, `{{r}}`, `{{harvnb}}`, and `FOOTNOTE` anchor discovery.
+1. **Modular Unit & Component Testing (`tests/test_*.js` & `tests/runner.js`):**
+   * **48 zero-dependency tests** across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
+   * Fast execution budget: entire suite executes in **~18–25 ms** via `node tests/runner.js` (`npm test`).
+   * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js` or `node tests/test_pairing.js`).
+   * **Mock Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures.
+   * **Parser & Templates (`tests/test_parser.js`, `tests/test_constants.js`):** XML entity decoding (`&quot;`), self-closing tags, nested `diffchange` spans, boundary split normalization, `TEMPLATE_REF_REGEX`, mixed sequential order, and `extractSfnInfo` for 1, 2, 3, and 4+ authors.
+   * **Heuristic Pairing (`tests/test_pairing.js`):** 3-pass matching algorithm, insertions at front/end, surrounded edits, pure additions/deletions, self-closing identicals, and `{{sfn}}` pairing by label.
+   * **Anchor Discovery & Popups (`tests/test_anchor.js`):** Resolves explicit named footnotes, anonymous URL matching, shortened `cite_note-FOOTNOTE*` anchors, and `sanitizeAnchor` tokenization.
+   * **Memento & Pipeline (`tests/test_memento.js`, `tests/test_pipeline.js`):** In-place DOM snapshotting (`captureRowSnapshot` / `restoreRowSnapshot`), table decoupling mutation and clean round-trip restoration preserving native MediaWiki event closures.
+   * **Mode Coordination & UI (`tests/test_mode_coordinator.js`, `tests/test_dom_helpers.js`):** 3-way mode switching (visual/wikitext/refdiff), row categorization, `wikitextBodyUpdate` hook firing, and locking `mw-diffPage-inline-toggle-switch`.
+   * **Persistence (`tests/test_state.js`):** `localStorage`, `mw.storage`, and `?refdiff=0/1` URL parameter overrides.
+   * **Stress & Performance Benchmarks (`tests/test_benchmarks.js`):** Real-world stress testing on high-density changesets (e.g. enwiki `diff=1379409916`, airport destination tables with 114 dense citations verified in <50ms with 0 leaks).
+
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
-   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer diff=1379486498 with 10 shortened footnotes).
-   * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards, visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.
+   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer `diff=1379486498` with 10 shortened footnotes).
+   * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards (`Extension:Popups`), visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.

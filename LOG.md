@@ -192,9 +192,24 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Expanded example diff table 2 to include the full citation markup on both sides with precise digit diff highlighting.
   * Streamlined headings ("English Wikipedia (Recommended)"), eliminated filler words, and removed arbitrary numbering for clear, publication-grade documentation.
 
+### 2026-10-10: Shortened Footnotes, Virtual File Bundle & Modular Test Suite
 
-
-
+* **Shortened Footnotes & Footnote Template Support (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harvnb}}`):**
+  * Integrated full support for shortened footnote templates alongside standard `<ref>` tags in sequential document order.
+  * Created `extractSfnInfo()` parameter tokenizer supporting 1, 2, 3, and 4+ authors, year, and page parameters.
+  * Added `cite_note-FOOTNOTE*` anchor resolution and live popup preview integration.
+  * Tested live on enwiki diff `Odoacer diff=1379486498` with 10 shortened footnotes.
+* **RefDiff Virtual File Decomposition:**
+  * Refactored monolithic `refdiff.js` into **13 distinct virtual files** with explicit demarcation banners and a sorted header Table of Contents annotated with `(first line: ...)` markers.
+  * Retained single-file zero-dependency architecture required for MediaWiki gadget distribution.
+* **Modular 1-to-1 Test Suite Architecture:**
+  * Established that while the browser gadget is constrained to a single file, the Node.js test environment is unconstrained and benefits from modular organization.
+  * Decomposed monolithic `tests/test_pairing.js` into **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`, plus a zero-dependency test harness ([`tests/harness.js`](tests/harness.js)) and master runner ([`tests/runner.js`](tests/runner.js)).
+  * Implemented `withMockEnvironment` sandbox preventing cross-test global pollution.
+  * Expanded test coverage from 27 to **48 passing tests**, executing in **~18–25 ms** with 0 ESLint warnings.
+  * Added standalone module execution support (e.g. `node tests/test_parser.js`).
+* **Formal Test Plan & Quality Assurance Framework (`TEST_PLAN.md`):**
+  * Created project-level [**`TEST_PLAN.md`**](TEST_PLAN.md) defining the 4-level test pyramid (Unit → Component/Memento → Benchmarks → Live CDP), 1-to-1 virtual source-to-test mapping, quantitative coverage metrics (82% headless / 100% browser runtime), and release quality gates.
 
 
 
