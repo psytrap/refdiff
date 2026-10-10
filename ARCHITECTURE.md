@@ -104,21 +104,27 @@ classDiagram
     DOMRenderer --> ModeCoordinator
 ```
 
-| Virtual File | File Location | Responsibility |
+### 2.1 Virtual File Architecture (Single-File Modularization)
+
+Although physically maintained and deployed as a **single file** (`refdiff.js`) to satisfy MediaWiki's user-script runtime constraints without requiring an external bundler, the internal architecture is explicitly delineated into **multiple virtual files** using standardized region boundaries (`/* === [VIRTUAL FILE: src/...] === */`).
+
+This provides the architectural separation of a multi-file project while preserving single-file zero-dependency distribution:
+
+| Virtual File | Primary Symbols / Scope | Responsibility |
 | :--- | :--- | :--- |
-| **`src/constants.js`** | Lines 51–260 | Centralizes regex patterns (`REF_REGEX`, `TEMPLATE_REF_REGEX`), storage keys, DOM selectors, CSS classes, hook names, and inline badge styles. |
-| **`src/state.js`** | Lines 262–280 | Encapsulates runtime state, lifecycle flags, and modified row snapshot mementos. |
-| **`src/utils.js`** | Lines 282–392 | Preprocesses diff boundary splits (`normalizeDiffTags`), regex escaping, HTML stripping, name extraction, and `extractSfnInfo`. |
-| **`src/parser.js`** | Lines 394–475 | Unified reference parser (`parseRefs`). Scans `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`), preserving document order. |
-| **`src/pairing.js`** | Lines 477–571 | 3-pass heuristic matching associating deleted citations with added citations (name, content equality, positional alignment). |
-| **`src/anchor.js`** | Lines 573–661 | Scans live article preview for matching footnote IDs (`cite_note-*`, `cite_note-FOOTNOTE*`) and binds native `Extension:Popups`. |
-| **`src/renderer.js`** | Lines 663–772 | Constructs mathematical angle bracket badges (`⟨ref1⟩`, `⟨~mod~⟩`) and decoupled citation diff rows (`<tr class="refdiff-cit-row">`). |
-| **`src/memento.js`** | Lines 774–835 | Non-destructive DOM row snapshots (`captureRowSnapshot` / `restoreRowSnapshot`) preserving native MediaWiki event closures in-place. |
-| **`src/pipeline.js`** | Lines 837–1069 | Orchestrates prose badge substitution, citation row injection, click handling, jump target flashing, and restoration. |
-| **`src/dom_helpers.js`** | Lines 1071–1116 | Categorizes diff body rows and fires MediaWiki synchronization hooks (`wikipage.diff.wikitextBodyUpdate` & `wikipage.content`). |
-| **`src/mode_coordinator.js`** | Lines 1118–1388 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes, locks the inline format switch, and persists user preference. |
-| **`src/init.js`** | Lines 1390–1595 | Page/diff view detection, OOUI button injection, fallback mode bar creation, lifecycle wiring, and browser auto-start. |
-| **`src/exports.js`** | Lines 1597–1637 | Universal Module Definition (UMD) exports and public API surface. |
+| **`src/constants.js`** | `REF_REGEX`, `TEMPLATE_REF_REGEX`, `STORAGE_KEY`, `SELECTORS`, `CLASSES`, `HOOKS`, `BADGE_STYLES` | Centralizes regex patterns, storage keys, DOM selectors, CSS classes, hook names, and inline badge styles. |
+| **`src/state.js`** | `state` (`origTableHtml`, `isDecoupled`, `initRetries`, `modifiedRows`, etc.) | Encapsulates runtime state, lifecycle flags, and modified row snapshot mementos. |
+| **`src/utils.js`** | `stripHtml`, `escapeRegex`, `extractName`, `normalizeDiffTags`, `extractSfnInfo` | Preprocesses diff boundary splits, regex escaping, HTML stripping, name extraction, and sfn parameter parsing. |
+| **`src/parser.js`** | `parseRefs` | Unified reference parser. Scans `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`), preserving document order. |
+| **`src/pairing.js`** | `pairReferences` | 3-pass heuristic matching associating deleted citations with added citations (name, content equality, positional alignment). |
+| **`src/anchor.js`** | `sanitizeAnchor`, `findCiteNoteAnchor` | Scans live article preview for matching footnote IDs (`cite_note-*`, `cite_note-FOOTNOTE*`) and binds native `Extension:Popups`. |
+| **`src/renderer.js`** | `createProseBadge`, `createCitRow`, `replaceRefInHtml` | Constructs mathematical angle bracket badges (`⟨ref1⟩`, `⟨~mod~⟩`) and decoupled citation diff rows (`<tr class="refdiff-cit-row">`). |
+| **`src/memento.js`** | `captureRowSnapshot`, `restoreRowSnapshot` | Non-destructive DOM row snapshots preserving native MediaWiki event closures in-place. |
+| **`src/pipeline.js`** | `applyDecoupling`, `restoreOriginal`, `transformProseCells`, `insertCitationRows`, `onTableClick` | Orchestrates prose badge substitution, citation row injection, click handling, jump target flashing, and restoration. |
+| **`src/dom_helpers.js`** | `getDiffBodyRows`, `notifyBodyUpdate` | Categorizes diff body rows and fires MediaWiki synchronization hooks (`wikipage.diff.wikitextBodyUpdate` & `wikipage.content`). |
+| **`src/mode_coordinator.js`** | `selectMode`, `updateButtonState`, `setInlineSwitchDisabled`, `isRefDiffPreferred` | Manages transitions between `wikitext`, `refdiff`, and `visual` modes, locks the inline format switch, and persists user preference. |
+| **`src/init.js`** | `init`, `isDiffPage`, `createRefDiffButton`, `createFallbackModeBar` | Page/diff view detection, OOUI button injection, fallback mode bar creation, lifecycle wiring, and browser auto-start. |
+| **`src/exports.js`** | `module.exports` / `root.RefDiff` return object | Universal Module Definition (UMD) exports and public API surface. |
 
 ---
 
