@@ -373,7 +373,7 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification):
 
 1. **Modular Unit & Component Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **48 zero-dependency tests** across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
+   * **59 zero-dependency tests** (100% headless function coverage) across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
    * Fast execution budget: entire suite executes in **~18–25 ms** via `node tests/runner.js` (`npm test`).
    * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js` or `node tests/test_pairing.js`).
    * **Mock Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures.

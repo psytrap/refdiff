@@ -1632,6 +1632,10 @@
     selectMode,
     updateButtonState,
     setInlineSwitchDisabled,
+    replaceRefInHtml,
+    createRefDiffButton,
+    createFallbackModeBar,
+    onTableClick,
     init
   };
   /* === [END VIRTUAL FILE: src/exports.js] === */

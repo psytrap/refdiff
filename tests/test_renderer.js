@@ -5,9 +5,14 @@
  */
 
 const { assert, suite, test, withMockEnvironment, finishStandalone } = require('./harness.js');
-const { createProseBadge, createCitRow } = require('../refdiff.js');
+const { createProseBadge, createCitRow, replaceRefInHtml } = require('../refdiff.js');
 
 suite('src/renderer.js - Badge & Citation Row Rendering', () => {
+  test('replaceRefInHtml replaces reference wrapped in diffchange tag', () => {
+    const html = '<div>prose <del class="diffchange diffchange-inline">&lt;ref name="test"&gt;cite&lt;/ref&gt;</del> more prose</div>';
+    const result = replaceRefInHtml(html, '&lt;ref name="test"&gt;cite&lt;/ref&gt;', '⟨ref1⟩');
+    assert.strictEqual(result, '<div>prose ⟨ref1⟩ more prose</div>');
+  });
   test('creates mathematical angle bracket badges with correct styling', () => {
     const norm = createProseBadge('norm', 'ref1');
     assert.strictEqual(norm.includes('⟨ref1⟩'), true, 'Norm badge should use ⟨ref1⟩');

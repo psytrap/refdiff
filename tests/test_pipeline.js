@@ -5,7 +5,7 @@
  */
 
 const { assert, suite, test, withMockEnvironment, finishStandalone } = require('./harness.js');
-const { transformProseCells, applyDecoupling, restoreOriginal } = require('../refdiff.js');
+const { transformProseCells, applyDecoupling, restoreOriginal, onTableClick } = require('../refdiff.js');
 
 suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
   test('transformProseCells generates badges and returns modified citations list', () => {
@@ -95,6 +95,138 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
       applyDecoupling({});
       restoreOriginal(null);
       restoreOriginal({});
+    });
+  });
+
+  test('updateProseRowAppearance strips diff markers when row has no prose changes', () => {
+    let removedAttr = null;
+    const mockMarker = {
+      getAttribute: (attr) => (attr === 'data-marker' ? '+' : null),
+      removeAttribute: (attr) => { removedAttr = attr; }
+    };
+    const mockDelDiv = { innerHTML: 'Text &lt;ref&gt;Old&lt;/ref&gt;' };
+    const mockAddDiv = { innerHTML: 'Text &lt;ref&gt;New&lt;/ref&gt;' };
+    const mockDelTd = { className: 'diff-deletedline' };
+    const mockAddTd = { className: 'diff-addedline' };
+
+    const mockRow = {
+      classList: { contains: () => false },
+      querySelector(sel) {
+        if (sel.includes('diff-deletedline') && sel.includes('div')) return mockDelDiv;
+        if (sel.includes('diff-addedline') && sel.includes('div')) return mockAddDiv;
+        if (sel.includes('diff-deletedline')) return mockDelTd;
+        if (sel.includes('diff-addedline')) return mockAddTd;
+        return null;
+      },
+      querySelectorAll(sel) {
+        if (sel.includes('diff-marker')) return [mockMarker];
+        return [];
+      },
+      parentNode: { insertBefore: () => {} },
+      nextSibling: null
+    };
+
+    const mockTable = {
+      querySelector: () => null,
+      querySelectorAll: (sel) => (sel === 'tr' ? [mockRow] : []),
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    };
+
+    withMockEnvironment({
+      document: {
+        createElement: () => ({
+          className: '',
+          setAttribute() {},
+          removeAttribute() {},
+          style: {},
+          innerHTML: '',
+          remove() {}
+        })
+      }
+    }, () => {
+      applyDecoupling(mockTable);
+      assert.strictEqual(removedAttr, 'data-marker', 'Should remove data-marker attribute');
+      assert.strictEqual(mockDelTd.className.includes('diff-side-deleted'), true);
+      assert.strictEqual(mockAddTd.className.includes('diff-side-added'), true);
+    });
+  });
+
+  test('onTableClick handles smooth scrolling and flashing for citation rows and footnotes', () => {
+    let prevented = false;
+    let scrolledNearest = false;
+    let scrolledCenter = false;
+    const addedClasses = [];
+    const removedClasses = [];
+
+    const mockCitTarget = {
+      scrollIntoView: (opts) => { if (opts.block === 'nearest') scrolledNearest = true; },
+      classList: {
+        add: (c) => addedClasses.push(c),
+        remove: (c) => removedClasses.push(c)
+      },
+      offsetWidth: 100
+    };
+
+    const mockFootnoteTarget = {
+      scrollIntoView: (opts) => { if (opts.block === 'center') scrolledCenter = true; },
+      classList: {
+        add: (c) => addedClasses.push(c),
+        remove: (c) => removedClasses.push(c)
+      },
+      offsetWidth: 100
+    };
+
+    let pushedState = null;
+    withMockEnvironment({
+      document: {
+        getElementById: (id) => {
+          if (id === 'refdiff-cit-1') return mockCitTarget;
+          if (id === 'cite_note-1') return mockFootnoteTarget;
+          return null;
+        }
+      },
+      window: {
+        history: {
+          pushState: (state, title, url) => { pushedState = url; }
+        }
+      }
+    }, () => {
+      // 1. Click outside refdiff-ref
+      onTableClick({ target: { closest: () => null } });
+
+      // 2. Click with no href
+      onTableClick({
+        target: {
+          closest: () => ({ getAttribute: () => null })
+        }
+      });
+
+      // 3. Click citation row link (#refdiff-cit-1)
+      const citEvent = {
+        preventDefault: () => { prevented = true; },
+        target: {
+          closest: () => ({ getAttribute: () => '#refdiff-cit-1' })
+        }
+      };
+      onTableClick(citEvent);
+      assert.strictEqual(prevented, true, 'preventDefault called for cit row');
+      assert.strictEqual(scrolledNearest, true, 'Scrolled nearest for cit row');
+      assert.strictEqual(addedClasses.includes('refdiff-cit-flash'), true, 'Added flash-cit class');
+
+      // 4. Click footnote anchor link (#cite_note-1)
+      let fnPrevented = false;
+      const fnEvent = {
+        preventDefault: () => { fnPrevented = true; },
+        target: {
+          closest: () => ({ getAttribute: () => '#cite_note-1' })
+        }
+      };
+      onTableClick(fnEvent);
+      assert.strictEqual(fnPrevented, true, 'preventDefault called for footnote');
+      assert.strictEqual(scrolledCenter, true, 'Scrolled center for footnote');
+      assert.strictEqual(pushedState, '#cite_note-1', 'Updated history pushState');
+      assert.strictEqual(addedClasses.includes('refdiff-target-flash'), true, 'Added flash-target class');
     });
   });
 });

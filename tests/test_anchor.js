@@ -62,6 +62,23 @@ suite('src/anchor.js - Footnote Anchor Discovery', () => {
       assert.strictEqual(anchor, 'cite_note-FOOTNOTEReichertWolfram2010574-1', 'Should locate FOOTNOTE anchor');
     });
   });
+
+  test('findCiteNoteAnchor discovers shortened footnotes by matching author text in .references li', () => {
+    const mockLi = {
+      id: 'cite_note-fallback-99',
+      textContent: 'Castritius, Helmut (2005). Die Völkerwanderung.'
+    };
+
+    withMockEnvironment({
+      document: {
+        querySelector: () => null,
+        querySelectorAll: (sel) => sel.includes('.references li') ? [mockLi] : []
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(null, '{{sfn|Castritius|2005}}');
+      assert.strictEqual(anchor, 'cite_note-fallback-99');
+    });
+  });
 });
 
 if (require.main === module) {

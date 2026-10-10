@@ -10,7 +10,8 @@ const {
   selectMode,
   updateButtonState,
   isRefDiffPreferred,
-  setInlineSwitchDisabled
+  setInlineSwitchDisabled,
+  restoreOriginal
 } = require('../refdiff.js');
 
 suite('src/mode_coordinator.js - Mode Switching & Locks', () => {
@@ -96,6 +97,87 @@ suite('src/mode_coordinator.js - Mode Switching & Locks', () => {
     assert.doesNotThrow(() => {
       setInlineSwitchDisabled(true);
       setInlineSwitchDisabled(false);
+    });
+  });
+
+  test('selectMode discovers wikitext/visual mode buttons and unhides diff rows in refdiff mode', () => {
+    let wikiActive = null;
+    let visualActive = null;
+    let refActive = null;
+
+    const mockRefBtn = {
+      id: 'refdiff-ooui-btn',
+      classList: {
+        add() {},
+        remove() {},
+        toggle(cls, val) { if (cls.includes('active')) refActive = val; },
+        contains: () => false
+      },
+      setAttribute() {},
+      removeAttribute() {},
+      querySelector: () => null
+    };
+
+    const mockWikiBtn = {
+      textContent: 'Wikitext diff',
+      classList: {
+        add() {},
+        remove() {},
+        toggle(cls, val) { if (cls.includes('active')) wikiActive = val; },
+        contains: () => false
+      },
+      setAttribute() {},
+      removeAttribute() {},
+      querySelector: () => null
+    };
+
+    const mockVisualBtn = {
+      textContent: 'Visual diff',
+      classList: {
+        add() {},
+        remove() {},
+        toggle(cls, val) { if (cls.includes('active')) visualActive = val; },
+        contains: () => false
+      },
+      setAttribute() {},
+      removeAttribute() {},
+      querySelector: () => null
+    };
+
+    const mockGroup = {
+      classList: { contains: (cls) => cls === 'oo-ui-buttonSelectWidget' },
+      children: [mockRefBtn, mockWikiBtn, mockVisualBtn]
+    };
+    mockRefBtn.parentElement = mockGroup;
+
+    let removedHidden = false;
+    const mockRow = {
+      className: '',
+      classList: {
+        remove: (c) => { if (c === 'oo-ui-element-hidden') removedHidden = true; },
+        add: () => {}
+      },
+      querySelector: () => null,
+      querySelectorAll: () => []
+    };
+
+    const mockTable = {
+      querySelectorAll: (sel) => (sel === 'tr' ? [mockRow] : []),
+      querySelector: () => null
+    };
+
+    withMockEnvironment({
+      document: {
+        getElementById: (id) => (id === 'refdiff-ooui-btn' ? mockRefBtn : null),
+        querySelector: () => null
+      }
+    }, () => {
+      selectMode('refdiff', mockTable);
+      assert.strictEqual(refActive, true, 'RefDiff button should be active');
+      assert.strictEqual(wikiActive, false, 'Wiki button should not be active');
+      assert.strictEqual(visualActive, false, 'Visual button should not be active');
+      assert.strictEqual(removedHidden, true, 'Body row hidden class should be removed in refdiff mode');
+      restoreOriginal(mockTable);
     });
   });
 });
