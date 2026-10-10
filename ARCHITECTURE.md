@@ -104,18 +104,21 @@ classDiagram
     DOMRenderer --> ModeCoordinator
 ```
 
-| Subsystem | File Location | Responsibility |
+| Virtual File | File Location | Responsibility |
 | :--- | :--- | :--- |
-| **Constants & Selectors** | Lines 37–197 | Centralizes regex patterns, CSS selectors, theme variables, and color schemes. |
-| **State Manager** | Lines 198–211 | Encapsulates runtime state and modified row mementos. |
-| **Parser Engine** | Lines 212–440 | Preprocesses diff boundary splits (`normalizeDiffTags`), extracts, validates, and decodes HTML-escaped `<ref>` tags as well as Wikipedia footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`). |
-| **Pairing Engine** | Lines 371–452 | 3-pass heuristic matching associating deleted citations with added citations. |
-| **Badge & Row Renderer** | Lines 453–530 | Constructs mathematical angle bracket badges and decoupled citation rows. |
-| **Anchor Discovery Engine** | Lines 531–590 | Scans live article preview for matching footnote IDs (`cite_note-*`) and binds native `ext.popups`. |
-| **Memento Manager** | Lines 591–750 | Preserves live DOM references for non-destructive in-place restoration. |
-| **Transformation Pipeline** | Lines 751–790 | Orchestrates prose badge substitution and citation row insertion. |
-| **Mode Coordinator** | Lines 791–1050 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes. |
-| **UI & Hook Integration** | Lines 1051–1230 | Handles OOUI ButtonSelectWidget, DOM mutations, and MediaWiki hooks. |
+| **`src/constants.js`** | Lines 51–260 | Centralizes regex patterns (`REF_REGEX`, `TEMPLATE_REF_REGEX`), storage keys, DOM selectors, CSS classes, hook names, and inline badge styles. |
+| **`src/state.js`** | Lines 262–280 | Encapsulates runtime state, lifecycle flags, and modified row snapshot mementos. |
+| **`src/utils.js`** | Lines 282–392 | Preprocesses diff boundary splits (`normalizeDiffTags`), regex escaping, HTML stripping, name extraction, and `extractSfnInfo`. |
+| **`src/parser.js`** | Lines 394–475 | Unified reference parser (`parseRefs`). Scans `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`), preserving document order. |
+| **`src/pairing.js`** | Lines 477–571 | 3-pass heuristic matching associating deleted citations with added citations (name, content equality, positional alignment). |
+| **`src/anchor.js`** | Lines 573–661 | Scans live article preview for matching footnote IDs (`cite_note-*`, `cite_note-FOOTNOTE*`) and binds native `Extension:Popups`. |
+| **`src/renderer.js`** | Lines 663–772 | Constructs mathematical angle bracket badges (`⟨ref1⟩`, `⟨~mod~⟩`) and decoupled citation diff rows (`<tr class="refdiff-cit-row">`). |
+| **`src/memento.js`** | Lines 774–835 | Non-destructive DOM row snapshots (`captureRowSnapshot` / `restoreRowSnapshot`) preserving native MediaWiki event closures in-place. |
+| **`src/pipeline.js`** | Lines 837–1069 | Orchestrates prose badge substitution, citation row injection, click handling, jump target flashing, and restoration. |
+| **`src/dom_helpers.js`** | Lines 1071–1116 | Categorizes diff body rows and fires MediaWiki synchronization hooks (`wikipage.diff.wikitextBodyUpdate` & `wikipage.content`). |
+| **`src/mode_coordinator.js`** | Lines 1118–1388 | Manages transitions between `wikitext`, `refdiff`, and `visual` modes, locks the inline format switch, and persists user preference. |
+| **`src/init.js`** | Lines 1390–1595 | Page/diff view detection, OOUI button injection, fallback mode bar creation, lifecycle wiring, and browser auto-start. |
+| **`src/exports.js`** | Lines 1597–1637 | Universal Module Definition (UMD) exports and public API surface. |
 
 ---
 

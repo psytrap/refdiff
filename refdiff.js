@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RefDiff
 // @namespace    https://github.com/m-k/einzelnachweise
-// @version      1.1.0
+// @version      1.3.0
 // @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
 // @author       RefDiff Contributors
 // @match        https://*.wikipedia.org/*diff=*
@@ -23,6 +23,21 @@
  * context lines, diff hunks) while decoupling citation templates from prose lines.
  *
  * Repository: https://github.com/m-k/einzelnachweise
+ *
+ * Virtual File Hierarchy:
+ *  1. [src/constants.js]       - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
+ *  2. [src/state.js]           - State management and memento registry
+ *  3. [src/utils.js]           - String sanitization, entity extraction, boundary normalization
+ *  4. [src/parser.js]          - Unified reference and template parser
+ *  5. [src/pairing.js]         - 3-pass heuristic reference pairing engine
+ *  6. [src/anchor.js]          - Live DOM footnote anchor discovery and popup integration
+ *  7. [src/renderer.js]        - Badge generation and citation diff row construction
+ *  8. [src/memento.js]         - Non-destructive DOM row snapshot and restore memento
+ *  9. [src/pipeline.js]        - Core decoupling transformation and table mutator pipeline
+ * 10. [src/dom_helpers.js]     - DOM query, categorization, and hook notification helpers
+ * 11. [src/mode_coordinator.js] - 3-way mode switching (visual/wikitext/refdiff) & switch locks
+ * 12. [src/init.js]            - Page detection, UI button wiring, and lifecycle auto-start
+ * 13. [src/exports.js]         - Public API return and UMD module exports
  */
 
 (function (root, factory) {
@@ -34,7 +49,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  // --- Constants & Enums ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/constants.js
+     Description: Centralized regex patterns, storage keys, DOM selectors,
+                  CSS classes, MediaWiki hook names, and inline badge styles.
+     ========================================================================== */
 
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
@@ -238,8 +257,13 @@
       display: none !important;
     }
   `;
+  /* === [END VIRTUAL FILE: src/constants.js] === */
 
-  // --- State Management ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/state.js
+     Description: Internal state encapsulation, lifecycle flags, and modified
+                  row snapshot registry for non-destructive DOM restoration.
+     ========================================================================== */
 
   /**
    * Internal state encapsulation for RefDiff lifecycle.
@@ -253,8 +277,13 @@
     onTableClickHandler: null,
     modifiedRows: []
   };
+  /* === [END VIRTUAL FILE: src/state.js] === */
 
-  // --- String & Parsing Utilities ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/utils.js
+     Description: String utilities, regex escaping, reference name extraction,
+                  diffchange boundary normalization, and sfn parameter parsing.
+     ========================================================================== */
 
   /**
    * Strips HTML tags and trims leading/trailing whitespace.
@@ -360,6 +389,14 @@
     const anchorToken = authors.length || year ? 'FOOTNOTE' + authors.join('') + year : null;
     return { label, anchorToken, authors, year };
   }
+  /* === [END VIRTUAL FILE: src/utils.js] === */
+
+  /* ==========================================================================
+     VIRTUAL FILE: src/parser.js
+     Description: Core lexer and parser. Scans diff HTML for <ref> tags and
+                  footnote templates ({{sfn}}, {{r}}, {{efn}}, {{harv}}),
+                  normalizing diff tags and preserving strict document order.
+     ========================================================================== */
 
   /**
    * Parses all HTML-escaped <ref> tags and footnote templates ({{sfn}}, {{r}}, {{efn}})
@@ -435,6 +472,14 @@
 
     return refs;
   }
+  /* === [END VIRTUAL FILE: src/parser.js] === */
+
+  /* ==========================================================================
+     VIRTUAL FILE: src/pairing.js
+     Description: 3-pass heuristic reference pairing algorithm correlating
+                  deleted citations with added citations (explicit name match,
+                  clean content hash, and positional order fallback).
+     ========================================================================== */
 
   /**
    * Pairs deleted and added references using a 3-pass heuristic:
@@ -523,6 +568,14 @@
 
     return pairs;
   }
+  /* === [END VIRTUAL FILE: src/pairing.js] === */
+
+  /* ==========================================================================
+     VIRTUAL FILE: src/anchor.js
+     Description: Live DOM footnote anchor discovery engine. Maps citation tokens,
+                  named references, and shortened footnote FOOTNOTE anchors to
+                  Wikipedia's cite_note elements to activate native popups.
+     ========================================================================== */
 
   /**
    * Sanitizes a string for use in HTML element ID attributes.
@@ -605,8 +658,13 @@
 
     return null;
   }
+  /* === [END VIRTUAL FILE: src/anchor.js] === */
 
-  // --- Badge & DOM Creation Helpers ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/renderer.js
+     Description: Mathematical angle bracket badge generator (⟨ref1⟩, ⟨~name~⟩)
+                  and decoupled citation diff row (tr.refdiff-cit-row) builder.
+     ========================================================================== */
 
   /**
    * Replaces raw reference wikitext with a badge, stripping surrounding diffchange wrappers if present.
@@ -711,8 +769,14 @@
     `;
     return citRow;
   }
+  /* === [END VIRTUAL FILE: src/renderer.js] === */
 
-  // --- Row Snapshot & Memento Pattern ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/memento.js
+     Description: Memento design pattern implementation for MediaWiki DOM rows.
+                  Captures and restores live DOM elements in-place to prevent
+                  detaching native event closures in inlineFormatToggle and VE.
+     ========================================================================== */
 
   /**
    * Captures a non-destructive DOM snapshot of a diff row before transformation.
@@ -768,8 +832,14 @@
       }
     }
   }
+  /* === [END VIRTUAL FILE: src/memento.js] === */
 
-  // --- Core Decoupling Transformation Pipeline ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/pipeline.js
+     Description: Core decoupling transformation pipeline. Replaces prose refs
+                  with badges, generates citation diff rows, applies changes to
+                  table.diff, attaches click handlers, and coordinates restore.
+     ========================================================================== */
 
   /**
    * Transforms prose cell HTML by replacing raw references with badges and extracting modified citations.
@@ -996,8 +1066,13 @@
     state.isDecoupled = false;
     notifyBodyUpdate(table);
   }
+  /* === [END VIRTUAL FILE: src/pipeline.js] === */
 
-  // --- DOM Query & Synchronization Helpers ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/dom_helpers.js
+     Description: DOM query, categorization, and hook notification helpers.
+                  Separates header from body rows and synchronizes with VE.
+     ========================================================================== */
 
   /**
    * Returns all non-header diff rows from a MediaWiki diff table.
@@ -1038,8 +1113,13 @@
       }
     }
   }
+  /* === [END VIRTUAL FILE: src/dom_helpers.js] === */
 
-  // --- UI State & Persistence ---
+  /* ==========================================================================
+     VIRTUAL FILE: src/mode_coordinator.js
+     Description: 3-way mode switching (visual/wikitext/refdiff), OOUI button
+                  synchronization, inline format switch locking, and persistence.
+     ========================================================================== */
 
   /**
    * Checks whether RefDiff should be active based on stored user preference or URL override.
@@ -1305,6 +1385,13 @@
   function updateButtonState(active, table) {
     selectMode(active ? 'refdiff' : 'wikitext', table);
   }
+  /* === [END VIRTUAL FILE: src/mode_coordinator.js] === */
+
+  /* ==========================================================================
+     VIRTUAL FILE: src/init.js
+     Description: Environment and page detection, OOUI mode button injection,
+                  fallback mode bar creation, lifecycle wiring, and auto-start.
+     ========================================================================== */
 
   // --- Environment & Page Detection ---
 
@@ -1505,6 +1592,12 @@
       init();
     }
   }
+  /* === [END VIRTUAL FILE: src/init.js] === */
+
+  /* ==========================================================================
+     VIRTUAL FILE: src/exports.js
+     Description: Universal Module Definition (UMD) exports and public API surface.
+     ========================================================================== */
 
   return {
     STORAGE_KEY,
@@ -1541,4 +1634,5 @@
     setInlineSwitchDisabled,
     init
   };
+  /* === [END VIRTUAL FILE: src/exports.js] === */
 });
