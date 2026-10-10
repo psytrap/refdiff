@@ -7,7 +7,7 @@
 | style="padding: 3px 0;" | [[Wikipedia:User scripts|User script]]
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Status:
-| style="padding: 3px 0; color: #14866d; font-weight: bold;" | Stable (v1.2.0)
+| style="padding: 3px 0; color: #14866d; font-weight: bold;" | Stable (v1.3.0)
 |-
 | style="font-weight: bold; padding: 3px 0; color: #54595d;" | Target:
 | style="padding: 3px 0;" | {{mono|Special:Diff}}
@@ -48,7 +48,7 @@ When an article uses standard inline citations ({{tag|ref|content={{tlx|cite boo
 RefDiff runs client-side in the browser and transforms the diff table in-place:
 
 # '''Zero Loss:''' Fully preserves Wikipedia's native diff table (line numbers, revision headers, context rows, and the native {{mono|Inline}} checkbox).
-# '''Clean Prose Diffs:''' Inline {{tag|ref}} tags are replaced with clean, unobtrusive mathematical angle-bracket badges (e.g. {{mono|⟨ref1⟩}} or {{mono|⟨~ref2~⟩}}).
+# '''Clean Prose Diffs:''' Inline {{tag|ref}} tags and footnote templates (such as {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and {{tlx|harvnb}}) are replaced with clean, unobtrusive mathematical angle-bracket badges (e.g. {{mono|⟨ref1⟩}}, {{mono|⟨~ref2~⟩}}, or scholarly author-year badges like {{mono|⟨Reichert & Wolfram 2010⟩}}).
 # '''Dedicated Citation Rows:''' If a citation was modified, added, or removed, RefDiff inserts an isolated citation diff row directly underneath the sentence.
 # '''Automatic Context Conversion:''' If an edit ''only'' touched citation metadata, the prose line automatically converts to context appearance (calm gray, no diff markers). Patrollers instantly know the text itself was not altered.
 # '''Interactive Reference Links & Hover Previews:''' Badges are rendered as standard footnote links ({{tag|sup|params=class="reference"|content=&lt;a href="..."&gt;}}). Hovering over any badge displays Wikipedia's standard '''Reference Preview hovercard''' (from Read mode), and clicking modified/added citations jumps directly to their citation diff row below.
@@ -60,26 +60,36 @@ RefDiff uses mathematical angle brackets ({{mono|⟨...⟩}}) to avoid syntactic
 {| class="wikitable"
 ! Badge !! Meaning !! Appearance !! Reviewer Action
 |-
-| {{mono|⟨ref1⟩}}
+| {{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}
 | '''Unmodified Reference'''
 | Subtle neutral gray text, normal weight
 | '''Ignore:''' Identical on both sides; zero prose distraction.
 |-
-| {{mono|⟨~ref2~⟩}}
-| '''Modified Reference'''
+| {{mono|⟨~ref2~⟩}} / {{mono|⟨~Voyles 1992~⟩}}
+| '''Modified Reference / Shortened Footnote'''
 | Amber highlight, bold, hover tooltip
-| '''Review:''' Bibliographic metadata changed; see citation row below.
+| '''Review:''' Bibliographic metadata or page parameters changed; see citation row below.
 |-
-| {{mono|⟨+ref3+⟩}}
-| '''Added Reference'''
+| {{mono|⟨+ref3+⟩}} / {{mono|⟨+Reichert & Wolfram 2010+⟩}}
+| '''Added Reference / Shortened Footnote'''
 | Crisp green badge, bold
 | '''Verify:''' New source added to the claim.
 |-
-| {{mono|⟨-ref4-⟩}}
-| '''Removed Reference'''
+| {{mono|⟨-ref4-⟩}} / {{mono|⟨-Smith 2018-⟩}}
+| '''Removed Reference / Shortened Footnote'''
 | Crisp red badge, bold, strikethrough
 | '''Verify:''' Source removed from the claim.
 |}
+
+=== Shortened Footnotes & Citation Templates ===
+
+In addition to standard {{tag|ref}} tags, RefDiff natively parses Wikipedia footnote templates:
+* '''Shortened Footnotes:''' {{tlx|sfn}}, {{tlx|sfnp}}, {{tlx|sfnm}}, {{tlx|sfnmp}}
+* '''Shorthand References:''' {{tlx|r}}, {{tlx|rp}}
+* '''Explanatory Footnotes:''' {{tlx|efn}}, {{tlx|efn-la}}, etc.
+* '''Harvard Citations:''' {{tlx|harv}}, {{tlx|harvnb}}, {{tlx|harvtxt}}, {{tlx|harvp}}
+
+For shortened footnotes, RefDiff automatically synthesizes author names and publication years into clean scholarly badges (e.g. {{mono|⟨Castritius 2005⟩}}, {{mono|⟨Reichert & Wolfram 2010⟩}}, or {{mono|⟨Author et al. 2023⟩}}). Page numbers (such as {{mono|p=574}}) are cleanly separated into the decoupled citation diff row below, while the badge itself links directly to the generated {{mono|cite_note-FOOTNOTE*}} anchor in the article references for instant native hovercard previews.
 
 === Decoupled Diff Example ===
 
