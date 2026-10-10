@@ -162,6 +162,15 @@ RefDiff is backed by a rigorous four-level test pyramid and quality assurance fr
 * '''High-Density Stress Benchmarking:''' Benchmarked on real-world extreme diffs (e.g. airport destination tables with 114 references and split {{mono|diffchange}} boundaries) to guarantee execution under 50&nbsp;ms without browser lag.
 * '''Live Browser Automation (CDP):''' End-to-end browser automation tests verify real MediaWiki DOM integration, three-way OOUI mode transitions, dark mode theming, and native {{mono|Extension:Popups}} Reference Preview hovercards on live Wikipedia revisions (e.g. [[Special:Diff/1379486498|Odoacer]] and [[Special:Diff/1379409916|Zagreb Airport]]).
 
+=== What Is Not Covered (Known Limitations & Gaps) ===
+
+While 100% of internal codebase functions are verified, several external edge cases and layout environments are outside current test coverage (tracked in Section 5 of {{mono|TEST_PLAN.md}}):
+
+* '''Malformed or Broken Wikitext:''' Unclosed {{tag|ref}} tags, tags missing closing brackets, or unusual multiline linebreaks inside tags are skipped by the parser and remain untouched in the prose diff without decoupling.
+* '''Nested Transclusions:''' Footnotes wrapped inside complex secondary templates (such as {{tlx|refn}}, {{tlx|sfnp}}, or citations embedded inside infobox templates) are not yet decoupled into scholarly badges.
+* '''Mobile Diff Layouts (MinervaNeue):''' Responsive single-column stacked diff tables on Wikipedia's mobile view are not currently part of the automated layout test suite (RefDiff is optimized primarily for desktop two-column diffs).
+* '''Dynamic AJAX Diff Pagination:''' Successive rapid diff updates fired by live script reloads or interactive history navigation without a full page refresh.
+
 == Complementary Tools & Proposals ==
 
 RefDiff is part of a broader ecosystem for citation management:
