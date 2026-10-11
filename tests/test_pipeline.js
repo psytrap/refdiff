@@ -264,9 +264,9 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     assert.strictEqual(result.newDelHtml.includes('⟨fixed⟩'), true, 'Unchanged ref should be badged in deleted cell');
     assert.strictEqual(result.newAddHtml.includes('⟨fixed⟩'), true, 'Unchanged ref should be badged in added cell');
 
-    // 2. Modified reference: modify tag stays in place in prose, but is not separated into a row below
-    assert.strictEqual(result.newDelHtml.includes('⟨~mod~⟩'), true, 'Modified ref badge should stay in place in deleted cell');
-    assert.strictEqual(result.newAddHtml.includes('⟨~mod~⟩'), true, 'Modified ref badge should stay in place in added cell');
+    // 2. Modified reference: modify badge is prepended inline directly before raw ref, no row below
+    assert.strictEqual(result.newDelHtml.includes('⟨~mod~⟩') && result.newDelHtml.includes('&lt;ref name="mod"&gt;Old text&lt;/ref&gt;'), true, 'Modified ref badge + raw ref should stay inline in deleted cell');
+    assert.strictEqual(result.newAddHtml.includes('⟨~mod~⟩') && result.newAddHtml.includes('&lt;ref name="mod"&gt;New text&lt;/ref&gt;'), true, 'Modified ref badge + raw ref should stay inline in added cell');
 
     // 3. Added and deleted references ALWAYS separate regardless of checkbox
     assert.strictEqual(result.newAddHtml.includes('⟨+added+⟩'), true, 'Added ref should be badged');

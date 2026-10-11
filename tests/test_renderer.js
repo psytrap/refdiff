@@ -13,6 +13,16 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
     const result = replaceRefInHtml(html, '&lt;ref name="test"&gt;cite&lt;/ref&gt;', '⟨ref1⟩');
     assert.strictEqual(result, '<div>prose ⟨ref1⟩ more prose</div>');
   });
+
+  test('replaceRefInHtml prepends badge when prepend flag is true', () => {
+    const html = '<div>prose &lt;ref name="test"&gt;cite&lt;/ref&gt; more prose</div>';
+    const result = replaceRefInHtml(html, '&lt;ref name="test"&gt;cite&lt;/ref&gt;', '⟨~test~⟩', true);
+    assert.strictEqual(result, '<div>prose ⟨~test~⟩&lt;ref name="test"&gt;cite&lt;/ref&gt; more prose</div>');
+
+    const htmlWrapped = '<div>prose <ins class="diffchange diffchange-inline">&lt;ref name="test"&gt;cite&lt;/ref&gt;</ins> more prose</div>';
+    const resultWrapped = replaceRefInHtml(htmlWrapped, '&lt;ref name="test"&gt;cite&lt;/ref&gt;', '⟨~test~⟩', true);
+    assert.strictEqual(resultWrapped, '<div>prose ⟨~test~⟩<ins class="diffchange diffchange-inline">&lt;ref name="test"&gt;cite&lt;/ref&gt;</ins> more prose</div>');
+  });
   test('creates mathematical angle bracket badges with correct styling', () => {
     const norm = createProseBadge('norm', 'ref1');
     assert.strictEqual(norm.includes('⟨ref1⟩'), true, 'Norm badge should use ⟨ref1⟩');

@@ -134,7 +134,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (73 tests in ~20ms)
+# 2. Run the fast headless unit & component test suite (74 tests in ~20ms)
 npm test
 
 # 3. Run combined CI verification

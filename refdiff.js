@@ -720,17 +720,25 @@
 
   /**
    * Replaces raw reference wikitext with a badge, stripping surrounding diffchange wrappers if present.
+   * If prepend is true, keeps the raw reference (and any outer wrapper) and places the badge directly before it.
    * @param {string} html
    * @param {string} rawRef
    * @param {string} badgeHtml
+   * @param {boolean} [prepend=false]
    * @returns {string}
    */
-  function replaceRefInHtml(html, rawRef, badgeHtml) {
+  function replaceRefInHtml(html, rawRef, badgeHtml, prepend) {
     if (!html || !rawRef) return html;
     const escaped = escapeRegex(rawRef);
     const diffchangeWrapper = new RegExp('<(ins|del)[^>]*class="[^"]*diffchange[^"]*"[^>]*>\\s*' + escaped + '\\s*<\\/\\1>', 'i');
     if (diffchangeWrapper.test(html)) {
+      if (prepend) {
+        return html.replace(diffchangeWrapper, (match) => badgeHtml + match);
+      }
       return html.replace(diffchangeWrapper, () => badgeHtml);
+    }
+    if (prepend) {
+      return html.replace(rawRef, (match) => badgeHtml + match);
     }
     return html.replace(rawRef, () => badgeHtml);
   }
@@ -928,8 +936,8 @@
           if (!separateChanged) {
             const href = citeNoteId ? `#${citeNoteId}` : null;
             const badge = createProseBadge('mod', label, href);
-            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
-            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
+            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge, true);
+            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge, true);
             continue;
           }
           const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
