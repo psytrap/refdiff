@@ -102,7 +102,8 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     let removedAttr = null;
     const mockMarker = {
       getAttribute: (attr) => (attr === 'data-marker' ? '+' : null),
-      removeAttribute: (attr) => { removedAttr = attr; }
+      removeAttribute: (attr) => { removedAttr = attr; },
+      setAttribute: () => {}
     };
     const mockDelDiv = { innerHTML: 'Text &lt;ref&gt;Old&lt;/ref&gt;' };
     const mockAddDiv = { innerHTML: 'Text &lt;ref&gt;New&lt;/ref&gt;' };
@@ -149,6 +150,7 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
       assert.strictEqual(removedAttr, 'data-marker', 'Should remove data-marker attribute');
       assert.strictEqual(mockDelTd.className.includes('diff-side-deleted'), true);
       assert.strictEqual(mockAddTd.className.includes('diff-side-added'), true);
+      restoreOriginal(mockTable);
     });
   });
 
@@ -227,6 +229,104 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
       assert.strictEqual(scrolledCenter, true, 'Scrolled center for footnote');
       assert.strictEqual(pushedState, '#cite_note-1', 'Updated history pushState');
       assert.strictEqual(addedClasses.includes('refdiff-target-flash'), true, 'Added flash-target class');
+    });
+  });
+
+  test('transformProseCells with separateChanged: false badges unchanged refs and preserves changed/added/deleted refs inline', () => {
+    const delHtml = '<div>Text &lt;ref name="fixed"&gt;Fixed&lt;/ref&gt; and &lt;ref name="mod"&gt;Old text&lt;/ref&gt; and &lt;ref name="deleted"&gt;Gone&lt;/ref&gt;</div>';
+    const addHtml = '<div>Text &lt;ref name="fixed"&gt;Fixed&lt;/ref&gt; and &lt;ref name="mod"&gt;New text&lt;/ref&gt; and &lt;ref name="added"&gt;Fresh&lt;/ref&gt;</div>';
+    const pairs = [
+      {
+        d: { raw: '&lt;ref name="fixed"&gt;Fixed&lt;/ref&gt;', name: 'fixed', hasChange: false },
+        a: { raw: '&lt;ref name="fixed"&gt;Fixed&lt;/ref&gt;', name: 'fixed', hasChange: false },
+        name: 'fixed'
+      },
+      {
+        d: { raw: '&lt;ref name="mod"&gt;Old text&lt;/ref&gt;', name: 'mod', hasChange: true },
+        a: { raw: '&lt;ref name="mod"&gt;New text&lt;/ref&gt;', name: 'mod', hasChange: true },
+        name: 'mod'
+      },
+      {
+        d: null,
+        a: { raw: '&lt;ref name="added"&gt;Fresh&lt;/ref&gt;', name: 'added', hasChange: true },
+        name: 'added'
+      },
+      {
+        d: { raw: '&lt;ref name="deleted"&gt;Gone&lt;/ref&gt;', name: 'deleted', hasChange: true },
+        a: null,
+        name: 'deleted'
+      }
+    ];
+
+    const result = transformProseCells(delHtml, addHtml, pairs, 1, { separateChanged: false });
+
+    // 1. Unchanged reference IS replaced by badge
+    assert.strictEqual(result.newDelHtml.includes('⟨fixed⟩'), true, 'Unchanged ref should be badged in deleted cell');
+    assert.strictEqual(result.newAddHtml.includes('⟨fixed⟩'), true, 'Unchanged ref should be badged in added cell');
+
+    // 2. Changed, added, and deleted references remain untouched inline
+    assert.strictEqual(result.newDelHtml.includes('&lt;ref name="mod"&gt;Old text&lt;/ref&gt;'), true, 'Modified ref should stay untouched inline');
+    assert.strictEqual(result.newAddHtml.includes('&lt;ref name="mod"&gt;New text&lt;/ref&gt;'), true, 'Modified ref should stay untouched inline');
+    assert.strictEqual(result.newAddHtml.includes('&lt;ref name="added"&gt;Fresh&lt;/ref&gt;'), true, 'Added ref should stay untouched inline');
+    assert.strictEqual(result.newDelHtml.includes('&lt;ref name="deleted"&gt;Gone&lt;/ref&gt;'), true, 'Deleted ref should stay untouched inline');
+
+    // 3. No modified citations extracted for separate rows
+    assert.strictEqual(result.modifiedCits.length, 0, 'No citation rows should be created');
+  });
+
+  test('applyDecoupling with separateChanged: false does not insert citation rows', () => {
+    const mockDelDiv = { innerHTML: 'Line with &lt;ref name="test"&gt;Citation A&lt;/ref&gt;' };
+    const mockAddDiv = { innerHTML: 'Line with &lt;ref name="test"&gt;Citation B&lt;/ref&gt;' };
+    const mockDelTd = { className: 'diff-deletedline' };
+    const mockAddTd = { className: 'diff-addedline' };
+
+    let insertedCitRow = null;
+
+    const mockRow = {
+      classList: { contains: () => false },
+      querySelector(sel) {
+        if (sel.includes('diff-deletedline') && sel.includes('div')) return mockDelDiv;
+        if (sel.includes('diff-addedline') && sel.includes('div')) return mockAddDiv;
+        if (sel.includes('diff-deletedline')) return mockDelTd;
+        if (sel.includes('diff-addedline')) return mockAddTd;
+        return null;
+      },
+      querySelectorAll() { return []; },
+      parentNode: {
+        insertBefore: (el) => {
+          insertedCitRow = el;
+        }
+      },
+      nextSibling: null
+    };
+
+    const mockTable = {
+      innerHTML: '<table>mock</table>',
+      querySelector() { return null; },
+      querySelectorAll(sel) {
+        if (sel === 'tr') return [mockRow];
+        if (sel.includes('refdiff-cit-row')) return insertedCitRow ? [insertedCitRow] : [];
+        return [];
+      },
+      addEventListener() {},
+      removeEventListener() {}
+    };
+
+    withMockEnvironment({
+      document: {
+        createElement: () => ({
+          className: '',
+          setAttribute() {},
+          removeAttribute() {},
+          style: {},
+          innerHTML: '',
+          remove: () => { insertedCitRow = null; }
+        })
+      }
+    }, () => {
+      applyDecoupling(mockTable, { separateChanged: false });
+      assert.strictEqual(insertedCitRow, null, 'No citation row should be inserted when separateChanged is false');
+      restoreOriginal(mockTable);
     });
   });
 });

@@ -25,19 +25,19 @@
  * Repository: https://github.com/m-k/einzelnachweise
  *
  * Virtual File Hierarchy:
- *  1. [src/anchor.js]           (first line: 573)  - Live DOM footnote anchor discovery and popup integration
- *  2. [src/constants.js]        (first line: 52)   - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
- *  3. [src/dom_helpers.js]      (first line: 1071) - DOM query, categorization, and hook notification helpers
- *  4. [src/exports.js]          (first line: 1597) - Public API return and UMD module exports
- *  5. [src/init.js]             (first line: 1390) - Page detection, UI button wiring, and lifecycle auto-start
- *  6. [src/memento.js]          (first line: 774)  - Non-destructive DOM row snapshot and restore memento
- *  7. [src/mode_coordinator.js] (first line: 1118) - 3-way mode switching (visual/wikitext/refdiff) & switch locks
- *  8. [src/pairing.js]          (first line: 477)  - 3-pass heuristic reference pairing engine
- *  9. [src/parser.js]           (first line: 394)  - Unified reference and template parser
- * 10. [src/pipeline.js]         (first line: 837)  - Core decoupling transformation and table mutator pipeline
- * 11. [src/renderer.js]         (first line: 663)  - Badge generation and citation diff row construction
- * 12. [src/state.js]            (first line: 262)  - State management and memento registry
- * 13. [src/utils.js]            (first line: 282)  - String sanitization, entity extraction, boundary normalization
+ *  1. [src/anchor.js]           (first line: 575)  - Live DOM footnote anchor discovery and popup integration
+ *  2. [src/constants.js]        (first line: 53)   - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
+ *  3. [src/dom_helpers.js]      (first line: 1097) - DOM query, categorization, and hook notification helpers
+ *  4. [src/exports.js]          (first line: 1671) - Public API return and UMD module exports
+ *  5. [src/init.js]             (first line: 1464) - Page detection, UI button wiring, and lifecycle auto-start
+ *  6. [src/memento.js]          (first line: 776)  - Non-destructive DOM row snapshot and restore memento
+ *  7. [src/mode_coordinator.js] (first line: 1144) - 3-way mode switching (visual/wikitext/refdiff) & switch locks
+ *  8. [src/pairing.js]          (first line: 479)  - 3-pass heuristic reference pairing engine
+ *  9. [src/parser.js]           (first line: 396)  - Unified reference and template parser
+ * 10. [src/pipeline.js]         (first line: 841)  - Core decoupling transformation and table mutator pipeline
+ * 11. [src/renderer.js]         (first line: 665)  - Badge generation and citation diff row construction
+ * 12. [src/state.js]            (first line: 264)  - State management and memento registry
+ * 13. [src/utils.js]            (first line: 284)  - String sanitization, entity extraction, boundary normalization
  */
 
 (function (root, factory) {
@@ -71,6 +71,7 @@
   const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|rp|harv|harvnb|harvtxt|harvp)\b((?:(?!\{\{\s*(?:sfn|sfnp|sfnm|sfnmp|efn|r\b|\/)).)*?)\}\}/gi;
 
   const STORAGE_KEY = 'refdiff-active';
+  const STORAGE_KEY_SEPARATE = 'refdiff-separate-changed';
 
   /** Centralized CSS selector registry for MediaWiki diff DOM queries. */
   const SELECTORS = {
@@ -825,8 +826,10 @@
       for (let m = 0; m < item.markers.length; m++) {
         const mkInfo = item.markers[m];
         if (mkInfo.marker !== null) {
-          mkInfo.el.setAttribute('data-marker', mkInfo.marker);
-        } else {
+          if (typeof mkInfo.el.setAttribute === 'function') {
+            mkInfo.el.setAttribute('data-marker', mkInfo.marker);
+          }
+        } else if (typeof mkInfo.el.removeAttribute === 'function') {
           mkInfo.el.removeAttribute('data-marker');
         }
       }
@@ -843,13 +846,21 @@
 
   /**
    * Transforms prose cell HTML by replacing raw references with badges and extracting modified citations.
+   * If separateChanged is false, unchanged references are shortened into hoverable badges, while
+   * changed references remain directly inline in the prose diff (no separate rows created).
    * @param {string} initialDelHtml
    * @param {string} initialAddHtml
    * @param {Array<Object>} pairs
    * @param {number} startCounter
+   * @param {{ separateChanged?: boolean }} [options]
    * @returns {{ newDelHtml: string, newAddHtml: string, modifiedCits: Array<Object>, nextCounter: number }}
    */
-  function transformProseCells(initialDelHtml, initialAddHtml, pairs, startCounter) {
+  function transformProseCells(initialDelHtml, initialAddHtml, pairs, startCounter, options) {
+    const opts = options || {};
+    const separateChanged = typeof opts.separateChanged === 'boolean'
+      ? opts.separateChanged
+      : isSeparateChangedPreferred();
+
     let citCounter = startCounter;
     const modifiedCits = [];
     let newDelHtml = normalizeDiffTags(initialDelHtml);
@@ -865,6 +876,9 @@
       if (d && a) {
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
         if (isMod) {
+          if (!separateChanged) {
+            continue;
+          }
           const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw, rowId, citeNoteId });
           const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
@@ -878,12 +892,18 @@
           newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         }
       } else if (a && !d) {
+        if (!separateChanged) {
+          continue;
+        }
         const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
         const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
         const badge = createProseBadge('add', label, href);
         newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true, rowId, citeNoteId });
       } else if (d && !a) {
+        if (!separateChanged) {
+          continue;
+        }
         const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
         const href = `#${rowId}`;
         const badge = createProseBadge('del', label, href);
@@ -936,9 +956,11 @@
    * Applies the decoupled citation diff view to a MediaWiki diff table.
    * Preserves 100% of native DOM elements in-place to avoid detaching MediaWiki event listeners.
    * @param {HTMLTableElement} table
+   * @param {{ separateChanged?: boolean }} [options]
    */
-  function applyDecoupling(table) {
+  function applyDecoupling(table, options) {
     if (!table || typeof table.querySelectorAll !== 'function' || state.isDecoupled) return;
+    const opts = options || {};
 
     if (!state.origTableHtml) {
       state.origTableHtml = table.innerHTML;
@@ -969,7 +991,8 @@
         delDiv ? delDiv.innerHTML : '',
         addDiv ? addDiv.innerHTML : '',
         pairs,
-        citCounter
+        citCounter,
+        opts
       );
       citCounter = nextCounter;
 
@@ -980,8 +1003,10 @@
         updateProseRowAppearance(row, newDelHtml, newAddHtml);
       }
 
-      // 4. Insert citation diff rows
-      insertCitationRows(row, modifiedCits);
+      // 4. Insert citation diff rows (only if any modified citations exist)
+      if (modifiedCits.length > 0) {
+        insertCitationRows(row, modifiedCits);
+      }
     }
 
     state.isDecoupled = true;
@@ -1159,6 +1184,54 @@
         }
       }
     } catch (e) {
+      // Silently ignore quota / private mode storage errors
+    }
+  }
+
+  /**
+   * Checks whether changed references should be decoupled into separate rows.
+   * If false, unchanged references are shortened into hoverable badges, while
+   * changed references remain directly inline in the prose diff line.
+   * Defaults to true (full decoupling).
+   * Precedence: window.refdiffConfig.separateChanged > URL (?refdiff_separate=0|1) > storage > default true
+   * @returns {boolean}
+   */
+  function isSeparateChangedPreferred() {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.refdiffConfig && typeof window.refdiffConfig.separateChanged === 'boolean') {
+          return window.refdiffConfig.separateChanged;
+        }
+        if (window.location && /[?&]refdiff_separate=0\b/.test(window.location.search)) return false;
+        if (window.location && /[?&]refdiff_separate=1\b/.test(window.location.search)) return true;
+
+        const stored = (window.mw && window.mw.storage)
+          ? window.mw.storage.get(STORAGE_KEY_SEPARATE)
+          : (window.localStorage ? window.localStorage.getItem(STORAGE_KEY_SEPARATE) : null);
+        if (stored !== null && stored !== undefined) {
+          return stored === 'true';
+        }
+      }
+      return true;
+    } catch (_e) {
+      return true;
+    }
+  }
+
+  /**
+   * Persists the separateChanged preference to mw.storage / localStorage.
+   * @param {boolean} separate
+   */
+  function setSeparateChangedPreferred(separate) {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.mw && window.mw.storage) {
+          window.mw.storage.set(STORAGE_KEY_SEPARATE, String(separate));
+        } else if (window.localStorage) {
+          window.localStorage.setItem(STORAGE_KEY_SEPARATE, String(separate));
+        }
+      }
+    } catch (_e) {
       // Silently ignore quota / private mode storage errors
     }
   }
@@ -1601,12 +1674,15 @@
 
   return {
     STORAGE_KEY,
+    STORAGE_KEY_SEPARATE,
     SELECTORS,
     CLASSES,
     HOOKS,
     state,
     isRefDiffPreferred,
     setRefDiffPreferred,
+    isSeparateChangedPreferred,
+    setSeparateChangedPreferred,
     REF_REGEX,
     TEMPLATE_REF_REGEX,
     stripHtml,

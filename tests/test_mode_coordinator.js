@@ -10,6 +10,9 @@ const {
   selectMode,
   updateButtonState,
   isRefDiffPreferred,
+  isSeparateChangedPreferred,
+  setSeparateChangedPreferred,
+  STORAGE_KEY_SEPARATE,
   setInlineSwitchDisabled,
   restoreOriginal
 } = require('../refdiff.js');
@@ -178,6 +181,88 @@ suite('src/mode_coordinator.js - Mode Switching & Locks', () => {
       assert.strictEqual(visualActive, false, 'Visual button should not be active');
       assert.strictEqual(removedHidden, true, 'Body row hidden class should be removed in refdiff mode');
       restoreOriginal(mockTable);
+    });
+  });
+
+  test('isSeparateChangedPreferred returns true by default and handles absent window/storage', () => {
+    withMockEnvironment({ window: undefined }, () => {
+      assert.strictEqual(isSeparateChangedPreferred(), true, 'Should default to true when window is undefined');
+    });
+
+    withMockEnvironment({ window: {} }, () => {
+      assert.strictEqual(isSeparateChangedPreferred(), true, 'Should default to true when window is empty');
+    });
+  });
+
+  test('isSeparateChangedPreferred prioritizes window.refdiffConfig over URL and storage', () => {
+    const { mockWindow } = setupMockStorage('localStorage');
+    mockWindow.location.search = '?diff=123&refdiff_separate=1';
+    mockWindow.localStorage.setItem(STORAGE_KEY_SEPARATE, 'true');
+
+    // refdiffConfig.separateChanged = false overrides URL and storage
+    mockWindow.refdiffConfig = { separateChanged: false };
+    withMockEnvironment({ window: mockWindow }, () => {
+      assert.strictEqual(isSeparateChangedPreferred(), false, 'refdiffConfig.separateChanged = false should take precedence');
+    });
+
+    // refdiffConfig.separateChanged = true
+    mockWindow.location.search = '?diff=123&refdiff_separate=0';
+    mockWindow.localStorage.setItem(STORAGE_KEY_SEPARATE, 'false');
+    mockWindow.refdiffConfig = { separateChanged: true };
+    withMockEnvironment({ window: mockWindow }, () => {
+      assert.strictEqual(isSeparateChangedPreferred(), true, 'refdiffConfig.separateChanged = true should take precedence');
+    });
+  });
+
+  test('isSeparateChangedPreferred respects URL parameters ?refdiff_separate=0 and ?refdiff_separate=1', () => {
+    const { mockWindow } = setupMockStorage('localStorage');
+    withMockEnvironment({ window: mockWindow }, () => {
+      mockWindow.location.search = '?diff=123&refdiff_separate=0';
+      assert.strictEqual(isSeparateChangedPreferred(), false, '?refdiff_separate=0 should return false');
+
+      mockWindow.location.search = '?diff=123&refdiff_separate=1';
+      assert.strictEqual(isSeparateChangedPreferred(), true, '?refdiff_separate=1 should return true');
+    });
+  });
+
+  test('isSeparateChangedPreferred and setSeparateChangedPreferred work across localStorage and mw.storage', () => {
+    // 1. localStorage
+    const { mockStore: localStore, mockWindow: localWin } = setupMockStorage('localStorage');
+    withMockEnvironment({ window: localWin }, () => {
+      assert.strictEqual(isSeparateChangedPreferred(), true);
+      setSeparateChangedPreferred(false);
+      assert.strictEqual(localStore[STORAGE_KEY_SEPARATE], 'false');
+      assert.strictEqual(isSeparateChangedPreferred(), false);
+
+      setSeparateChangedPreferred(true);
+      assert.strictEqual(localStore[STORAGE_KEY_SEPARATE], 'true');
+      assert.strictEqual(isSeparateChangedPreferred(), true);
+    });
+
+    // 2. mw.storage
+    const { mockStore: mwStore, mockWindow: mwWin } = setupMockStorage('mw.storage');
+    withMockEnvironment({ window: mwWin }, () => {
+      setSeparateChangedPreferred(false);
+      assert.strictEqual(mwStore[STORAGE_KEY_SEPARATE], 'false');
+      assert.strictEqual(isSeparateChangedPreferred(), false);
+
+      setSeparateChangedPreferred(true);
+      assert.strictEqual(mwStore[STORAGE_KEY_SEPARATE], 'true');
+      assert.strictEqual(isSeparateChangedPreferred(), true);
+    });
+
+    // 3. Storage errors caught gracefully
+    const failingWin = {
+      localStorage: {
+        getItem() { throw new Error('QuotaExceeded'); },
+        setItem() { throw new Error('QuotaExceeded'); }
+      }
+    };
+    withMockEnvironment({ window: failingWin }, () => {
+      assert.strictEqual(isSeparateChangedPreferred(), true, 'Should fall back to true on storage read error');
+      assert.doesNotThrow(() => {
+        setSeparateChangedPreferred(false);
+      }, 'Storage write error should be caught silently');
     });
   });
 });

@@ -57,7 +57,7 @@ RefDiff enforces 100% test pass rate across 13 modular unit and component test s
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (59 tests in ~20ms)
+# 2. Run the fast headless unit & component test suite (65 tests in ~20ms)
 npm test
 
 # 3. Run combined CI checks

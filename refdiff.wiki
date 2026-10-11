@@ -2,7 +2,7 @@
 | name        = RefDiff
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
 | author      = [[User:Powercycler|Powercycler]]
-| status      = Stable (v1.3.0) &bull; [[#Quality Assurance & Automated Testing|59/59 passing (100% coverage)]]
+| status      = Stable (v1.3.0) &bull; [[#Quality Assurance & Automated Testing|65/65 passing (100% coverage)]]
 | version     = 1.3.0
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
@@ -145,6 +145,39 @@ On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's 
 * '''Fallback Mode Bar:''' On older skins without the OOUI button container (e.g. Monobook), RefDiff displays a clean switcher bar above the diff table:
   : {{mono|Diff view: '''Decoupled (RefDiff)''' • Standard Wikidiff}}
 
+== Configuration & Options ==
+
+RefDiff supports configurable decoupling modes to tailor review workflows to personal editor preferences:
+
+=== Inline Ref-Diff Mode (No Separate Citation Rows) ===
+By default, modified citations are decoupled into dedicated {{mono|tr.refdiff-cit-row}} rows below the prose line. If you prefer to keep citation diffs directly inline inside the prose sentence while still shortening unchanged citations into hoverable badges with Reference Previews, you can disable citation row separation:
+
+* '''In your {{mono|common.js}}''' (before loading {{mono|refdiff.js}}):
+  <syntaxhighlight lang="javascript">
+  window.refdiffConfig = {
+      separateChanged: false // Keep modified citations inline; shorten unchanged citations into hoverable badges
+  };
+  </syntaxhighlight>
+* '''Per-Diff URL Parameter:''' Append {{mono|&refdiff_separate=0}} (inline changes) or {{mono|&refdiff_separate=1}} (decoupled rows) to any diff URL to test without changing your configuration.
+* '''Persistent Storage:''' Configure via browser console:
+  <syntaxhighlight lang="javascript">
+  mw.storage.set('refdiff-separate-changed', 'false');
+  </syntaxhighlight>
+
+{| class="wikitable"
+! Mode !! Unchanged Citations !! Modified / Added / Deleted Citations !! Citation Rows Below
+|-
+| '''Full Decoupling''' (Default)<br />{{mono|separateChanged: true}}
+| Collapsed into mathematical badges ({{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}) with hover preview.
+| Badged ({{mono|⟨~ref2~⟩}}) and decoupled into separate row below.
+| Yes (one isolated diff row per citation edit).
+|-
+| '''Inline Ref-Diff'''<br />{{mono|separateChanged: false}}
+| Collapsed into mathematical badges ({{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}) with hover preview.
+| Retained inline in prose with standard MediaWiki {{tag|del}}/{{tag|ins}} diff highlighting.
+| No (clean zero-expansion layout).
+|}
+
 == Themes & Skins ==
 
 RefDiff natively supports all major Wikipedia skins and color schemes:
@@ -156,7 +189,7 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 
 RefDiff is backed by a rigorous four-level test pyramid and quality assurance framework (specified in detail in {{mono|TEST_PLAN.md}} in the project repository):
 
-* '''100% Headless Function Coverage:''' All 66 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 13 modular unit and component test suites in headless Node.js (59 tests executing in ~20&nbsp;ms).
+* '''100% Headless Function Coverage:''' All 68 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 13 modular unit and component test suites in headless Node.js (65 tests executing in ~20&nbsp;ms).
 * '''In-Place DOM Memento Invariance:''' Rigorously tests that DOM mutations adhere to the Memento pattern—retaining live DOM element closures, event listeners (such as {{mono|inlineFormatToggle.js}} and VisualEditor), and restoring native MediaWiki diff tables byte-for-byte upon mode toggling.
 * '''Shortened Footnotes & Citation Templates:''' Extensively validates tokenization, parameter parsing, entity decoding, and anchor discovery across {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and complex nested {{tag|ref}} tags.
 * '''High-Density Stress Benchmarking:''' Benchmarked on real-world extreme diffs (e.g. airport destination tables with 114 references and split {{mono|diffchange}} boundaries) to guarantee execution under 50&nbsp;ms without browser lag.

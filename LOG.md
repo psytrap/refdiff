@@ -215,3 +215,18 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Reached **100.0% function coverage** (66 of 66 functions) in headless Node.js via V8 coverage instrumentation.
   * Increased test suite to **59 passing tests** across all 13 modular suites executing in **~18–25 ms** with 0 ESLint warnings.
   * Synchronized all documentation across [`TEST_PLAN.md`](TEST_PLAN.md), [`README.md`](README.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), and [`REFDIFF.md`](REFDIFF.md).
+
+### 2026-10-11: Configurable Inline-Change Mode & 100% Function Coverage (68/68 functions)
+
+* **Configurable Inline Ref-Diff Mode (`separateChanged: false`):**
+  * Implemented user-configurable decoupled vs. inline-diff behavior.
+  * In `separateChanged: false` mode, unchanged references are collapsed into clean mathematical badges with full Reference Preview hovercards, while modified, added, and deleted references remain directly inline in the prose diff line with standard MediaWiki `<del>`/`<ins>` diff highlighting (no separate citation rows inserted).
+  * Configurable with 4-tier precedence: `window.refdiffConfig.separateChanged` > URL parameter `?refdiff_separate=0|1` > `mw.storage` / `localStorage` (`refdiff-separate-changed`) > default `true` (full decoupling).
+* **Automated Test Expansion & 100% Headless Function Coverage:**
+  * Added 6 new unit and component tests in `tests/test_mode_coordinator.js` and `tests/test_pipeline.js`.
+  * Total test count expanded to **65 passing tests** across 13 modular suites, completing in **~18–25 ms** with 0 ESLint warnings.
+  * Verified **100.0% function coverage** across all **68 of 68 functions** via V8 coverage instrumentation.
+* **Documentation Synchronization:**
+  * Updated on-wiki manual in `refdiff.wiki` with a dedicated `== Configuration & Options ==` guide, infobox status, and comparative mode matrix.
+  * Synchronized test plan and architecture specifications across `TEST_PLAN.md`, `README.md`, `REFDIFF.md`, and `ARCHITECTURE.md`.
+
