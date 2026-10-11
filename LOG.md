@@ -9,9 +9,9 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Status:** Ready for Community & Upstream Outreach (Phase 1)
 * **Goal:** Eliminate diff pollution, avoid cross-section merge conflicts, and preserve wikitext readability by decoupling inline reference callouts from section-level citation definitions.
 * **Core Artifacts:**
-  * 💡 **[PROPOSAL.md](PROPOSAL.md):** Concise proposal (pure feature focus).
-  * 📄 **[CONCEPT.md](CONCEPT.md):** Comprehensive technical specification and architecture paper.
-  * 📝 **[POST.md](POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
+  * 💡 **[PROPOSAL.md](proposal/PROPOSAL.md):** Concise proposal (pure feature focus).
+  * 📄 **[CONCEPT.md](proposal/CONCEPT.md):** Comprehensive technical specification and architecture paper.
+  * 📝 **[POST.md](proposal/POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -33,7 +33,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Track feedback on syntax choices (`<references hidden>` vs `<references-def>` vs `<references display="none">`).
   * Note community questions regarding VisualEditor UX and mobile rendering.
 - [ ] **Step 2.2: Refine Specification**
-  * Incorporate edge cases and consensus items into [CONCEPT.md](CONCEPT.md) and [PROPOSAL.md](PROPOSAL.md).
+  * Incorporate edge cases and consensus items into [CONCEPT.md](proposal/CONCEPT.md) and [PROPOSAL.md](proposal/PROPOSAL.md).
 
 ### Phase 3: Proof of Concept (PoC) Prototype
 - [ ] **Step 3.1: Python CLI Demonstration Tool (`ref-scope`)**
