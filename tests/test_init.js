@@ -9,10 +9,13 @@ const {
   isDiffPage,
   createRefDiffButton,
   createFallbackModeBar,
+  createInlineToggle,
   createDecoupleToggle,
+  bindInlineToggleListener,
   bindDecoupleToggleListener,
   init,
   restoreOriginal,
+  isInlineModifiedPreferred,
   isSeparateChangedPreferred
 } = require('../refdiff.js');
 
@@ -116,35 +119,40 @@ suite('src/init.js - Page Detection', () => {
         })
       }
     }, () => {
-      const toggleTrue = createDecoupleToggle(true);
-      assert.strictEqual(toggleTrue.id, 'refdiff-decouple-container');
+      const toggleTrue = createInlineToggle(true);
+      assert.strictEqual(toggleTrue.id, 'refdiff-inline-container');
       assert.strictEqual(toggleTrue.innerHTML.includes('checked'), true);
-      assert.strictEqual(toggleTrue.innerHTML.includes('Decouple rows'), true);
+      assert.strictEqual(toggleTrue.innerHTML.includes('Inline modified refs'), true);
 
-      const toggleFalse = createDecoupleToggle(false);
+      const toggleFalse = createInlineToggle(false);
       assert.strictEqual(toggleFalse.innerHTML.includes('checked'), false);
+      assert.strictEqual(toggleFalse.innerHTML.includes('Inline modified refs'), true);
+
+      // Backward-compatible alias
+      const aliasToggle = createDecoupleToggle(false);
+      assert.strictEqual(aliasToggle.innerHTML.includes('Inline modified refs'), true);
     });
   });
 
-  test('bindDecoupleToggleListener safely handles missing DOM and toggles preference on change', () => {
+  test('bindInlineToggleListener safely handles missing DOM and toggles preference on change', () => {
     // 1. Missing document
     withMockEnvironment({ document: undefined }, () => {
-      assert.doesNotThrow(() => bindDecoupleToggleListener());
+      assert.doesNotThrow(() => bindInlineToggleListener());
     });
 
     // 2. Missing toggle element
     withMockEnvironment({
       document: { getElementById: () => null }
     }, () => {
-      assert.doesNotThrow(() => bindDecoupleToggleListener());
+      assert.doesNotThrow(() => bindInlineToggleListener());
     });
 
     // 3. Active toggle element
     let changeHandler = null;
 
     const mockCheckbox = {
-      id: 'refdiff-decouple-toggle',
-      checked: true,
+      id: 'refdiff-inline-toggle',
+      checked: false,
       addEventListener(event, fn) {
         if (event === 'change') changeHandler = fn;
       }
@@ -158,21 +166,24 @@ suite('src/init.js - Page Detection', () => {
     const { mockWindow } = setupMockStorage('localStorage');
     withMockEnvironment({
       document: {
-        getElementById: (id) => (id === 'refdiff-decouple-toggle' ? mockCheckbox : null),
+        getElementById: (id) => (id === 'refdiff-inline-toggle' ? mockCheckbox : null),
         querySelector: () => mockTable
       },
       window: mockWindow
     }, () => {
-      bindDecoupleToggleListener(mockTable);
+      bindInlineToggleListener(mockTable);
+      assert.strictEqual(typeof bindDecoupleToggleListener, 'function', 'bindDecoupleToggleListener should exist as alias');
       assert.strictEqual(typeof changeHandler, 'function', 'Change handler should be attached');
 
-      // Trigger uncheck event
-      changeHandler({ target: { checked: false } });
-      assert.strictEqual(isSeparateChangedPreferred(), false, 'Preference should become false');
-
-      // Trigger re-check event
+      // Trigger check event (enable inline modified references)
       changeHandler({ target: { checked: true } });
-      assert.strictEqual(isSeparateChangedPreferred(), true, 'Preference should become true');
+      assert.strictEqual(isInlineModifiedPreferred(), true, 'Preference should become true (inline)');
+      assert.strictEqual(isSeparateChangedPreferred(), false, 'Legacy separate preference should become false');
+
+      // Trigger uncheck event (revert to full decoupling)
+      changeHandler({ target: { checked: false } });
+      assert.strictEqual(isInlineModifiedPreferred(), false, 'Preference should become false (not inline)');
+      assert.strictEqual(isSeparateChangedPreferred(), true, 'Legacy separate preference should become true');
     });
   });
 
@@ -191,7 +202,7 @@ suite('src/init.js - Page Detection', () => {
     }, () => {
       const barTrue = createFallbackModeBar(true);
       assert.strictEqual(barTrue.innerHTML.includes('id="refdiff-btn-decoupled" class="active"'), true);
-      assert.strictEqual(barTrue.innerHTML.includes('Decouple rows'), true);
+      assert.strictEqual(barTrue.innerHTML.includes('Inline modified refs'), true);
       const barFalse = createFallbackModeBar(false);
       assert.strictEqual(barFalse.innerHTML.includes('id="refdiff-btn-standard" class="active"'), true);
     });

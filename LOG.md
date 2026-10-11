@@ -239,3 +239,18 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Verification:** Confirmed live in Chromium via CDP on `Cosmic inflation diff=1379470949` that the added space is properly highlighted in blue with `+`/`-` markers and citation badges.
   * **Test Coverage:** Added regression tests in `tests/test_utils.js` and `tests/test_pipeline.js`. All **69/69 tests passing (100% headless function coverage across 71/71 functions)**.
 
+### 2026-10-11: In-Toolbar "Inline modified refs" Toggle & In-Place Prepended Badges
+
+* **Intuitive Toolbar Label & Positive Polarity (`[ ] Inline modified refs`):**
+  * Renamed the toolbar checkbox from `Decouple rows` to **`Inline modified refs`**.
+  * Default state: **Unchecked** (clean traditional RefDiff out-of-the-box, decoupling all modified, added, and deleted citations into separate rows below).
+  * When checked: **Inline modified references mode** is enabled (`inlineModified: true` / legacy `separateChanged: false`).
+* **In-Place Prepended Badge for Modified References:**
+  * Modified references stay directly inline within prose diff lines with full native `<ins class="diffchange">` / `<del class="diffchange">` highlighting preserved.
+  * An interactive mathematical badge (`⟨~label~⟩`) is prepended directly before `<ref...>`, linking directly to the `#cite_note-*` live anchor.
+  * Unchanged citations remain collapsed into badges (`⟨ref1⟩`).
+  * Added citations (e.g. `<ref name="kami" />`) and deleted citations **always** decouple into dedicated citation rows below, regardless of the checkbox.
+* **Testing & Quality Assurance:**
+  * Total test count expanded to **75/75 passing tests** across 13 modular test suites with 0 ESLint warnings.
+  * Verified live via Chromium CDP on Wikipedia diffs.
+

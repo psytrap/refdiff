@@ -72,6 +72,7 @@
 
   const STORAGE_KEY = 'refdiff-active';
   const STORAGE_KEY_SEPARATE = 'refdiff-separate-changed';
+  const STORAGE_KEY_INLINE = 'refdiff-inline-modified';
 
   /** Centralized CSS selector registry for MediaWiki diff DOM queries. */
   const SELECTORS = {
@@ -94,8 +95,10 @@
     REFDIFF_MODE_BAR: '#refdiff-mode-bar',
     REFDIFF_BTN_DECOUPLED: '#refdiff-btn-decoupled',
     REFDIFF_BTN_STANDARD: '#refdiff-btn-standard',
-    DECOUPLE_TOGGLE: '#refdiff-decouple-toggle',
-    DECOUPLE_CONTAINER: '#refdiff-decouple-container',
+    INLINE_TOGGLE: '#refdiff-inline-toggle, #refdiff-decouple-toggle',
+    INLINE_CONTAINER: '#refdiff-inline-container, #refdiff-decouple-container',
+    DECOUPLE_TOGGLE: '#refdiff-inline-toggle, #refdiff-decouple-toggle',
+    DECOUPLE_CONTAINER: '#refdiff-inline-container, #refdiff-decouple-container',
     STYLE_BADGE: '#refdiff-badge-styles'
   };
 
@@ -250,6 +253,7 @@
       text-decoration: none;
       cursor: default;
     }
+    .refdiff-inline-container,
     .refdiff-decouple-container {
       display: inline-flex;
       align-items: center;
@@ -261,13 +265,17 @@
       user-select: none;
       transition: opacity 0.15s ease;
     }
+    .refdiff-inline-container.oo-ui-widget-disabled,
     .refdiff-decouple-container.oo-ui-widget-disabled {
       opacity: 0.45;
     }
+    .refdiff-inline-container.oo-ui-widget-disabled label,
+    .refdiff-inline-container.oo-ui-widget-disabled input,
     .refdiff-decouple-container.oo-ui-widget-disabled label,
     .refdiff-decouple-container.oo-ui-widget-disabled input {
       cursor: default;
     }
+    .refdiff-inline-label,
     .refdiff-decouple-label {
       display: inline-flex;
       align-items: center;
@@ -276,6 +284,7 @@
       margin: 0;
       font-weight: normal;
     }
+    .refdiff-inline-checkbox,
     .refdiff-decouple-checkbox {
       cursor: pointer;
       margin: 0;
@@ -285,12 +294,16 @@
       margin: 0 6px;
       color: #72777d;
     }
+    html.skin-theme-clientpref-night .refdiff-inline-container,
+    body.skin-theme-clientpref-night .refdiff-inline-container,
     html.skin-theme-clientpref-night .refdiff-decouple-container,
     body.skin-theme-clientpref-night .refdiff-decouple-container {
       color: #a2a9b1;
       color: var(--color-subtle, #a2a9b1);
     }
     @media (prefers-color-scheme: dark) {
+      html.skin-theme-clientpref-os .refdiff-inline-container,
+      body.skin-theme-clientpref-os .refdiff-inline-container,
       html.skin-theme-clientpref-os .refdiff-decouple-container,
       body.skin-theme-clientpref-os .refdiff-decouple-container {
         color: #a2a9b1;
@@ -903,20 +916,23 @@
 
   /**
    * Transforms prose cell HTML by replacing raw references with badges and extracting modified citations.
-   * If separateChanged is false, unchanged references are shortened into hoverable badges, while
-   * changed references remain directly inline in the prose diff (no separate rows created).
+   * If inlineModified is true (or legacy separateChanged is false), modified references remain directly
+   * inline in the prose diff with a prepended badge (no separate rows created), while unchanged references
+   * are shortened into hoverable badges. Added and deleted references always separate into rows below.
    * @param {string} initialDelHtml
    * @param {string} initialAddHtml
    * @param {Array<Object>} pairs
    * @param {number} startCounter
-   * @param {{ separateChanged?: boolean }} [options]
+   * @param {{ inlineModified?: boolean, separateChanged?: boolean }} [options]
    * @returns {{ newDelHtml: string, newAddHtml: string, modifiedCits: Array<Object>, nextCounter: number }}
    */
   function transformProseCells(initialDelHtml, initialAddHtml, pairs, startCounter, options) {
     const opts = options || {};
-    const separateChanged = typeof opts.separateChanged === 'boolean'
-      ? opts.separateChanged
-      : isSeparateChangedPreferred();
+    const inlineModified = typeof opts.inlineModified === 'boolean'
+      ? opts.inlineModified
+      : (typeof opts.separateChanged === 'boolean'
+          ? !opts.separateChanged
+          : isInlineModifiedPreferred());
 
     let citCounter = startCounter;
     const modifiedCits = [];
@@ -933,7 +949,7 @@
       if (d && a) {
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
         if (isMod) {
-          if (!separateChanged) {
+          if (inlineModified) {
             const href = citeNoteId ? `#${citeNoteId}` : null;
             const badge = createProseBadge('mod', label, href);
             newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge, true);
@@ -1244,51 +1260,84 @@
   }
 
   /**
-   * Checks whether changed references should be decoupled into separate rows.
-   * If false, unchanged references are shortened into hoverable badges, while
-   * changed references remain directly inline in the prose diff line.
-   * Defaults to true (full decoupling).
-   * Precedence: window.refdiffConfig.separateChanged > URL (?refdiff_separate=0|1) > storage > default true
+   * Checks whether modified references should remain inline in prose with a prepended badge.
+   * If true, modified references remain inline with ⟨~label~⟩ prepended, while unchanged
+   * references are shortened into hoverable badges. Added and deleted references always
+   * separate into citation rows below regardless.
+   * Defaults to false (clean traditional RefDiff out-of-the-box, unchecked).
+   * Precedence: window.refdiffConfig.inlineModified > window.refdiffConfig.separateChanged (inverted)
+   *             > URL (?refdiff_inline=0|1 / ?refdiff_separate=0|1) > storage > default false
    * @returns {boolean}
    */
-  function isSeparateChangedPreferred() {
+  function isInlineModifiedPreferred() {
     try {
       if (typeof window !== 'undefined') {
-        if (window.refdiffConfig && typeof window.refdiffConfig.separateChanged === 'boolean') {
-          return window.refdiffConfig.separateChanged;
+        if (window.refdiffConfig && typeof window.refdiffConfig.inlineModified === 'boolean') {
+          return window.refdiffConfig.inlineModified;
         }
-        if (window.location && /[?&]refdiff_separate=0\b/.test(window.location.search)) return false;
-        if (window.location && /[?&]refdiff_separate=1\b/.test(window.location.search)) return true;
+        if (window.refdiffConfig && typeof window.refdiffConfig.separateChanged === 'boolean') {
+          return !window.refdiffConfig.separateChanged;
+        }
+        if (window.location && /[?&]refdiff_inline=1\b/.test(window.location.search)) return true;
+        if (window.location && /[?&]refdiff_inline=0\b/.test(window.location.search)) return false;
+        if (window.location && /[?&]refdiff_separate=0\b/.test(window.location.search)) return true;
+        if (window.location && /[?&]refdiff_separate=1\b/.test(window.location.search)) return false;
 
-        const stored = (window.mw && window.mw.storage)
+        const storedInline = (window.mw && window.mw.storage)
+          ? window.mw.storage.get(STORAGE_KEY_INLINE)
+          : (window.localStorage ? window.localStorage.getItem(STORAGE_KEY_INLINE) : null);
+        if (storedInline !== null && storedInline !== undefined) {
+          return storedInline === 'true';
+        }
+
+        const storedSeparate = (window.mw && window.mw.storage)
           ? window.mw.storage.get(STORAGE_KEY_SEPARATE)
           : (window.localStorage ? window.localStorage.getItem(STORAGE_KEY_SEPARATE) : null);
-        if (stored !== null && stored !== undefined) {
-          return stored === 'true';
+        if (storedSeparate !== null && storedSeparate !== undefined) {
+          return storedSeparate === 'false';
         }
       }
-      return true;
+      return false;
     } catch (_e) {
-      return true;
+      return false;
     }
   }
 
   /**
-   * Persists the separateChanged preference to mw.storage / localStorage.
-   * @param {boolean} separate
+   * Persists the inlineModified preference to mw.storage / localStorage.
+   * @param {boolean} inline
    */
-  function setSeparateChangedPreferred(separate) {
+  function setInlineModifiedPreferred(inline) {
     try {
       if (typeof window !== 'undefined') {
         if (window.mw && window.mw.storage) {
-          window.mw.storage.set(STORAGE_KEY_SEPARATE, String(separate));
+          window.mw.storage.set(STORAGE_KEY_INLINE, String(inline));
+          window.mw.storage.set(STORAGE_KEY_SEPARATE, String(!inline));
         } else if (window.localStorage) {
-          window.localStorage.setItem(STORAGE_KEY_SEPARATE, String(separate));
+          window.localStorage.setItem(STORAGE_KEY_INLINE, String(inline));
+          window.localStorage.setItem(STORAGE_KEY_SEPARATE, String(!inline));
         }
       }
     } catch (_e) {
       // Silently ignore quota / private mode storage errors
     }
+  }
+
+  /**
+   * Backward-compatible alias checking whether modified references should be decoupled into separate rows.
+   * Defaults to true (full decoupling).
+   * @returns {boolean}
+   */
+  function isSeparateChangedPreferred() {
+    return !isInlineModifiedPreferred();
+  }
+
+  /**
+   * Backward-compatible alias persisting the separateChanged preference.
+   * @param {boolean} separate
+   */
+  function setSeparateChangedPreferred(separate) {
+    setInlineModifiedPreferred(!separate);
   }
 
   /**
@@ -1503,9 +1552,13 @@
       }
     }
 
-    // Synchronize Decouple rows toggle availability with RefDiff mode
-    const toggleCheckbox = typeof document !== 'undefined' ? document.getElementById('refdiff-decouple-toggle') : null;
-    const toggleContainer = typeof document !== 'undefined' ? document.getElementById('refdiff-decouple-container') : null;
+    // Synchronize Inline modified refs toggle availability with RefDiff mode
+    const toggleCheckbox = typeof document !== 'undefined'
+      ? (document.getElementById('refdiff-inline-toggle') || document.getElementById('refdiff-decouple-toggle'))
+      : null;
+    const toggleContainer = typeof document !== 'undefined'
+      ? (document.getElementById('refdiff-inline-container') || document.getElementById('refdiff-decouple-container'))
+      : null;
     if (toggleCheckbox) {
       toggleCheckbox.disabled = (mode !== 'refdiff');
     }
@@ -1555,45 +1608,63 @@
   }
 
   /**
-   * Creates the Decouple rows toggle checkbox element.
-   * @param {boolean} isChecked
+   * Creates the Inline modified refs toggle checkbox element.
+   * @param {boolean} [isChecked]
    * @returns {HTMLElement}
    */
-  function createDecoupleToggle(isChecked) {
+  function createInlineToggle(isChecked) {
+    const isInline = typeof isChecked === 'boolean' ? isChecked : isInlineModifiedPreferred();
     const container = document.createElement('span');
-    container.id = 'refdiff-decouple-container';
-    container.className = 'refdiff-decouple-container oo-ui-widget oo-ui-widget-enabled';
-    container.setAttribute('title', 'When unchecked, keeps changed citations directly inline in the diff');
+    container.id = 'refdiff-inline-container';
+    container.className = 'refdiff-inline-container refdiff-decouple-container oo-ui-widget oo-ui-widget-enabled';
+    container.setAttribute('title', 'When checked, keeps modified references inline in prose with a prepended badge instead of decoupling them into separate rows below');
     container.innerHTML = `
-      <label class="refdiff-decouple-label">
-        <input type="checkbox" id="refdiff-decouple-toggle" class="refdiff-decouple-checkbox"${isChecked ? ' checked' : ''}>
-        <span class="refdiff-decouple-text">Decouple rows</span>
+      <label class="refdiff-inline-label refdiff-decouple-label">
+        <input type="checkbox" id="refdiff-inline-toggle" class="refdiff-inline-checkbox refdiff-decouple-checkbox"${isInline ? ' checked' : ''}>
+        <span class="refdiff-inline-text refdiff-decouple-text">Inline modified refs</span>
       </label>
     `;
     return container;
   }
 
   /**
-   * Binds the change event listener to the Decouple rows toggle checkbox.
+   * Backward-compatible alias for createInlineToggle.
+   * @param {boolean} [isChecked]
+   * @returns {HTMLElement}
+   */
+  function createDecoupleToggle(isChecked) {
+    return createInlineToggle(isChecked);
+  }
+
+  /**
+   * Binds the change event listener to the Inline modified refs toggle checkbox.
    * @param {HTMLTableElement} [table]
    */
-  function bindDecoupleToggleListener(table) {
+  function bindInlineToggleListener(table) {
     if (typeof document === 'undefined') return;
-    const toggle = document.getElementById('refdiff-decouple-toggle');
+    const toggle = document.getElementById('refdiff-inline-toggle') || document.getElementById('refdiff-decouple-toggle');
     if (!toggle || toggle._refdiffBound) return;
     toggle._refdiffBound = true;
     toggle.addEventListener('change', (e) => {
-      const separate = !!e.target.checked;
-      setSeparateChangedPreferred(separate);
+      const isInline = !!e.target.checked;
+      setInlineModifiedPreferred(isInline);
       if (isRefDiffPreferred() && !isVisualDiffActive()) {
         const diffTable = table || document.querySelector(SELECTORS.DIFF_TABLE);
         if (diffTable) {
           restoreOriginal(diffTable);
-          applyDecoupling(diffTable, { separateChanged: separate });
+          applyDecoupling(diffTable, { inlineModified: isInline, separateChanged: !isInline });
           notifyBodyUpdate(diffTable);
         }
       }
     });
+  }
+
+  /**
+   * Backward-compatible alias for bindInlineToggleListener.
+   * @param {HTMLTableElement} [table]
+   */
+  function bindDecoupleToggleListener(table) {
+    return bindInlineToggleListener(table);
   }
 
   /**
@@ -1622,19 +1693,19 @@
   /**
    * Creates a fallback mode bar for MediaWiki skins lacking the OOUI diff mode switcher.
    * @param {boolean} shouldDecouple
-   * @param {boolean} [separateChanged]
+   * @param {boolean} [inlineModified]
    * @returns {HTMLDivElement}
    */
-  function createFallbackModeBar(shouldDecouple, separateChanged) {
-    const isSep = typeof separateChanged === 'boolean' ? separateChanged : isSeparateChangedPreferred();
+  function createFallbackModeBar(shouldDecouple, inlineModified) {
+    const isInline = typeof inlineModified === 'boolean' ? inlineModified : isInlineModifiedPreferred();
     const modeBar = document.createElement('div');
     modeBar.id = 'refdiff-mode-bar';
     modeBar.className = 'refdiff-mode-bar';
     modeBar.innerHTML = `
-      <span id="refdiff-decouple-container" class="refdiff-decouple-container">
-        <label class="refdiff-decouple-label">
-          <input type="checkbox" id="refdiff-decouple-toggle" class="refdiff-decouple-checkbox"${isSep ? ' checked' : ''}>
-          <span class="refdiff-decouple-text">Decouple rows</span>
+      <span id="refdiff-inline-container" class="refdiff-inline-container refdiff-decouple-container">
+        <label class="refdiff-inline-label refdiff-decouple-label">
+          <input type="checkbox" id="refdiff-inline-toggle" class="refdiff-inline-checkbox refdiff-decouple-checkbox"${isInline ? ' checked' : ''}>
+          <span class="refdiff-inline-text refdiff-decouple-text">Inline modified refs</span>
         </label>
       </span>
       <span class="refdiff-mode-separator">&bull;</span>
@@ -1677,15 +1748,15 @@
     if (buttonGroup) {
       if (document.getElementById('refdiff-ooui-btn')) return;
 
-      // 1. Mount Decouple rows toggle to the left of the mode bar
-      if (!document.getElementById('refdiff-decouple-container')) {
-        const toggleEl = createDecoupleToggle(isSeparateChangedPreferred());
+      // 1. Mount Inline modified refs toggle to the left of the mode bar
+      if (!document.getElementById('refdiff-inline-container') && !document.getElementById('refdiff-decouple-container')) {
+        const toggleEl = createInlineToggle(isInlineModifiedPreferred());
         if (diffModeContainer && typeof diffModeContainer.insertBefore === 'function') {
           diffModeContainer.insertBefore(toggleEl, buttonGroup);
         } else if (buttonGroup.parentNode && typeof buttonGroup.parentNode.insertBefore === 'function') {
           buttonGroup.parentNode.insertBefore(toggleEl, buttonGroup);
         }
-        bindDecoupleToggleListener(table);
+        bindInlineToggleListener(table);
       }
 
       const isSelect = buttonGroup.classList.contains('oo-ui-buttonSelectWidget');
@@ -1695,8 +1766,8 @@
       // Initialize button states according to user preference and initial view
       if (isVisual) {
         setElementActive(refBtn, false, isSelect);
-        const toggleCheckbox = document.getElementById('refdiff-decouple-toggle');
-        const toggleContainer = document.getElementById('refdiff-decouple-container');
+        const toggleCheckbox = document.getElementById('refdiff-inline-toggle') || document.getElementById('refdiff-decouple-toggle');
+        const toggleContainer = document.getElementById('refdiff-inline-container') || document.getElementById('refdiff-decouple-container');
         if (toggleCheckbox) toggleCheckbox.disabled = true;
         if (toggleContainer) {
           toggleContainer.classList.remove(CLASSES.OO_WIDGET_ENABLED);
@@ -1814,6 +1885,7 @@
   return {
     STORAGE_KEY,
     STORAGE_KEY_SEPARATE,
+    STORAGE_KEY_INLINE,
     SELECTORS,
     CLASSES,
     HOOKS,
@@ -1822,6 +1894,8 @@
     setRefDiffPreferred,
     isSeparateChangedPreferred,
     setSeparateChangedPreferred,
+    isInlineModifiedPreferred,
+    setInlineModifiedPreferred,
     REF_REGEX,
     TEMPLATE_REF_REGEX,
     stripHtml,
@@ -1850,6 +1924,8 @@
     replaceRefInHtml,
     createRefDiffButton,
     createFallbackModeBar,
+    createInlineToggle,
+    bindInlineToggleListener,
     createDecoupleToggle,
     bindDecoupleToggleListener,
     onTableClick,

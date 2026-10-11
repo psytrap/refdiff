@@ -132,50 +132,50 @@ Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, 
 == UI Controls & Mode Switching ==
 
 === Native OOUI Mode Switcher ===
-On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's native diff mode selector, accompanied by an in-toolbar decouple toggle placed to the left:
+On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's native diff mode selector, accompanied by an in-toolbar toggle placed to the left:
 
 {| class="wikitable" style="text-align: center;"
-| {{mono|[✓ Decouple rows]}} || {{mono|[ 👁 Visual ]}} || {{mono|[ <nowiki>[[]]</nowiki> Wikitext ]}} || {{mono|'''[ ⧉ RefDiff ]'''}} || {{mono|Inline ( )}}
+| {{mono|[  Inline modified refs]}} || {{mono|[ 👁 Visual ]}} || {{mono|[ <nowiki>[[]]</nowiki> Wikitext ]}} || {{mono|'''[ ⧉ RefDiff ]'''}} || {{mono|Inline ( )}}
 |}
 
-* '''In-Toolbar Decouple Toggle:''' A {{mono|[✓ Decouple rows]}} checkbox is placed directly to the left of the mode bar. Keeping it to the left prevents layout shift and UI jumps on page load. Unchecking it instantly switches to Inline Ref-Diff mode without reloading the page.
+* '''In-Toolbar Inline Toggle:''' An {{mono|[ ] Inline modified refs}} checkbox is placed directly to the left of the mode bar (unchecked by default). Keeping it to the left prevents layout shift and UI jumps on page load. Checking it instantly keeps modified references inline in prose with a prepended {{mono|⟨~label~⟩}} badge without creating rows below, while added and deleted references always decouple into separate rows.
 * '''Three-Way Diff Mode Switching:''' Seamlessly switches between {{mono|Visual}} (native rich HTML diff), standard {{mono|Wikitext}} diff, and decoupled {{mono|RefDiff}} instantly, with no page reload.
 * '''Visual Diff Interoperability:''' Switching to {{mono|Visual}} cleanly dismisses citation diff rows and restores native diff markup; switching back to {{mono|RefDiff}} seamlessly re-engages citation decoupling.
 * '''State Persistence:''' Remembers your latest mode selection across diff pages via {{mono|mw.storage}}. If you toggle back to Wikitext or open a diff in Visual mode, diffs remain in your chosen view until you click RefDiff again.
 * '''Inline Switch Inactive during RefDiff:''' The native {{mono|Inline}} toggle switch is automatically disabled and inactive while RefDiff is active to preserve two-column citation alignment, and automatically re-enabled when switching back to standard Wikitext diff.
 * '''Fallback Mode Bar:''' On older skins without the OOUI button container (e.g. Monobook), RefDiff displays a clean switcher bar above the diff table:
-  : {{mono|[✓] Decouple rows • Diff view: '''Decoupled (RefDiff)''' • Standard Wikidiff}}
+  : {{mono|[ ] Inline modified refs • Diff view: '''Decoupled (RefDiff)''' • Standard Wikidiff}}
 
 == Configuration & Options ==
 
 RefDiff supports configurable decoupling modes to tailor review workflows to personal editor preferences:
 
-=== Decouple Rows vs. Inline Modify Mode ===
-By default, all reference edits—modified, added, and deleted citations—are decoupled into dedicated {{mono|tr.refdiff-cit-row}} rows below the prose line. If you prefer to keep citation modifications directly inline inside prose while still shortening unchanged citations into hoverable badges and still isolating added/deleted citations into separate rows, you can toggle the row decoupling preference:
+=== Decouple Rows vs. Inline Modified Mode ===
+By default, all reference edits—modified, added, and deleted citations—are decoupled into dedicated {{mono|tr.refdiff-cit-row}} rows below the prose line. If you prefer to keep citation modifications directly inline inside prose while still shortening unchanged citations into hoverable badges and still isolating added/deleted citations into separate rows, you can toggle the inline preference:
 
-* '''Interactive In-Toolbar Toggle:''' Uncheck {{mono|[ ] Decouple rows}} right in the toolbar above the diff table. The table instantly refreshes in-place.
+* '''Interactive In-Toolbar Toggle:''' Check {{mono|[✓] Inline modified refs}} right in the toolbar above the diff table. The table instantly refreshes in-place.
 * '''In your {{mono|common.js}}''' (before loading {{mono|refdiff.js}}):
   <syntaxhighlight lang="javascript">
   window.refdiffConfig = {
-      separateChanged: false // Keep modified citations inline via ⟨~label~⟩ badge; shorten unchanged citations into hoverable badges; added & deleted citations always separate
+      inlineModified: true // Keep modified citations inline via ⟨~label~⟩ badge; shorten unchanged citations into hoverable badges; added & deleted citations always separate
   };
   </syntaxhighlight>
-* '''Per-Diff URL Parameter:''' Append {{mono|&refdiff_separate=0}} (inline modified changes) or {{mono|&refdiff_separate=1}} (decoupled modified rows) to any diff URL to test without changing your configuration.
+* '''Per-Diff URL Parameter:''' Append {{mono|&refdiff_inline=1}} (inline modified changes) or {{mono|&refdiff_inline=0}} (decoupled modified rows; also accepts legacy {{mono|&refdiff_separate=0|1}}) to any diff URL to test without changing your configuration.
 * '''Persistent Storage:''' Configure via browser console:
   <syntaxhighlight lang="javascript">
-  mw.storage.set('refdiff-separate-changed', 'false');
+  mw.storage.set('refdiff-inline-modified', 'true');
   </syntaxhighlight>
 
 {| class="wikitable"
 ! Mode !! Unchanged Citations !! Modified Citations !! Added & Deleted Citations !! Citation Rows Below
 |-
-| '''Full Decoupling''' (Default)<br />{{mono|separateChanged: true}}
+| '''Full Decoupling''' (Default)<br />{{mono|inlineModified: false}}
 | Collapsed into mathematical badges ({{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}) with hover preview.
 | Badged ({{mono|⟨~ref2~⟩}}) and decoupled into separate row below.
 | Badged ({{mono|⟨+ref3+⟩}} / {{mono|⟨-ref4-⟩}}) and decoupled into separate row below.
 | Yes (one isolated diff row per modified, added, or deleted citation).
 |-
-| '''Inline Ref-Diff'''<br />{{mono|separateChanged: false}}
+| '''Inline Modified Refs'''<br />{{mono|inlineModified: true}}
 | Collapsed into mathematical badges ({{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}) with hover preview.
 | Badged in prose ({{mono|⟨~ref2~⟩}}) prepended directly before the inline {{tag|ref}} diff; no separated row below.
 | Badged ({{mono|⟨+ref3+⟩}} / {{mono|⟨-ref4-⟩}}) and decoupled into separate row below.

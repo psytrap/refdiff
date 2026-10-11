@@ -12,7 +12,10 @@ const {
   isRefDiffPreferred,
   isSeparateChangedPreferred,
   setSeparateChangedPreferred,
+  isInlineModifiedPreferred,
+  setInlineModifiedPreferred,
   STORAGE_KEY_SEPARATE,
+  STORAGE_KEY_INLINE,
   setInlineSwitchDisabled,
   restoreOriginal
 } = require('../refdiff.js');
@@ -263,6 +266,46 @@ suite('src/mode_coordinator.js - Mode Switching & Locks', () => {
       assert.doesNotThrow(() => {
         setSeparateChangedPreferred(false);
       }, 'Storage write error should be caught silently');
+    });
+  });
+
+  test('isInlineModifiedPreferred and setInlineModifiedPreferred persist preference and sync with separateChanged', () => {
+    // 1. Defaults to false (unchecked by default)
+    withMockEnvironment({ window: undefined }, () => {
+      assert.strictEqual(isInlineModifiedPreferred(), false);
+    });
+
+    // 2. window.refdiffConfig.inlineModified
+    const { mockStore, mockWindow } = setupMockStorage('localStorage');
+    mockWindow.refdiffConfig = { inlineModified: true };
+    withMockEnvironment({ window: mockWindow }, () => {
+      assert.strictEqual(isInlineModifiedPreferred(), true);
+      assert.strictEqual(isSeparateChangedPreferred(), false);
+    });
+
+    // 3. URL params ?refdiff_inline=1 and ?refdiff_inline=0
+    delete mockWindow.refdiffConfig;
+    mockWindow.location.search = '?diff=123&refdiff_inline=1';
+    withMockEnvironment({ window: mockWindow }, () => {
+      assert.strictEqual(isInlineModifiedPreferred(), true);
+    });
+    mockWindow.location.search = '?diff=123&refdiff_inline=0';
+    withMockEnvironment({ window: mockWindow }, () => {
+      assert.strictEqual(isInlineModifiedPreferred(), false);
+    });
+
+    // 4. Persistence via setInlineModifiedPreferred
+    mockWindow.location.search = '';
+    withMockEnvironment({ window: mockWindow }, () => {
+      setInlineModifiedPreferred(true);
+      assert.strictEqual(mockStore[STORAGE_KEY_INLINE], 'true');
+      assert.strictEqual(mockStore[STORAGE_KEY_SEPARATE], 'false');
+      assert.strictEqual(isInlineModifiedPreferred(), true);
+
+      setInlineModifiedPreferred(false);
+      assert.strictEqual(mockStore[STORAGE_KEY_INLINE], 'false');
+      assert.strictEqual(mockStore[STORAGE_KEY_SEPARATE], 'true');
+      assert.strictEqual(isInlineModifiedPreferred(), false);
     });
   });
 });

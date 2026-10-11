@@ -23,11 +23,11 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
   - Splitting of tag boundaries by MediaWiki's internal `diffchange` algorithm.
   - In-place DOM Memento preservation to avoid invalidating `inlineFormatToggle.js` and VisualEditor event closures.
   - Template parameter parsing for shortened footnotes (`{{sfn}}`, `{{r}}`, `{{efn}}`).
-  - Anchor discovery for native `Extension:Popups` / Reference Previews tooltip generation.
-  - Configurable inline-change mode (`separateChanged: false`) preserving inline `<del>`/`<ins>` wikitext while collapsing unchanged citations into hoverable badges.
-  - Dynamic in-toolbar decouple toggle placement to the left of the mode bar to prevent UI layout jumps.
-* **Sandboxed Mock Isolation:** All DOM/window mocks use a scoped `withMockEnvironment()` harness that guarantees restoration and prevents cross-test global pollution.
-* **Minimal Maintenance Cost:** Pure unit, component, and benchmark tests execute deterministically without network calls or flaky async timeouts.
+   - Anchor discovery for native `Extension:Popups` / Reference Previews tooltip generation.
+   - Configurable inline-change mode (`[✓] Inline modified refs` / `inlineModified: true`) preserving inline `<del>`/`<ins>` wikitext with prepended badges while collapsing unchanged citations into hoverable badges and keeping added/deleted citations decoupled.
+   - Dynamic in-toolbar toggle (`[ ] Inline modified refs`) placed to the left of the mode bar to prevent UI layout jumps.
+ * **Sandboxed Mock Isolation:** All DOM/window mocks use a scoped `withMockEnvironment()` harness that guarantees restoration and prevents cross-test global pollution.
+ * **Minimal Maintenance Cost:** Pure unit, component, and benchmark tests execute deterministically without network calls or flaky async timeouts.
 
 ---
 
@@ -38,7 +38,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
   - Pairing heuristics (1-to-1, additions, deletions, surrounded edits, identical references).
   - Badge formatting with mathematical brackets (`⟨ref1⟩`, `⟨~name~⟩`).
   - Decoupling pipeline and round-trip DOM snapshot restoration.
-  - Configurable decoupled vs inline-changed mode (`separateChanged` via `window.refdiffConfig`, URL param, storage, or toolbar checkbox).
+  - Configurable decoupled vs inline-modified mode (`inlineModified` / `separateChanged` via `window.refdiffConfig`, URL param, storage, or toolbar checkbox `[ ] Inline modified refs`).
   - Preference persistence (`localStorage`, `mw.storage`, URL parameters).
   - OOUI mode selection and body row toggling.
   - High-density stress testing (114 citations in a single table benchmarked < 50ms).
@@ -61,17 +61,17 @@ While [`refdiff.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/ref
 | `src/anchor.js` | [`tests/test_anchor.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_anchor.js) | Footnote anchor discovery (`cite_note-*`) & URL matching | 5 |
 | `src/constants.js` | [`tests/test_constants.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_constants.js) | Regex patterns (`TEMPLATE_REF_REGEX`) and constants | 1 |
 | `src/dom_helpers.js` | [`tests/test_dom_helpers.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_dom_helpers.js) | Body row categorization & `mw.hook` notifications | 2 |
-| `src/init.js` | [`tests/test_init.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_init.js) | Diff page detection, toolbar button mount, decouple toggle & auto-start wiring | 9 |
+| `src/init.js` | [`tests/test_init.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_init.js) | Diff page detection, toolbar button mount, inline toggle & auto-start wiring | 9 |
 | `src/memento.js` | [`tests/test_memento.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_memento.js) | DOM row snapshot capture & in-place restoration | 1 |
-| `src/mode_coordinator.js` | [`tests/test_mode_coordinator.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_mode_coordinator.js) | 3-way mode switching, separateChanged config & switch locks | 10 |
+| `src/mode_coordinator.js` | [`tests/test_mode_coordinator.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_mode_coordinator.js) | 3-way mode switching, inlineModified / separateChanged config & switch locks | 11 |
 | `src/pairing.js` | [`tests/test_pairing.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_pairing.js) | 3-pass heuristic reference pairing algorithm | 6 |
 | `src/parser.js` | [`tests/test_parser.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_parser.js) | Wikitext regex parsing, HTML entities, SFN tokenizer | 8 |
-| `src/pipeline.js` | [`tests/test_pipeline.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_pipeline.js) | Transformation pipeline, separateChanged mode, whitespace diff preservation & roundtrip | 9 |
+| `src/pipeline.js` | [`tests/test_pipeline.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_pipeline.js) | Transformation pipeline, inlineModified mode, whitespace diff preservation & roundtrip | 9 |
 | `src/renderer.js` | [`tests/test_renderer.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_renderer.js) | Mathematical badges (`⟨ref1⟩`) & citation diff rows | 7 |
 | `src/state.js` | [`tests/test_state.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_state.js) | State persistence (`localStorage`, `mw.storage`, URL) | 4 |
 | `src/utils.js` | [`tests/test_utils.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_utils.js) | `stripHtml`, `normalizeDiffTags`, `sanitizeAnchor`, `escapeRegex` | 6 |
 | *Fixtures & Perf* | [`tests/test_benchmarks.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_benchmarks.js) | Comprehensive fixture & 114-ref airport stress test | 5 |
-| **Total** | [`tests/runner.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/runner.js) | Master sequential test runner executing all suites | **73** |
+| **Total** | [`tests/runner.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/runner.js) | Master sequential test runner executing all suites | **75** |
 
 ---
 
