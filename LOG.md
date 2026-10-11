@@ -329,3 +329,18 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Added automated regression test in `tests/test_init.js` asserting cell class isolation and auto-mode switching on `.diff-editmode`.
   * 79/79 tests passing with 0 ESLint warnings.
   * Documented across `README.md`, `REFDIFF.md`, `refdiff.wiki`, `ARCHITECTURE.md`, and `TEST_PLAN.md`.
+
+---
+
+### 2026-10-11: Documentation of Supplemental AI Verification Tools (AI Source Verification & CNfirmed)
+
+* **Context & Motivation:**
+  * Following ecosystem inspection of active RefDiff users (`User:Johnjbarton/common.js`), cataloged companion scripts that address complementary dimensions of citation quality:
+    * [**`User:Alaexis/AI Source Verification.js`**](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js): In-browser LLM evaluation of citations against claims to catch hallucinations and citation distortion.
+    * [**`User:Alaexis/CNfirmed.js`**](https://en.wikipedia.org/wiki/User:Alaexis/CNfirmed.js): Automated reference finder and validator for `{{citation needed}}` tags via Internet Archive APIs and AI judges.
+* **Architectural Synergy:**
+  * RefDiff operates at the diff review layer, isolating prose from citation markup so that human patrollers and automated tools can review factual claims without visual noise.
+  * AI Source Verification and CNfirmed operate at the fact-checking and discovery layer, verifying whether citations actually substantiate the prose claims.
+* **Documentation Updates:**
+  * Integrated both tools as supplemental companion tools across `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), and `ARCHITECTURE.md` (§7.2).
+

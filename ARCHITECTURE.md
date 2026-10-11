@@ -372,6 +372,13 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 1. **Line-Enumeration Protection:** `diffedit` enumerates lines by querying `tbody tr td:last-of-type` for `.diff-addedline` and `.diff-context`. If RefDiff's decoupled citation rows used these native classes, `diffedit` would increment its internal line counter (`currentLine++`), causing edits to publish to corrupted line offsets. RefDiff assigns isolated classes (`refdiff-cit-addedline`, `refdiff-cit-context`), styled identically to native diffs via CSS, ensuring `diffedit`'s line scanner completely ignores citation rows.
 2. **Automatic Raw Wikitext Restoration:** When an editor clicks `[ Edit ]` in `diffedit` or when `table.diff` gains `.diff-editmode`, RefDiff observes the class mutation and automatically restores native wikitext mode (`selectMode('wikitext')`). This guarantees that `contenteditable="true"` operates on raw wikitext rather than badge tokens (`⟨ref1⟩`), preventing accidental vandalism upon saving.
 
+### 7.2 Source Integrity & AI Verification Ecosystem (`AI Source Verification` & `CNfirmed`)
+RefDiff isolates and clarifies citation diffs on `Special:Diff`. In production user configurations (such as `User:Johnjbarton/common.js`), editors pair RefDiff with AI-assisted verification and citation discovery tools:
+1. **AI Source Verification** ([`User:Alaexis/AI Source Verification.js`](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js)): Leverages LLMs (Gemini, Claude, GPT) to evaluate citations in-browser, verifying whether cited references factually support article claims. RefDiff complements this by separating prose from citation clutter, giving human reviewers an unambiguous claim baseline when inspecting AI-flagged citation discrepancies.
+2. **CNfirmed** ([`User:Alaexis/CNfirmed.js`](https://en.wikipedia.org/wiki/User:Alaexis/CNfirmed.js)): Discovers and verifies candidate references for `{{citation needed}}` tags using Internet Archive APIs and LLM judges.
+
+Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `HarvErrors` for anchor integrity, these tools form a layered, end-to-end citation quality ecosystem.
+
 ---
 
 ## 8. Verification & Test Architecture

@@ -237,6 +237,16 @@ RefDiff is part of a broader ecosystem for citation management:
 | Source auditors
 | Flags broken Harvard and shortened footnote citations ({{tlx|sfn}}) in red. RefDiff's footnote anchor discovery mirrors its anchor rules.
 |-
+| '''AI Claim Verification'''
+| [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]]
+| Fact-checkers, citation auditors
+| In-browser LLM evaluation (Gemini, Claude, GPT) checking whether cited sources actually support article claims, helping detect hallucinations and misattributed citations.
+|-
+| '''Citation Discovery'''
+| [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]]
+| Source finders, editors
+| Discovers and verifies candidate references for {{tlx|citation needed}} claims via Internet Archive APIs and AI evaluation.
+|-
 | '''Storage Concepts'''
 | '''Section-Scoped References''' ({{tag|references|params=hidden}} / {{tag|ref|params=hidden}})
 | Proposed Wikitext syntax
@@ -248,6 +258,8 @@ RefDiff is part of a broader ecosystem for citation management:
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
+* [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
+* [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]] – Automated source discovery and verification tool
 * {{mono|TEST_PLAN.md}} – Formal test plan and quality assurance specification
 
 [[Category:Gadgets]]
