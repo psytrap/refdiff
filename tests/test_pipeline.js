@@ -232,7 +232,7 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     });
   });
 
-  test('transformProseCells with separateChanged: false badges unchanged refs and preserves changed/added/deleted refs inline', () => {
+  test('transformProseCells with separateChanged: false keeps mod badges in prose without rows while added/deleted still separate', () => {
     const delHtml = '<div>Text &lt;ref name="fixed"&gt;Fixed&lt;/ref&gt; and &lt;ref name="mod"&gt;Old text&lt;/ref&gt; and &lt;ref name="deleted"&gt;Gone&lt;/ref&gt;</div>';
     const addHtml = '<div>Text &lt;ref name="fixed"&gt;Fixed&lt;/ref&gt; and &lt;ref name="mod"&gt;New text&lt;/ref&gt; and &lt;ref name="added"&gt;Fresh&lt;/ref&gt;</div>';
     const pairs = [
@@ -264,17 +264,20 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     assert.strictEqual(result.newDelHtml.includes('⟨fixed⟩'), true, 'Unchanged ref should be badged in deleted cell');
     assert.strictEqual(result.newAddHtml.includes('⟨fixed⟩'), true, 'Unchanged ref should be badged in added cell');
 
-    // 2. Changed, added, and deleted references remain untouched inline
-    assert.strictEqual(result.newDelHtml.includes('&lt;ref name="mod"&gt;Old text&lt;/ref&gt;'), true, 'Modified ref should stay untouched inline');
-    assert.strictEqual(result.newAddHtml.includes('&lt;ref name="mod"&gt;New text&lt;/ref&gt;'), true, 'Modified ref should stay untouched inline');
-    assert.strictEqual(result.newAddHtml.includes('&lt;ref name="added"&gt;Fresh&lt;/ref&gt;'), true, 'Added ref should stay untouched inline');
-    assert.strictEqual(result.newDelHtml.includes('&lt;ref name="deleted"&gt;Gone&lt;/ref&gt;'), true, 'Deleted ref should stay untouched inline');
+    // 2. Modified reference: modify tag stays in place in prose, but is not separated into a row below
+    assert.strictEqual(result.newDelHtml.includes('⟨~mod~⟩'), true, 'Modified ref badge should stay in place in deleted cell');
+    assert.strictEqual(result.newAddHtml.includes('⟨~mod~⟩'), true, 'Modified ref badge should stay in place in added cell');
 
-    // 3. No modified citations extracted for separate rows
-    assert.strictEqual(result.modifiedCits.length, 0, 'No citation rows should be created');
+    // 3. Added and deleted references ALWAYS separate regardless of checkbox
+    assert.strictEqual(result.newAddHtml.includes('⟨+added+⟩'), true, 'Added ref should be badged');
+    assert.strictEqual(result.newDelHtml.includes('⟨-deleted-⟩'), true, 'Deleted ref should be badged');
+    assert.strictEqual(result.modifiedCits.length, 2, 'Added and deleted refs should still produce citation rows');
+    assert.strictEqual(result.modifiedCits.some(m => m.label === 'mod'), false, 'Modified ref should NOT produce a separate row');
+    assert.strictEqual(result.modifiedCits.some(m => m.label === 'added'), true, 'Added ref should produce a separate row');
+    assert.strictEqual(result.modifiedCits.some(m => m.label === 'deleted'), true, 'Deleted ref should produce a separate row');
   });
 
-  test('applyDecoupling with separateChanged: false does not insert citation rows', () => {
+  test('applyDecoupling with separateChanged: false does not insert citation rows for modified citations', () => {
     const mockDelDiv = { innerHTML: 'Line with &lt;ref name="test"&gt;Citation A&lt;/ref&gt;' };
     const mockAddDiv = { innerHTML: 'Line with &lt;ref name="test"&gt;Citation B&lt;/ref&gt;' };
     const mockDelTd = { className: 'diff-deletedline' };
@@ -404,7 +407,7 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     });
   });
 
-  test('transformProseCells handles newly added callout split across diffchange spans (Kim Domingo diff)', () => {
+  test('transformProseCells separates newly added callout into citation row (Kim Domingo diff)', () => {
     const rawDel = '<div>| birth_date ={{birth date and age|1995|2|3}} </div>';
     const rawAdd = '<div>| birth_date =<ins class="diffchange diffchange-inline"> </ins>{{birth date and age|1995|2|3}}<ins class="diffchange diffchange-inline">&lt;ref name="kami"</ins> <ins class="diffchange diffchange-inline">/&gt;</ins></div>';
 

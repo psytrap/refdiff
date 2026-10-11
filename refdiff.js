@@ -926,6 +926,10 @@
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
         if (isMod) {
           if (!separateChanged) {
+            const href = citeNoteId ? `#${citeNoteId}` : null;
+            const badge = createProseBadge('mod', label, href);
+            newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
+            newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
             continue;
           }
           const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
@@ -941,18 +945,12 @@
           newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         }
       } else if (a && !d) {
-        if (!separateChanged) {
-          continue;
-        }
         const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
         const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
         const badge = createProseBadge('add', label, href);
         newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true, rowId, citeNoteId });
       } else if (d && !a) {
-        if (!separateChanged) {
-          continue;
-        }
         const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
         const href = `#${rowId}`;
         const badge = createProseBadge('del', label, href);

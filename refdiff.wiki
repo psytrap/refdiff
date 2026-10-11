@@ -150,34 +150,36 @@ On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's 
 
 RefDiff supports configurable decoupling modes to tailor review workflows to personal editor preferences:
 
-=== Inline Ref-Diff Mode (No Separate Citation Rows) ===
-By default, modified citations are decoupled into dedicated {{mono|tr.refdiff-cit-row}} rows below the prose line. If you prefer to keep citation diffs directly inline inside the prose sentence while still shortening unchanged citations into hoverable badges with Reference Previews, you can disable citation row separation:
+=== Decouple Rows vs. Inline Modify Mode ===
+By default, all reference edits—modified, added, and deleted citations—are decoupled into dedicated {{mono|tr.refdiff-cit-row}} rows below the prose line. If you prefer to keep citation modifications directly inline inside prose while still shortening unchanged citations into hoverable badges and still isolating added/deleted citations into separate rows, you can toggle the row decoupling preference:
 
 * '''Interactive In-Toolbar Toggle:''' Uncheck {{mono|[ ] Decouple rows}} right in the toolbar above the diff table. The table instantly refreshes in-place.
 * '''In your {{mono|common.js}}''' (before loading {{mono|refdiff.js}}):
   <syntaxhighlight lang="javascript">
   window.refdiffConfig = {
-      separateChanged: false // Keep modified citations inline; shorten unchanged citations into hoverable badges
+      separateChanged: false // Keep modified citations inline via ⟨~label~⟩ badge; shorten unchanged citations into hoverable badges; added & deleted citations always separate
   };
   </syntaxhighlight>
-* '''Per-Diff URL Parameter:''' Append {{mono|&refdiff_separate=0}} (inline changes) or {{mono|&refdiff_separate=1}} (decoupled rows) to any diff URL to test without changing your configuration.
+* '''Per-Diff URL Parameter:''' Append {{mono|&refdiff_separate=0}} (inline modified changes) or {{mono|&refdiff_separate=1}} (decoupled modified rows) to any diff URL to test without changing your configuration.
 * '''Persistent Storage:''' Configure via browser console:
   <syntaxhighlight lang="javascript">
   mw.storage.set('refdiff-separate-changed', 'false');
   </syntaxhighlight>
 
 {| class="wikitable"
-! Mode !! Unchanged Citations !! Modified / Added / Deleted Citations !! Citation Rows Below
+! Mode !! Unchanged Citations !! Modified Citations !! Added & Deleted Citations !! Citation Rows Below
 |-
 | '''Full Decoupling''' (Default)<br />{{mono|separateChanged: true}}
 | Collapsed into mathematical badges ({{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}) with hover preview.
 | Badged ({{mono|⟨~ref2~⟩}}) and decoupled into separate row below.
-| Yes (one isolated diff row per citation edit).
+| Badged ({{mono|⟨+ref3+⟩}} / {{mono|⟨-ref4-⟩}}) and decoupled into separate row below.
+| Yes (one isolated diff row per modified, added, or deleted citation).
 |-
 | '''Inline Ref-Diff'''<br />{{mono|separateChanged: false}}
 | Collapsed into mathematical badges ({{mono|⟨ref1⟩}} / {{mono|⟨Castritius 2005⟩}}) with hover preview.
-| Retained inline in prose with standard MediaWiki {{tag|del}}/{{tag|ins}} diff highlighting.
-| No (clean zero-expansion layout).
+| Badged in prose ({{mono|⟨~ref2~⟩}}) with hover preview; no separated row below.
+| Badged ({{mono|⟨+ref3+⟩}} / {{mono|⟨-ref4-⟩}}) and decoupled into separate row below.
+| Only for added/deleted citations (modified citations remain inline in prose via {{mono|⟨~label~⟩}} badge without row expansion below).
 |}
 
 == Themes & Skins ==
@@ -202,6 +204,7 @@ RefDiff is backed by a rigorous four-level test pyramid and quality assurance fr
 While 100% of internal codebase functions are verified, several external edge cases and layout environments are outside current test coverage (tracked in Section 5 of {{mono|TEST_PLAN.md}}):
 
 * '''Malformed or Broken Wikitext:''' Unclosed {{tag|ref}} tags, tags missing closing brackets, or unusual multiline linebreaks inside tags are skipped by the parser and remain untouched in the prose diff without decoupling.
+* '''wikidiff2 Token Boundary & Split-Span Analysis:''' Wikipedia's backend {{mono|wikidiff2}} engine frequently breaks single citation tags into multiple disconnected {{tag|ins}} or {{tag|del}} spans separated by whitespace (e.g. {{mono|<ins>&lt;ref name="x"</ins> <ins>/&gt;</ins>}} as seen in [[Special:Diff/1379491398|Kim Domingo]]). While RefDiff automatically merges adjacent split spans and normalizes tag boundaries, comprehensive automated test analysis of arbitrary token segmentation patterns across diverse MediaWiki diff engines remains an ongoing gap.
 * '''Nested Transclusions:''' Footnotes wrapped inside complex secondary templates (such as {{tlx|refn}}, {{tlx|sfnp}}, or citations embedded inside infobox templates) are not yet decoupled into scholarly badges.
 * '''Differential Prose Invariance Fuzzing:''' While unit and browser integration tests now explicitly verify whitespace-only edits (such as [[Special:Diff/1379470949|Cosmic inflation]]), systematic differential fuzzing comparing arbitrary real-world {{mono|wikidiff2}} word/character split patterns against RefDiff's post-processing DOM is not yet automated. Very subtle non-character edits (e.g. zero-width spaces, punctuation adjustments, or whitespace directly abutting citation tags) require ongoing regression tracking.
 * '''Mobile Diff Layouts (MinervaNeue):''' Responsive single-column stacked diff tables on Wikipedia's mobile view are not currently part of the automated layout test suite (RefDiff is optimized primarily for desktop two-column diffs).
