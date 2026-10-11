@@ -102,6 +102,14 @@ Line 42:
   `[ Standard Diff | Prose Only | Citation Audit ]`.
 * For detailed analysis on client-side regex parsing vs. native preloaded MediaWiki libraries, see [**ARCHITECTURE.md**](ARCHITECTURE.md#91-evaluating-regex-parsing-vs-preloaded-mediawiki--meta-wiki-libraries) and [**LOG.md**](LOG.md#task-evaluate-regex-based-citation-parsing-vs-preloaded-mediawiki--meta-wiki-libraries).
 
+### 4.4 Ecosystem Interoperability & Supplementing Tools
+RefDiff is engineered for seamless coexistence with other widely used Wikipedia user scripts:
+* ⚡ [**diffedit**](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit) ([`m:User:Jon Harald Søby/diffedit.js`](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit.js)): Injects an inline "Edit" link next to section headers on `Special:Diff` allowing editors to edit sections directly without leaving the diff view.
+  * **Line-Enumeration Protection:** RefDiff assigns isolated CSS classes (`refdiff-cit-addedline`, `refdiff-cit-context`) to decoupled citation rows instead of native `diff-addedline` / `diff-context`, guaranteeing that `diffedit`'s line scanner (`enumerateLines()`) completely skips injected citation rows and maintains 100% accurate wikitext line numbering.
+  * **Automatic Raw Wikitext Restoration:** When an editor clicks `[ Edit ]` or when `table.diff` gains `.diff-editmode`, RefDiff automatically restores native wikitext mode so the user edits raw wikitext instead of mathematical badges.
+* ✍️ [**References Segregator**](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator) ([`User:PleaseStand/segregate-refs.js`](https://en.wikipedia.org/wiki/User:PleaseStand/segregate-refs.js)): Splits the wikitext editing textarea into clean prose above and reference definitions below during `Special:Edit`, serving as the editing companion to RefDiff's reviewing diff view.
+* 🔍 [**HarvErrors**](https://en.wikipedia.org/wiki/User:Trappist_the_monk/HarvErrors) ([`User:Trappist the monk/HarvErrors.js`](https://en.wikipedia.org/wiki/User:Trappist_the_monk/HarvErrors.js)): Footnote integrity checker that flags broken or orphaned Harvard / shortened citations (`{{sfn}}`) in red. RefDiff's anchor resolver (`findCiteNoteAnchor`) targets the same anchor targets (`cite_note-FOOTNOTE*`).
+
 ---
 
 ## 5. Algorithmic Pipeline & Technical Design
@@ -212,7 +220,7 @@ The tool compares `RawRefsA` against `RawRefsB`:
   * **Cognitive Load Color Ergonomics:** Subtle secondary styling for unmodified references (zero blue highlight, normal font weight); amber gold for edits.
   * **Prefixed Citation Diff Rows:** Injects citation diff rows directly underneath each prose line, prefixed with matching badges.
   * **Clean-Code Modular Architecture:** Centralized state object, CSS selector/class registries, and single-responsibility helper decomposition (see [**`ARCHITECTURE.md`**](ARCHITECTURE.md)).
-  * **Two-Layer Automated Verification:** 78/78 tests across 13 modular suites in `tests/` running in ~20ms with 100% function coverage (see [**`TEST_PLAN.md`**](TEST_PLAN.md)) and live browser automation in `tests/test_live_cdp.py`.
+  * **Two-Layer Automated Verification:** 79/79 tests across 13 modular suites in `tests/` running in ~20ms with 100% function coverage (see [**`TEST_PLAN.md`**](TEST_PLAN.md)) and live browser automation in `tests/test_live_cdp.py`.
   * **Global On-Wiki Deployment:** Published globally to Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)) for cross-wiki use.
 * [ ] **Phase 4: Upstream Phabricator Feature Request**
   * Submit RFC to Wikimedia Phabricator for native Parsoid/`wikidiff2` integration.

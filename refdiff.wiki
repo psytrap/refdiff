@@ -2,7 +2,7 @@
 | name        = RefDiff
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
 | author      = [[User:Powercycler|Powercycler]]
-| status      = Stable (v1.3.0) &bull; [[#Quality Assurance & Automated Testing|74/74 passing (100% coverage)]]
+| status      = Stable (v1.3.0) &bull; [[#Quality Assurance & Automated Testing|79/79 passing (100% coverage)]]
 | version     = 1.3.0
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
@@ -193,7 +193,7 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 
 RefDiff is backed by a rigorous four-level test pyramid and quality assurance framework (specified in detail in {{mono|TEST_PLAN.md}} in the project repository):
 
-* '''100% Headless Function Coverage:''' All 71 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 13 modular unit and component test suites in headless Node.js (74 tests executing in ~20&nbsp;ms).
+* '''100% Headless Function Coverage:''' All 71 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 13 modular unit and component test suites in headless Node.js (79 tests executing in ~20&nbsp;ms).
 * '''In-Place DOM Memento Invariance:''' Rigorously tests that DOM mutations adhere to the Memento pattern—retaining live DOM element closures, event listeners (such as {{mono|inlineFormatToggle.js}} and VisualEditor), and restoring native MediaWiki diff tables byte-for-byte upon mode toggling.
 * '''Shortened Footnotes & Citation Templates:''' Extensively validates tokenization, parameter parsing, entity decoding, and anchor discovery across {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and complex nested {{tag|ref}} tags.
 * '''High-Density Stress Benchmarking:''' Benchmarked on real-world extreme diffs (e.g. airport destination tables with 114 references and split {{mono|diffchange}} boundaries) to guarantee execution under 50&nbsp;ms without browser lag.
@@ -222,10 +222,20 @@ RefDiff is part of a broader ecosystem for citation management:
 | Reviewers, patrollers, fact-checkers
 | Decouples citations in the {{mono|Special:Diff}} view.
 |-
+| '''In-Diff Editing'''
+| [[:m:User:Jon Harald Søby/diffedit.js|User:Jon Harald Søby/diffedit]]
+| Reviewers, rapid-fixers
+| Allows editing article sections directly inside {{mono|Special:Diff}} without leaving the diff view. RefDiff isolates citation row classes to prevent line-number corruption and automatically restores raw wikitext mode during inline editing.
+|-
 | '''Writing / Editing'''
 | [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]]
 | Writers, copyeditors
 | Splits citations into a second pane in the edit window; re-inlines upon save.
+|-
+| '''Footnote Auditing'''
+| [[:en:User:Trappist the monk/HarvErrors|User:Trappist the monk/HarvErrors]]
+| Source auditors
+| Flags broken Harvard and shortened footnote citations ({{tlx|sfn}}) in red. RefDiff's footnote anchor discovery mirrors its anchor rules.
 |-
 | '''Storage Concepts'''
 | '''Section-Scoped References''' ({{tag|references|params=hidden}} / {{tag|ref|params=hidden}})

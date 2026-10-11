@@ -7,7 +7,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
 ## 1. Executive Evaluation: "Is it Enough or Too Much?"
 
 ### Quantitative Metrics
-* **Unit & Component Tests (`npm test`):** **73 passing tests** across **13 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
+* **Unit & Component Tests (`npm test`):** **79 passing tests** across **13 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
 * **Execution Time:** **~18–25 ms** (all 13 test files execute sequentially in a single process via `tests/runner.js`).
 * **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`).
 * **Code Coverage (Headless Node.js):** **100.0% function coverage** (71 of 71 functions) measured via V8 coverage without browser shims.
@@ -99,7 +99,7 @@ flowchart TD
 ```
 
 ### Level 1: Pure Unit & Parser Specs (Headless Node.js)
-* **Goal:** Verify algorithmic correctness, tokenization, regex robustness, and heuristic pairing with zero side effects.
+* **Goal:** Verify algorithmic correctness, tokenization, regex robustness, heuristic pairing, and third-party gadget interoperability (`diffedit.js`) with zero side effects.
 * **Files:** `tests/test_parser.js`, `tests/test_pairing.js`, `tests/test_anchor.js`, `tests/test_constants.js`, `tests/test_state.js`, `tests/test_utils.js`, `tests/test_init.js`.
 * **Speed:** < 10 ms.
 
@@ -134,7 +134,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (74 tests in ~20ms)
+# 2. Run the fast headless unit & component test suite (79 tests in ~20ms)
 npm test
 
 # 3. Run combined CI verification

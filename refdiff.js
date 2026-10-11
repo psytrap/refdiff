@@ -116,6 +116,9 @@
     DIFF_CONTEXT: 'diff-context',
     DELETED_LINE: 'diff-deletedline',
     ADDED_LINE: 'diff-addedline',
+    CIT_ADDED_LINE: 'refdiff-cit-addedline',
+    CIT_DELETED_LINE: 'refdiff-cit-deletedline',
+    CIT_CONTEXT: 'refdiff-cit-context',
     DIFF_SIDE_DELETED: 'diff-side-deleted',
     DIFF_SIDE_ADDED: 'diff-side-added',
     DIFFCHANGE: 'diffchange',
@@ -310,13 +313,30 @@
         color: var(--color-subtle, #a2a9b1);
       }
     }
-    /* Ensure citation diff rows and hidden rows are never visible when Visual diff is active */
+    /* Citation row cell styling mirroring MediaWiki diff colors */
+    .refdiff-cit-row td.refdiff-cit-addedline {
+      background-color: #d5fdf4;
+      background-color: var(--background-color-success-subtle, #d5fdf4);
+      color: var(--color-base, #202122);
+    }
+    .refdiff-cit-row td.refdiff-cit-deletedline {
+      background-color: #fee7e6;
+      background-color: var(--background-color-error-subtle, #fee7e6);
+      color: var(--color-base, #202122);
+    }
+    .refdiff-cit-row td.refdiff-cit-context {
+      background-color: #f8f9fa;
+      background-color: var(--background-color-interactive-subtle, #f8f9fa);
+      color: var(--color-base, #202122);
+    }
+    /* Ensure citation diff rows and hidden rows are never visible when Visual diff or diffedit inline edit is active */
     .ve-init-mw-diffPage-diff ~ table.diff .refdiff-cit-row,
     .ve-ui-diffElement ~ table.diff .refdiff-cit-row,
     body.ve-diff-visual table.diff .refdiff-cit-row,
     tr.oo-ui-element-hidden + tr.refdiff-cit-row,
     .refdiff-cit-row.oo-ui-element-hidden,
-    table.diff tr.oo-ui-element-hidden {
+    table.diff tr.oo-ui-element-hidden,
+    table.diff.diff-editmode .refdiff-cit-row {
       display: none !important;
     }
   `;
@@ -883,9 +903,9 @@
 
     citRow.innerHTML = `
       <td class="diff-marker" data-marker="${mc.isAdd ? '' : '−'}"></td>
-      <td class="${mc.isAdd ? CLASSES.DIFF_CONTEXT : `${CLASSES.DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`}"><div>${delPrefix}${delContent}</div></td>
+      <td class="${mc.isAdd ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`}"><div>${delPrefix}${delContent}</div></td>
       <td class="diff-marker" data-marker="${mc.isDel ? '' : '+'}"></td>
-      <td class="${mc.isDel ? CLASSES.DIFF_CONTEXT : `${CLASSES.ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`}"><div>${addPrefix}${addContent}</div></td>
+      <td class="${mc.isDel ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`}"><div>${addPrefix}${addContent}</div></td>
     `;
     return citRow;
   }
@@ -1902,6 +1922,27 @@
       applyDecoupling(table);
     } else if (!isVisual) {
       setInlineSwitchDisabled(false);
+    }
+
+    // Ensure interoperability with diffedit.js (https://meta.wikimedia.org/wiki/User:Jon_Harald_Søby/diffedit)
+    if (table && !table._refdiffDiffeditBound) {
+      table._refdiffDiffeditBound = true;
+      if (typeof MutationObserver !== 'undefined') {
+        const editObserver = new MutationObserver(() => {
+          if (table.classList && table.classList.contains('diff-editmode') && state.isDecoupled) {
+            selectMode('wikitext', table);
+          }
+        });
+        editObserver.observe(table, { attributes: true, attributeFilter: ['class'] });
+      }
+      if (typeof document !== 'undefined' && document.addEventListener) {
+        document.addEventListener('click', (e) => {
+          const editBtn = e.target && e.target.closest && e.target.closest('.diffedit-editbutton');
+          if (editBtn && state.isDecoupled) {
+            selectMode('wikitext', table);
+          }
+        }, true);
+      }
     }
   }
 

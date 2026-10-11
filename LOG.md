@@ -306,3 +306,26 @@ This log records the rationale, architectural decisions, completed milestones, a
   4. **Exploration of Hybrid Models:**
      * Evaluate a hybrid approach: retain the fast-path regex engine for common, clean citations, and fall back to native MediaWiki parser utilities only for complex nested templates or unclosed tags.
 
+
+
+---
+
+### 2026-10-11: Supplementing Tool Evaluation & `diffedit.js` Interoperability
+
+* **Ecosystem Analysis (User:Johnjbarton/common.js):**
+  * Discovered active real-world adoption of `User:Powercycler/refdiff.js` alongside prominent editing and citation auditing tools: `diffedit.js`, `HarvErrors.js`, `AI Source Verification.js`, `CNfirmed.js`, `RefRenamer.js`, `RefMan.js`, and `Reflinks.js`.
+  * Identified [**`m:User:Jon Harald Søby/diffedit.js`**](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit.js) as a direct diff-view companion tool allowing inline editing on `Special:Diff`.
+
+* **Failure Mode Analysis (DOM Collision Discovery):**
+  1. **Line Enumeration Corruption:** `diffedit` queries `tbody tr td:last-of-type` for `.diff-addedline` and `.diff-context` to enumerate article line numbers. When RefDiff decoupled citation rows (`<tr class="refdiff-cit-row">`) using native diff classes, `diffedit` counted citation rows as article lines (`currentLine++`), causing published edits to write to corrupted line offsets.
+  2. **Badge Wikitext Overwrite:** When an editor clicked `[ Edit ]` in `diffedit`, `contenteditable="true"` was enabled across all `.diff-editable` cells. In RefDiff mode, prose cells contained mathematical badge tokens (`⟨ref1⟩`) instead of raw wikitext, which risked saving badge tokens into Wikipedia wikitext.
+
+* **Architectural Safeguards Implemented:**
+  1. **Isolated Citation Cell Classes:** Updated `createCitRow` to assign `refdiff-cit-addedline`, `refdiff-cit-deletedline`, and `refdiff-cit-context` instead of native diff classes, styled identically via CSS. This guarantees `diffedit`'s line scanner (`enumerateLines()`) completely skips citation rows.
+  2. **Automatic Raw Wikitext Restoration on Edit Mode:** Attached a `MutationObserver` on `table.diff` monitoring `.diff-editmode` and a delegated click listener on `.diffedit-editbutton`. When `diffedit` enters inline editing mode, RefDiff automatically restores native wikitext mode (`selectMode('wikitext')`) so editors edit genuine wikitext.
+  3. **CSS Suppression:** Added `table.diff.diff-editmode .refdiff-cit-row { display: none !important; }` to prevent citation row interference while editing.
+
+* **Verification:**
+  * Added automated regression test in `tests/test_init.js` asserting cell class isolation and auto-mode switching on `.diff-editmode`.
+  * 79/79 tests passing with 0 ESLint warnings.
+  * Documented across `README.md`, `REFDIFF.md`, `refdiff.wiki`, `ARCHITECTURE.md`, and `TEST_PLAN.md`.

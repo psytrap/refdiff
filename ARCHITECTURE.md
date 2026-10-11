@@ -364,7 +364,13 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 | **VisualEditor Bridge** | Listens to `wikipage.diff.wikitextBodyUpdate` & applies `oo-ui-element-hidden` | Visual Diff row leakage and phantom table stacking |
 | **Inline Toggle Switch** | Infuses `mw-diffPage-inline-toggle-switch` & locks disabled during RefDiff | Preventing contradictory side-by-side vs inline states |
 | **Reference Previews (Extension:Popups)** | Semantic `<sup class="reference refdiff-ref"><a href="...">` + `mw.hook('wikipage.content')` | Displays native reading-mode citation cards on hover |
+| **diffedit (Inline Diff Editor)** | Isolates cell classes (`refdiff-cit-addedline`) & restores raw wikitext on `.diff-editmode` | Line enumeration corruption in `diffedit` and editing mathematical badges |
 | **Vector 2022 Dark Mode** | Uses `skin-theme-clientpref-night` and CSS variables | High-contrast dark theme without flash-of-unstyled-content |
+
+### 7.1 Third-Party Gadget Interoperability: `diffedit.js`
+[`diffedit.js`](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit.js) allows editors to edit article sections directly on `Special:Diff`. Because both tools operate directly on `table.diff`, RefDiff implements two explicit architectural safeguards to guarantee 100% interoperability:
+1. **Line-Enumeration Protection:** `diffedit` enumerates lines by querying `tbody tr td:last-of-type` for `.diff-addedline` and `.diff-context`. If RefDiff's decoupled citation rows used these native classes, `diffedit` would increment its internal line counter (`currentLine++`), causing edits to publish to corrupted line offsets. RefDiff assigns isolated classes (`refdiff-cit-addedline`, `refdiff-cit-context`), styled identically to native diffs via CSS, ensuring `diffedit`'s line scanner completely ignores citation rows.
+2. **Automatic Raw Wikitext Restoration:** When an editor clicks `[ Edit ]` in `diffedit` or when `table.diff` gains `.diff-editmode`, RefDiff observes the class mutation and automatically restores native wikitext mode (`selectMode('wikitext')`). This guarantees that `contenteditable="true"` operates on raw wikitext rather than badge tokens (`⟨ref1⟩`), preventing accidental vandalism upon saving.
 
 ---
 
@@ -373,7 +379,7 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification):
 
 1. **Modular Unit & Component Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **69 zero-dependency tests** (100% headless function coverage) across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
+   * **79 zero-dependency tests** (100% headless function coverage) across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
    * Fast execution budget: entire suite executes in **~18–25 ms** via `node tests/runner.js` (`npm test`).
    * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js` or `node tests/test_pairing.js`).
    * **Mock Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures.

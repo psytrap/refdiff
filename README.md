@@ -39,15 +39,15 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
   ```
 * Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
 
-### 2. The Editor Companion: References Segregator
+### 2. Supplementing Tools & Ecosystem Compatibility
 
-While **RefDiff** addresses the **reviewing / diff** experience on `Special:Diff`, the complementary problem for the **editing** window is handled by PleaseStand's user script:
+RefDiff is engineered for zero-collision interoperability with Wikipedia's editing and citation ecosystem:
 
-* ✍️ [**References Segregator**](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator) ([`User:PleaseStand/segregate-refs.js`](https://en.wikipedia.org/wiki/User:PleaseStand/segregate-refs.js)): Temporarily splits the wikitext editing window into two textareas—clean prose in the main editor and reference definitions in a secondary pane below. Upon saving or previewing, it automatically re-inlines the citations, keeping the raw database wikitext untouched and compliant with `WP:CITEVAR`.
+* ⚡ [**diffedit**](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit) ([`m:User:Jon Harald Søby/diffedit.js`](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit.js)): In-line editing companion on `Special:Diff` that lets editors edit sections directly inside the diff view. RefDiff isolates citation row classes to prevent line-enumeration conflicts and automatically restores native wikitext whenever `diffedit` enters edit mode.
+* ✍️ [**References Segregator**](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator) ([`User:PleaseStand/segregate-refs.js`](https://en.wikipedia.org/wiki/User:PleaseStand/segregate-refs.js)): The editor companion for `Special:Edit` that temporarily splits editing into two panes—clean prose above and reference definitions below.
+* 🔍 [**HarvErrors**](https://en.wikipedia.org/wiki/User:Trappist_the_monk/HarvErrors) ([`User:Trappist the monk/HarvErrors.js`](https://en.wikipedia.org/wiki/User:Trappist_the_monk/HarvErrors.js)): Footnote integrity checker that flags broken or orphaned Harvard / shortened citations (`{{sfn}}`) lacking matching bibliography anchors.
 
-Together, they form a complete virtual decoupling workflow:
-* **Writing / Editing:** [References Segregator](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator)
-* **Reviewing / Diffs:** **RefDiff** ([`refdiff.js`](refdiff.js))
+Together with RefDiff on `Special:Diff`, these scripts form a complete, non-destructive citation audit and editing workflow.
 
 ### 3. Automated Testing & Verification
 
@@ -57,7 +57,7 @@ RefDiff enforces 100% test pass rate across 13 modular unit and component test s
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (78 tests in ~20ms)
+# 2. Run the fast headless unit & component test suite (79 tests in ~20ms)
 npm test
 
 # 3. Run combined CI checks

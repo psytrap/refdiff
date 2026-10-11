@@ -280,7 +280,6 @@ suite('src/init.js - Page Detection', () => {
   test('init mounts OOUI button into buttonGroup and attaches mutation observer', () => {
     let appendedBtn = null;
     let containerClickListener = null;
-    let observedTarget = null;
 
     const mockButtonGroup = {
       classList: { contains: () => true },
@@ -300,9 +299,12 @@ suite('src/init.js - Page Detection', () => {
     };
 
     let observerCallback = null;
+    const observedTargets = [];
     class MockMutationObserver {
       constructor(cb) { observerCallback = cb; }
-      observe(target) { observedTarget = target; }
+      observe(target) {
+        observedTargets.push(target);
+      }
       disconnect() {}
     }
 
@@ -348,7 +350,7 @@ suite('src/init.js - Page Detection', () => {
       init();
       assert.notStrictEqual(appendedBtn, null, 'OOUI button should be appended to group');
       assert.strictEqual(typeof containerClickListener, 'function', 'Diff mode container should have click listener');
-      assert.strictEqual(observedTarget, mockContainer, 'Container should be observed for mutations');
+      assert.strictEqual(observedTargets.includes(mockContainer), true, 'Container should be observed for mutations');
 
       // 1. Click refdiff button
       let preventDefaultCalled = false;
@@ -439,6 +441,79 @@ suite('src/init.js - Page Detection', () => {
 
     delete require.cache[require.resolve('../refdiff.js')];
     require('../refdiff.js');
+  });
+
+  test('diffedit compatibility: citation rows do not trigger diffedit line enumeration and diff-editmode restores wikitext', () => {
+    const { createCitRow, selectMode } = require('../refdiff.js');
+
+    let docClickListener = null;
+    let observerCb = null;
+    class MockMutationObserver {
+      constructor(cb) { observerCb = cb; }
+      observe() {}
+      disconnect() {}
+    }
+
+    const classList = new Set();
+    const mockTable = {
+      classList: {
+        contains: (c) => classList.has(c),
+        add: (c) => classList.add(c),
+        remove: (c) => classList.delete(c)
+      },
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      parentNode: { insertBefore: () => {} }
+    };
+
+    withMockEnvironment({
+      MutationObserver: MockMutationObserver,
+      document: {
+        head: { appendChild: () => {} },
+        createElement: (tag) => ({
+          tagName: tag ? tag.toUpperCase() : 'DIV',
+          className: '',
+          innerHTML: '',
+          setAttribute() {},
+          removeAttribute() {},
+          classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
+          querySelector: () => null
+        }),
+        querySelector: (sel) => (sel === 'table.diff' ? mockTable : null),
+        getElementById: () => null,
+        querySelectorAll: () => [],
+        addEventListener: (event, fn) => {
+          if (event === 'click') docClickListener = fn;
+        }
+      }
+    }, () => {
+      const citRow = createCitRow({
+        label: 'test',
+        oldRaw: '<ref>old</ref>',
+        newRaw: '<ref>new</ref>',
+        rowId: 'refdiff-cit-test-1'
+      });
+      const html = citRow.innerHTML;
+      assert.strictEqual(html.includes('class="diff-addedline'), false, 'Citation row must not contain diff-addedline class');
+      assert.strictEqual(html.includes('class="diff-context'), false, 'Citation row must not contain diff-context class');
+      assert.strictEqual(html.includes('refdiff-cit-addedline'), true, 'Citation row uses refdiff-cit-addedline for styling');
+
+      init();
+      selectMode('refdiff', mockTable);
+      assert.strictEqual(typeof observerCb, 'function', 'Diffedit observer callback should be registered');
+      assert.strictEqual(typeof docClickListener, 'function', 'Document click listener for diffedit should be registered');
+
+      classList.add('diff-editmode');
+      observerCb();
+
+      selectMode('refdiff', mockTable);
+      docClickListener({
+        target: {
+          closest: (sel) => (sel === '.diffedit-editbutton' ? {} : null)
+        }
+      });
+      restoreOriginal(mockTable);
+    });
   });
 });
 
