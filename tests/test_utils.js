@@ -31,6 +31,15 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
     assert.strictEqual(normalizeDiffTags(spaceSpan), spaceSpan, 'Should preserve whitespace-only diffchange spans');
   });
 
+  test('normalizeDiffTags merges adjacent diffchange spans separated only by whitespace', () => {
+    const splitAddedTag = '<ins class="diffchange diffchange-inline">&lt;ref name="kami"</ins> <ins class="diffchange diffchange-inline">/&gt;</ins>';
+    const normalized = normalizeDiffTags(splitAddedTag);
+    assert.strictEqual(normalized, '<ins class="diffchange diffchange-inline">&lt;ref name="kami" /&gt;</ins>');
+
+    const splitDelSpans = '<del class="diffchange">part1</del>   <del class="diffchange">part2</del>';
+    assert.strictEqual(normalizeDiffTags(splitDelSpans), '<del class="diffchange">part1   part2</del>');
+  });
+
   test('sanitizeAnchor sanitizes strings into valid DOM ID tokens', () => {
     assert.strictEqual(sanitizeAnchor('AlicanteRyanair'), 'AlicanteRyanair');
     assert.strictEqual(sanitizeAnchor('exyu_240625'), 'exyu_240625');

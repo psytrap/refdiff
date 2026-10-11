@@ -385,7 +385,9 @@
     res = res.replace(/\{<(del|ins)([^>]*)>\{/gi, '<$1$2>{{');
     // 6. Template closing: }<del/ins>} -> }}<del/ins>
     res = res.replace(/\}<(del|ins)([^>]*)>\}/gi, '}}<$1$2>');
-    // 7. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
+    // 7. Merge adjacent diffchange spans of identical type separated only by whitespace:
+    res = res.replace(/<\/(ins|del)>(\s*)<\1\b[^>]*>/gi, '$2');
+    // 8. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
     res = res.replace(/<(ins|del)\b[^>]*><\/\1>/gi, '');
     return res;
   }
@@ -797,14 +799,12 @@
 
     if (mc.isAdd) {
       addPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_ADD}" title="Added citation">⟨+${mc.label}+⟩</a></sup> `;
-      if (addContent && !addContent.includes(CLASSES.DIFFCHANGE)) {
-        addContent = `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${addContent}</ins>`;
-      }
+      const cleanContent = addContent ? addContent.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
+      addContent = cleanContent ? `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${cleanContent}</ins>` : '';
     } else if (mc.isDel) {
       delPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><span class="${CLASSES.BADGE_DEL}" title="Removed citation">⟨-${mc.label}-⟩</span></sup> `;
-      if (delContent && !delContent.includes(CLASSES.DIFFCHANGE)) {
-        delContent = `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${delContent}</del>`;
-      }
+      const cleanContent = delContent ? delContent.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
+      delContent = cleanContent ? `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${cleanContent}</del>` : '';
     } else {
       const modBadge = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_MOD}" title="Citation metadata modified">⟨~${mc.label}~⟩</a></sup> `;
       delPrefix = modBadge;

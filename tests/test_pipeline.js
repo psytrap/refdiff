@@ -5,7 +5,7 @@
  */
 
 const { assert, suite, test, withMockEnvironment, finishStandalone } = require('./harness.js');
-const { transformProseCells, applyDecoupling, restoreOriginal, onTableClick } = require('../refdiff.js');
+const { transformProseCells, applyDecoupling, restoreOriginal, onTableClick, normalizeDiffTags, pairReferences, parseRefs } = require('../refdiff.js');
 
 suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
   test('transformProseCells generates badges and returns modified citations list', () => {
@@ -402,6 +402,21 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
       assert.strictEqual(removedMarker, false, 'Should NOT strip data-marker from whitespace diff row');
       restoreOriginal(mockTable);
     });
+  });
+
+  test('transformProseCells handles newly added callout split across diffchange spans (Kim Domingo diff)', () => {
+    const rawDel = '<div>| birth_date ={{birth date and age|1995|2|3}} </div>';
+    const rawAdd = '<div>| birth_date =<ins class="diffchange diffchange-inline"> </ins>{{birth date and age|1995|2|3}}<ins class="diffchange diffchange-inline">&lt;ref name="kami"</ins> <ins class="diffchange diffchange-inline">/&gt;</ins></div>';
+
+    const normDel = normalizeDiffTags(rawDel);
+    const normAdd = normalizeDiffTags(rawAdd);
+    const pairs = pairReferences(parseRefs(normDel), parseRefs(normAdd));
+
+    const result = transformProseCells(normDel, normAdd, pairs, 1);
+    assert.strictEqual(result.newAddHtml.includes('⟨+kami+⟩'), true, 'Should include add badge');
+    assert.strictEqual(result.modifiedCits.length, 1);
+    assert.strictEqual(result.modifiedCits[0].newRaw, '&lt;ref name="kami" /&gt;');
+    assert.strictEqual(result.modifiedCits[0].isAdd, true);
   });
 });
 

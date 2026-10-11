@@ -71,6 +71,61 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
       assert.strictEqual(row.innerHTML.includes('href="#cite_note-exyu_240625-58"'), true, 'Prefix badge should link to cite_note');
     });
   });
+
+  test('createCitRow styles added citations entirely as added (<ins>), stripping partial diffchange spans', () => {
+    withMockEnvironment({
+      document: {
+        createElement: () => ({
+          className: '',
+          innerHTML: '',
+          set id(val) { this._id = val; },
+          get id() { return this._id; }
+        })
+      }
+    }, () => {
+      const row = createCitRow({
+        label: 'kami',
+        oldRaw: '',
+        newRaw: '&lt;ref name="kami" /&gt;',
+        isAdd: true,
+        rowId: 'refdiff-cit-kami-1',
+        citeNoteId: 'cite_note-kami-1'
+      });
+      assert.strictEqual(row.innerHTML.includes('<ins class="diffchange diffchange-inline">&lt;ref name="kami" /&gt;</ins>'), true, 'Entire added ref should be wrapped in ins');
+
+      // Even if newRaw contained broken internal diffchange spans from word tokenization:
+      const rowWithInternalSpans = createCitRow({
+        label: 'kami',
+        oldRaw: '',
+        newRaw: '&lt;ref name="kami"</ins> <ins class="diffchange diffchange-inline">/&gt;',
+        isAdd: true,
+        rowId: 'refdiff-cit-kami-1'
+      });
+      assert.strictEqual(rowWithInternalSpans.innerHTML.includes('<ins class="diffchange diffchange-inline">&lt;ref name="kami" /&gt;</ins>'), true, 'Internal diff tags should be normalized into a single contiguous ins span');
+    });
+  });
+
+  test('createCitRow styles deleted citations entirely as deleted (<del>), stripping partial diffchange spans', () => {
+    withMockEnvironment({
+      document: {
+        createElement: () => ({
+          className: '',
+          innerHTML: '',
+          set id(val) { this._id = val; },
+          get id() { return this._id; }
+        })
+      }
+    }, () => {
+      const row = createCitRow({
+        label: 'oldRef',
+        oldRaw: '&lt;ref name="oldRef" /&gt;',
+        newRaw: '',
+        isDel: true,
+        rowId: 'refdiff-cit-oldRef-1'
+      });
+      assert.strictEqual(row.innerHTML.includes('<del class="diffchange diffchange-inline">&lt;ref name="oldRef" /&gt;</del>'), true, 'Entire deleted ref should be wrapped in del');
+    });
+  });
 });
 
 if (require.main === module) {
