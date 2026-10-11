@@ -14,4 +14,8 @@ npm-debug.log*
 # Test artifacts
 tests/screenshots/
 coverage/
+# Scratch & preview files
+/*.html
+airport_destination_list_full.wiki
+section12_*.wiki
 
