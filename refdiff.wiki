@@ -247,6 +247,11 @@ RefDiff is part of a broader ecosystem for citation management:
 | Source finders, editors
 | Discovers and verifies candidate references for {{tlx|citation needed}} claims via Internet Archive APIs and AI evaluation.
 |-
+| '''GUI Citation Editing'''
+| [[:en:Wikipedia:ProveIt|ProveIt]] ({{mono|Gadget-ProveIt.js}})
+| Source editors, authors
+| Adds a graphical dock and form UI in the wikitext editor to add, edit, and Citoid-autofill references. Complements RefDiff by streamlining reference creation in wikitext.
+|-
 | '''Storage Concepts'''
 | '''Section-Scoped References''' ({{tag|references|params=hidden}} / {{tag|ref|params=hidden}})
 | Proposed Wikitext syntax
@@ -257,6 +262,7 @@ RefDiff is part of a broader ecosystem for citation management:
 * [[/Show case|/Show case]] – Live showcase diff page
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
+* [[:en:Wikipedia:ProveIt|Wikipedia:ProveIt]] – Graphical citation manager gadget for the source editor
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
 * [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
 * [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]] – Automated source discovery and verification tool

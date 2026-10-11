@@ -456,6 +456,12 @@ Section-scoped blocks harmonize cleanly with both native MediaWiki features and 
 4. **Shortened Footnotes (`{{sfn}}`) & Global Bibliography**
    * For articles employing separate `== Bibliography ==` sections, `<references hidden>` works seamlessly with short-citation templates (`{{sfn|Schmidt|2020|p=45}}`), allowing editors to consolidate local citations without scattering templates into paragraph text.
 
+### 7.5 Section Editing & Tool Locality: Synergies with ProveIt and Community Wishlist W190
+A major structural pain point in current MediaWiki citation management is highlighted by **[Community Wishlist W190](https://meta.wikimedia.org/wiki/Community_Wishlist/W190)** (*"Reference editing"*, [Phabricator T356471](https://phabricator.wikimedia.org/T356471)):
+* **The Failure Mode:** When an editor edits an individual section, any reference defined outside that section—either in another section or in a global List-Defined References (LDR) block at the bottom—is reduced to an uneditable callout stub (`<ref name="foo" />`). Editors cannot inspect or update the citation without opening the entire article.
+* **Impact on Tooling ([ProveIt](https://en.wikipedia.org/wiki/Wikipedia:ProveIt)):** Client-side tools like ProveIt (`Gadget-ProveIt.js`) parse only the wikitext inside the section's edit box (`#wpTextbox1`). When definitions live elsewhere, ProveIt's graphical form and Citoid auto-filling cannot edit the reference.
+* **The `<references hidden>` Solution:** By defining references locally within the section where they are used, the full citation markup is inherently present inside `#wpTextbox1` during section editing. Tools like ProveIt can immediately parse, display, and edit the source definitions without requiring complex cross-section asynchronous API rewrites.
+
 ---
 
 ## 8. Ecosystem Impact & Affected Tooling

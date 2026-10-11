@@ -379,6 +379,12 @@ RefDiff isolates and clarifies citation diffs on `Special:Diff`. In production u
 
 Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `HarvErrors` for anchor integrity, these tools form a layered, end-to-end citation quality ecosystem.
 
+### 7.3 Source Editing & Form Interfaces: ProveIt and Section-Scoped Locality
+[**ProveIt**](https://en.wikipedia.org/wiki/Wikipedia:ProveIt) (`Gadget-ProveIt.js`) is Wikipedia's widely adopted graphical citation manager for the wikitext editor, providing a form-based UI driven by `TemplateData` and `Citoid` auto-filling:
+1. **The Section-Editing Barrier (Community Wishlist W190 / Phabricator T356471):** ProveIt parses and modifies references strictly within the wikitext loaded into `#wpTextbox1`. When an editor edits a single section, citations defined outside that section—either in earlier sections or in global List-Defined Reference blocks (`{{reflist|refs=...}}`)—only appear as self-closing stubs (`<ref name="foo" />`). Because the full definition is absent from the section textarea, ProveIt cannot display or edit the source parameters, and MediaWiki's section-save architecture prevents writing to other sections.
+2. **Synergy with `<references hidden>`:** By organizing source definitions in section-scoped blocks (`<references hidden>`), reference definitions reside locally within the section where they are cited. ProveIt can immediately discover, edit, and auto-fill complete citation templates directly within section editing mode, resolving the W190 barrier without requiring complex cross-section API orchestration.
+3. **Role in the Citation Lifecycle:** While ProveIt simplifies citation creation and modification during *authoring* (`Special:Edit`), RefDiff isolates and visualizes citation changes during *review* (`Special:Diff`), forming complementary bookends of the citation workflow.
+
 ---
 
 ## 8. Verification & Test Architecture

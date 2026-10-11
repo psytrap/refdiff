@@ -344,3 +344,17 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Documentation Updates:**
   * Integrated both tools as supplemental companion tools across `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), and `ARCHITECTURE.md` (§7.2).
 
+---
+
+### 2026-10-11: Ecosystem Documentation — ProveIt Gadget & W190 Locality Synergy
+
+* **Context & Motivation:**
+  * Evaluated [**ProveIt**](https://en.wikipedia.org/wiki/Wikipedia:ProveIt) (`MediaWiki:Gadget-Global-ProveIt.js`), Wikipedia's primary graphical citation editor for the source editor, in the context of [**Community Wishlist W190**](https://meta.wikimedia.org/wiki/Community_Wishlist/W190) ("Reference editing", [Phabricator T356471](https://phabricator.wikimedia.org/T356471)).
+* **Architectural Findings & Synergies:**
+  * **ProveIt's Section-Editing Blind Spot:** ProveIt operates strictly on wikitext in the local edit textarea (`#wpTextbox1`). In section edits with out-of-section or global List-Defined References (LDR), ProveIt encounters only empty stub tags (`<ref name="foo" />`), preventing citation parameter editing.
+  * **Solution via `<references hidden>`:** Section-scoped citation blocks provide the missing link by defining references locally within the section wikitext. During section editing, ProveIt can immediately discover and edit full citation templates directly in `#wpTextbox1`, bypassing the W190 cross-section API dilemma.
+  * **RefDiff Complementarity:** ProveIt handles GUI authoring and Citoid auto-filling during editing (`Special:Edit`), while RefDiff decouples and highlights citations during review (`Special:Diff`).
+* **Documentation Updates:**
+  * Updated `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), `ARCHITECTURE.md` (§7.3), and `proposal/CONCEPT.md` (§7.5).
+
+
