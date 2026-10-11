@@ -25,19 +25,19 @@
  * Repository: https://github.com/m-k/einzelnachweise
  *
  * Virtual File Hierarchy:
- *  1. [src/anchor.js]           (first line: 575)  - Live DOM footnote anchor discovery and popup integration
+ *  1. [src/anchor.js]           (first line: 624)  - Live DOM footnote anchor discovery and popup integration
  *  2. [src/constants.js]        (first line: 53)   - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
- *  3. [src/dom_helpers.js]      (first line: 1097) - DOM query, categorization, and hook notification helpers
- *  4. [src/exports.js]          (first line: 1671) - Public API return and UMD module exports
- *  5. [src/init.js]             (first line: 1464) - Page detection, UI button wiring, and lifecycle auto-start
- *  6. [src/memento.js]          (first line: 776)  - Non-destructive DOM row snapshot and restore memento
- *  7. [src/mode_coordinator.js] (first line: 1144) - 3-way mode switching (visual/wikitext/refdiff) & switch locks
- *  8. [src/pairing.js]          (first line: 479)  - 3-pass heuristic reference pairing engine
- *  9. [src/parser.js]           (first line: 396)  - Unified reference and template parser
- * 10. [src/pipeline.js]         (first line: 841)  - Core decoupling transformation and table mutator pipeline
- * 11. [src/renderer.js]         (first line: 665)  - Badge generation and citation diff row construction
- * 12. [src/state.js]            (first line: 264)  - State management and memento registry
- * 13. [src/utils.js]            (first line: 284)  - String sanitization, entity extraction, boundary normalization
+ *  3. [src/dom_helpers.js]      (first line: 1146) - DOM query, categorization, and hook notification helpers
+ *  4. [src/exports.js]          (first line: 1804) - Public API return and UMD module exports
+ *  5. [src/init.js]             (first line: 1529) - Page detection, UI button wiring, and lifecycle auto-start
+ *  6. [src/memento.js]          (first line: 825)  - Non-destructive DOM row snapshot and restore memento
+ *  7. [src/mode_coordinator.js] (first line: 1193) - 3-way mode switching (visual/wikitext/refdiff) & switch locks
+ *  8. [src/pairing.js]          (first line: 528)  - 3-pass heuristic reference pairing engine
+ *  9. [src/parser.js]           (first line: 445)  - Unified reference and template parser
+ * 10. [src/pipeline.js]         (first line: 890)  - Core decoupling transformation and table mutator pipeline
+ * 11. [src/renderer.js]         (first line: 714)  - Badge generation and citation diff row construction
+ * 12. [src/state.js]            (first line: 313)  - State management and memento registry
+ * 13. [src/utils.js]            (first line: 333)  - String sanitization, entity extraction, boundary normalization
  */
 
 (function (root, factory) {
@@ -94,6 +94,8 @@
     REFDIFF_MODE_BAR: '#refdiff-mode-bar',
     REFDIFF_BTN_DECOUPLED: '#refdiff-btn-decoupled',
     REFDIFF_BTN_STANDARD: '#refdiff-btn-standard',
+    DECOUPLE_TOGGLE: '#refdiff-decouple-toggle',
+    DECOUPLE_CONTAINER: '#refdiff-decouple-container',
     STYLE_BADGE: '#refdiff-badge-styles'
   };
 
@@ -247,6 +249,53 @@
       color: inherit;
       text-decoration: none;
       cursor: default;
+    }
+    .refdiff-decouple-container {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 12px;
+      vertical-align: middle;
+      font-size: 0.85em;
+      color: #54595d;
+      color: var(--color-subtle, #54595d);
+      user-select: none;
+      transition: opacity 0.15s ease;
+    }
+    .refdiff-decouple-container.oo-ui-widget-disabled {
+      opacity: 0.45;
+    }
+    .refdiff-decouple-container.oo-ui-widget-disabled label,
+    .refdiff-decouple-container.oo-ui-widget-disabled input {
+      cursor: default;
+    }
+    .refdiff-decouple-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      margin: 0;
+      font-weight: normal;
+    }
+    .refdiff-decouple-checkbox {
+      cursor: pointer;
+      margin: 0;
+      vertical-align: middle;
+    }
+    .refdiff-mode-separator {
+      margin: 0 6px;
+      color: #72777d;
+    }
+    html.skin-theme-clientpref-night .refdiff-decouple-container,
+    body.skin-theme-clientpref-night .refdiff-decouple-container {
+      color: #a2a9b1;
+      color: var(--color-subtle, #a2a9b1);
+    }
+    @media (prefers-color-scheme: dark) {
+      html.skin-theme-clientpref-os .refdiff-decouple-container,
+      body.skin-theme-clientpref-os .refdiff-decouple-container {
+        color: #a2a9b1;
+        color: var(--color-subtle, #a2a9b1);
+      }
     }
     /* Ensure citation diff rows and hidden rows are never visible when Visual diff is active */
     .ve-init-mw-diffPage-diff ~ table.diff .refdiff-cit-row,
@@ -1447,6 +1496,22 @@
         notifyBodyUpdate(table);
       }
     }
+
+    // Synchronize Decouple rows toggle availability with RefDiff mode
+    const toggleCheckbox = typeof document !== 'undefined' ? document.getElementById('refdiff-decouple-toggle') : null;
+    const toggleContainer = typeof document !== 'undefined' ? document.getElementById('refdiff-decouple-container') : null;
+    if (toggleCheckbox) {
+      toggleCheckbox.disabled = (mode !== 'refdiff');
+    }
+    if (toggleContainer) {
+      if (mode === 'refdiff') {
+        toggleContainer.classList.remove(CLASSES.OO_WIDGET_DISABLED);
+        toggleContainer.classList.add(CLASSES.OO_WIDGET_ENABLED);
+      } else {
+        toggleContainer.classList.remove(CLASSES.OO_WIDGET_ENABLED);
+        toggleContainer.classList.add(CLASSES.OO_WIDGET_DISABLED);
+      }
+    }
   }
 
   /**
@@ -1483,7 +1548,47 @@
     );
   }
 
-  // --- Initialization & UI Wiring ---
+  /**
+   * Creates the Decouple rows toggle checkbox element.
+   * @param {boolean} isChecked
+   * @returns {HTMLElement}
+   */
+  function createDecoupleToggle(isChecked) {
+    const container = document.createElement('span');
+    container.id = 'refdiff-decouple-container';
+    container.className = 'refdiff-decouple-container oo-ui-widget oo-ui-widget-enabled';
+    container.setAttribute('title', 'When unchecked, keeps changed citations directly inline in the diff');
+    container.innerHTML = `
+      <label class="refdiff-decouple-label">
+        <input type="checkbox" id="refdiff-decouple-toggle" class="refdiff-decouple-checkbox"${isChecked ? ' checked' : ''}>
+        <span class="refdiff-decouple-text">Decouple rows</span>
+      </label>
+    `;
+    return container;
+  }
+
+  /**
+   * Binds the change event listener to the Decouple rows toggle checkbox.
+   * @param {HTMLTableElement} [table]
+   */
+  function bindDecoupleToggleListener(table) {
+    if (typeof document === 'undefined') return;
+    const toggle = document.getElementById('refdiff-decouple-toggle');
+    if (!toggle || toggle._refdiffBound) return;
+    toggle._refdiffBound = true;
+    toggle.addEventListener('change', (e) => {
+      const separate = !!e.target.checked;
+      setSeparateChangedPreferred(separate);
+      if (isRefDiffPreferred() && !isVisualDiffActive()) {
+        const diffTable = table || document.querySelector(SELECTORS.DIFF_TABLE);
+        if (diffTable) {
+          restoreOriginal(diffTable);
+          applyDecoupling(diffTable, { separateChanged: separate });
+          notifyBodyUpdate(diffTable);
+        }
+      }
+    });
+  }
 
   /**
    * Creates the OOUI RefDiff button element matching MediaWiki's ButtonOptionWidget.
@@ -1511,13 +1616,22 @@
   /**
    * Creates a fallback mode bar for MediaWiki skins lacking the OOUI diff mode switcher.
    * @param {boolean} shouldDecouple
+   * @param {boolean} [separateChanged]
    * @returns {HTMLDivElement}
    */
-  function createFallbackModeBar(shouldDecouple) {
+  function createFallbackModeBar(shouldDecouple, separateChanged) {
+    const isSep = typeof separateChanged === 'boolean' ? separateChanged : isSeparateChangedPreferred();
     const modeBar = document.createElement('div');
     modeBar.id = 'refdiff-mode-bar';
     modeBar.className = 'refdiff-mode-bar';
     modeBar.innerHTML = `
+      <span id="refdiff-decouple-container" class="refdiff-decouple-container">
+        <label class="refdiff-decouple-label">
+          <input type="checkbox" id="refdiff-decouple-toggle" class="refdiff-decouple-checkbox"${isSep ? ' checked' : ''}>
+          <span class="refdiff-decouple-text">Decouple rows</span>
+        </label>
+      </span>
+      <span class="refdiff-mode-separator">&bull;</span>
       <strong>Diff view:</strong>
       <a href="#" id="refdiff-btn-decoupled" class="${shouldDecouple ? 'active' : ''}">Decoupled (RefDiff)</a> &bull;
       <a href="#" id="refdiff-btn-standard" class="${shouldDecouple ? '' : 'active'}">Standard Wikidiff</a>
@@ -1557,6 +1671,17 @@
     if (buttonGroup) {
       if (document.getElementById('refdiff-ooui-btn')) return;
 
+      // 1. Mount Decouple rows toggle to the left of the mode bar
+      if (!document.getElementById('refdiff-decouple-container')) {
+        const toggleEl = createDecoupleToggle(isSeparateChangedPreferred());
+        if (diffModeContainer && typeof diffModeContainer.insertBefore === 'function') {
+          diffModeContainer.insertBefore(toggleEl, buttonGroup);
+        } else if (buttonGroup.parentNode && typeof buttonGroup.parentNode.insertBefore === 'function') {
+          buttonGroup.parentNode.insertBefore(toggleEl, buttonGroup);
+        }
+        bindDecoupleToggleListener(table);
+      }
+
       const isSelect = buttonGroup.classList.contains('oo-ui-buttonSelectWidget');
       const refBtn = createRefDiffButton(isSelect);
       buttonGroup.appendChild(refBtn);
@@ -1564,6 +1689,13 @@
       // Initialize button states according to user preference and initial view
       if (isVisual) {
         setElementActive(refBtn, false, isSelect);
+        const toggleCheckbox = document.getElementById('refdiff-decouple-toggle');
+        const toggleContainer = document.getElementById('refdiff-decouple-container');
+        if (toggleCheckbox) toggleCheckbox.disabled = true;
+        if (toggleContainer) {
+          toggleContainer.classList.remove(CLASSES.OO_WIDGET_ENABLED);
+          toggleContainer.classList.add(CLASSES.OO_WIDGET_DISABLED);
+        }
       } else {
         selectMode(shouldDecouple ? 'refdiff' : 'wikitext', table);
       }
@@ -1618,6 +1750,7 @@
       if (document.getElementById('refdiff-mode-bar')) return;
       const modeBar = createFallbackModeBar(shouldDecouple);
       table.parentNode.insertBefore(modeBar, table);
+      bindDecoupleToggleListener(table);
 
       const btnDecoupled = document.getElementById('refdiff-btn-decoupled');
       const btnStandard = document.getElementById('refdiff-btn-standard');
@@ -1711,6 +1844,8 @@
     replaceRefInHtml,
     createRefDiffButton,
     createFallbackModeBar,
+    createDecoupleToggle,
+    bindDecoupleToggleListener,
     onTableClick,
     init
   };

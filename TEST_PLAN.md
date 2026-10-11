@@ -7,10 +7,10 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
 ## 1. Executive Evaluation: "Is it Enough or Too Much?"
 
 ### Quantitative Metrics
-* **Unit & Component Tests (`npm test`):** **65 passing tests** across **13 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
+* **Unit & Component Tests (`npm test`):** **67 passing tests** across **13 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
 * **Execution Time:** **~18–25 ms** (all 13 test files execute sequentially in a single process via `tests/runner.js`).
 * **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`).
-* **Code Coverage (Headless Node.js):** **100.0% function coverage** (68 of 68 functions) measured via V8 coverage without browser shims.
+* **Code Coverage (Headless Node.js):** **100.0% function coverage** (71 of 71 functions) measured via V8 coverage without browser shims.
 * **Browser Runtime Coverage (Chromium CDP):** Real MediaWiki DOM integration, OOUI visual transitions, and hovercard popups verified end-to-end via [`tests/test_live_cdp.py`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_live_cdp.py).
 * **Linting (`npm run lint`):** **0 errors, 0 warnings** across all files.
 
@@ -25,6 +25,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
   - Template parameter parsing for shortened footnotes (`{{sfn}}`, `{{r}}`, `{{efn}}`).
   - Anchor discovery for native `Extension:Popups` / Reference Previews tooltip generation.
   - Configurable inline-change mode (`separateChanged: false`) preserving inline `<del>`/`<ins>` wikitext while collapsing unchanged citations into hoverable badges.
+  - Dynamic in-toolbar decouple toggle placement to the left of the mode bar to prevent UI layout jumps.
 * **Sandboxed Mock Isolation:** All DOM/window mocks use a scoped `withMockEnvironment()` harness that guarantees restoration and prevents cross-test global pollution.
 * **Minimal Maintenance Cost:** Pure unit, component, and benchmark tests execute deterministically without network calls or flaky async timeouts.
 
@@ -37,7 +38,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
   - Pairing heuristics (1-to-1, additions, deletions, surrounded edits, identical references).
   - Badge formatting with mathematical brackets (`⟨ref1⟩`, `⟨~name~⟩`).
   - Decoupling pipeline and round-trip DOM snapshot restoration.
-  - Configurable decoupled vs inline-changed mode (`separateChanged` via `window.refdiffConfig`, URL param, or storage).
+  - Configurable decoupled vs inline-changed mode (`separateChanged` via `window.refdiffConfig`, URL param, storage, or toolbar checkbox).
   - Preference persistence (`localStorage`, `mw.storage`, URL parameters).
   - OOUI mode selection and body row toggling.
   - High-density stress testing (114 citations in a single table benchmarked < 50ms).
@@ -59,7 +60,7 @@ While [`refdiff.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/ref
 | `src/anchor.js` | [`tests/test_anchor.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_anchor.js) | Footnote anchor discovery (`cite_note-*`) & URL matching | 5 |
 | `src/constants.js` | [`tests/test_constants.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_constants.js) | Regex patterns (`TEMPLATE_REF_REGEX`) and constants | 1 |
 | `src/dom_helpers.js` | [`tests/test_dom_helpers.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_dom_helpers.js) | Body row categorization & `mw.hook` notifications | 2 |
-| `src/init.js` | [`tests/test_init.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_init.js) | Diff page detection, button mount & auto-start wiring | 7 |
+| `src/init.js` | [`tests/test_init.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_init.js) | Diff page detection, toolbar button mount, decouple toggle & auto-start wiring | 9 |
 | `src/memento.js` | [`tests/test_memento.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_memento.js) | DOM row snapshot capture & in-place restoration | 1 |
 | `src/mode_coordinator.js` | [`tests/test_mode_coordinator.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_mode_coordinator.js) | 3-way mode switching, separateChanged config & switch locks | 10 |
 | `src/pairing.js` | [`tests/test_pairing.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_pairing.js) | 3-pass heuristic reference pairing algorithm | 6 |
@@ -69,7 +70,7 @@ While [`refdiff.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/ref
 | `src/state.js` | [`tests/test_state.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_state.js) | State persistence (`localStorage`, `mw.storage`, URL) | 4 |
 | `src/utils.js` | [`tests/test_utils.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_utils.js) | `stripHtml`, `normalizeDiffTags`, `sanitizeAnchor`, `escapeRegex` | 4 |
 | *Fixtures & Perf* | [`tests/test_benchmarks.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_benchmarks.js) | Comprehensive fixture & 114-ref airport stress test | 5 |
-| **Total** | [`tests/runner.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/runner.js) | Master sequential test runner executing all suites | **65** |
+| **Total** | [`tests/runner.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/runner.js) | Master sequential test runner executing all suites | **67** |
 
 ---
 
@@ -132,7 +133,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (65 tests in ~20ms)
+# 2. Run the fast headless unit & component test suite (67 tests in ~20ms)
 npm test
 
 # 3. Run combined CI verification

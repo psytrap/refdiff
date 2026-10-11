@@ -4,8 +4,17 @@
  * Tests for src/init.js: Page detection and MediaWiki diff view discovery.
  */
 
-const { assert, suite, test, withMockEnvironment, finishStandalone } = require('./harness.js');
-const { isDiffPage, createRefDiffButton, createFallbackModeBar, init, restoreOriginal } = require('../refdiff.js');
+const { assert, suite, test, withMockEnvironment, setupMockStorage, finishStandalone } = require('./harness.js');
+const {
+  isDiffPage,
+  createRefDiffButton,
+  createFallbackModeBar,
+  createDecoupleToggle,
+  bindDecoupleToggleListener,
+  init,
+  restoreOriginal,
+  isSeparateChangedPreferred
+} = require('../refdiff.js');
 
 suite('src/init.js - Page Detection', () => {
   test('isDiffPage accurately identifies MediaWiki diff views across multiple signals', () => {
@@ -94,6 +103,79 @@ suite('src/init.js - Page Detection', () => {
     });
   });
 
+  test('createDecoupleToggle renders checkbox container with correct state', () => {
+    withMockEnvironment({
+      document: {
+        createElement: (tag) => ({
+          tagName: tag.toUpperCase(),
+          id: '',
+          className: '',
+          innerHTML: '',
+          setAttribute() {},
+          removeAttribute() {}
+        })
+      }
+    }, () => {
+      const toggleTrue = createDecoupleToggle(true);
+      assert.strictEqual(toggleTrue.id, 'refdiff-decouple-container');
+      assert.strictEqual(toggleTrue.innerHTML.includes('checked'), true);
+      assert.strictEqual(toggleTrue.innerHTML.includes('Decouple rows'), true);
+
+      const toggleFalse = createDecoupleToggle(false);
+      assert.strictEqual(toggleFalse.innerHTML.includes('checked'), false);
+    });
+  });
+
+  test('bindDecoupleToggleListener safely handles missing DOM and toggles preference on change', () => {
+    // 1. Missing document
+    withMockEnvironment({ document: undefined }, () => {
+      assert.doesNotThrow(() => bindDecoupleToggleListener());
+    });
+
+    // 2. Missing toggle element
+    withMockEnvironment({
+      document: { getElementById: () => null }
+    }, () => {
+      assert.doesNotThrow(() => bindDecoupleToggleListener());
+    });
+
+    // 3. Active toggle element
+    let changeHandler = null;
+
+    const mockCheckbox = {
+      id: 'refdiff-decouple-toggle',
+      checked: true,
+      addEventListener(event, fn) {
+        if (event === 'change') changeHandler = fn;
+      }
+    };
+
+    const mockTable = {
+      querySelector: () => null,
+      querySelectorAll: () => []
+    };
+
+    const { mockWindow } = setupMockStorage('localStorage');
+    withMockEnvironment({
+      document: {
+        getElementById: (id) => (id === 'refdiff-decouple-toggle' ? mockCheckbox : null),
+        querySelector: () => mockTable
+      },
+      window: mockWindow
+    }, () => {
+      bindDecoupleToggleListener(mockTable);
+      assert.strictEqual(typeof changeHandler, 'function', 'Change handler should be attached');
+
+      // Trigger uncheck event
+      changeHandler({ target: { checked: false } });
+      assert.strictEqual(isSeparateChangedPreferred(), false, 'Preference should become false');
+
+      // Trigger re-check event
+      changeHandler({ target: { checked: true } });
+      assert.strictEqual(isSeparateChangedPreferred(), true, 'Preference should become true');
+    });
+  });
+
   test('createFallbackModeBar renders mode bar with appropriate active link', () => {
     withMockEnvironment({
       document: {
@@ -109,6 +191,7 @@ suite('src/init.js - Page Detection', () => {
     }, () => {
       const barTrue = createFallbackModeBar(true);
       assert.strictEqual(barTrue.innerHTML.includes('id="refdiff-btn-decoupled" class="active"'), true);
+      assert.strictEqual(barTrue.innerHTML.includes('Decouple rows'), true);
       const barFalse = createFallbackModeBar(false);
       assert.strictEqual(barFalse.innerHTML.includes('id="refdiff-btn-standard" class="active"'), true);
     });
