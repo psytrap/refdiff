@@ -357,4 +357,17 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Documentation Updates:**
   * Updated `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), `ARCHITECTURE.md` (§7.3), and `proposal/CONCEPT.md` (§7.5).
 
+---
+
+### 2026-10-11: Marked for Check — Zipf's Law (`diff=1379548357`)
+
+* **Candidate Diff URL:** [Zipf's law (`diff=1379548357`)](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357)
+* **Article:** [Zipf's law](https://en.wikipedia.org/wiki/Zipf%27s_law) (Revision `1379548357` vs `prev`)
+* **Status:** ⏳ Marked for check / verification
+* **Evaluation Objectives:**
+  * **Mathematical & Formula Interactions:** Check behavior when citation tags (`<ref>...</ref>`) are embedded near or within mathematical expressions, `<math>` tags, LaTeX formatting, or quantitative tables.
+  * **Prose/Citation Boundary Decoupling:** Verify that reference decoupling accurately isolates citation metadata while preserving formula syntax, punctuation, and statistical annotations in prose.
+  * **DOM Snapshot Invariance:** Ensure mode toggles (Visual / Wikitext / RefDiff) and in-place DOM restoration remain byte-for-byte lossless on quantitative article structures.
+
+
 

@@ -197,7 +197,7 @@ RefDiff is backed by a rigorous four-level test pyramid and quality assurance fr
 * '''In-Place DOM Memento Invariance:''' Rigorously tests that DOM mutations adhere to the Memento pattern—retaining live DOM element closures, event listeners (such as {{mono|inlineFormatToggle.js}} and VisualEditor), and restoring native MediaWiki diff tables byte-for-byte upon mode toggling.
 * '''Shortened Footnotes & Citation Templates:''' Extensively validates tokenization, parameter parsing, entity decoding, and anchor discovery across {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and complex nested {{tag|ref}} tags.
 * '''High-Density Stress Benchmarking:''' Benchmarked on real-world extreme diffs (e.g. airport destination tables with 114 references and split {{mono|diffchange}} boundaries) to guarantee execution under 50&nbsp;ms without browser lag.
-* '''Live Browser Automation (CDP):''' End-to-end browser automation tests verify real MediaWiki DOM integration, three-way OOUI mode transitions, dark mode theming, and native {{mono|Extension:Popups}} Reference Preview hovercards on live Wikipedia revisions (e.g. [[Special:Diff/1379486498|Odoacer]] and [[Special:Diff/1379409916|Zagreb Airport]]).
+* '''Live Browser Automation (CDP):''' End-to-end browser automation tests verify real MediaWiki DOM integration, three-way OOUI mode transitions, dark mode theming, and native {{mono|Extension:Popups}} Reference Preview hovercards on live Wikipedia revisions (e.g. [[Special:Diff/1379486498|Odoacer]], [[Special:Diff/1379409916|Zagreb Airport]], and audit queue candidate [[Special:Diff/1379548357|Zipf's law]]).
 
 === What Is Not Covered (Known Limitations & Gaps) ===
 

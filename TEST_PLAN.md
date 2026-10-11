@@ -117,7 +117,7 @@ flowchart TD
 * **Goal:** End-to-end verification inside a real MediaWiki browser environment.
 * **Runner:** `python3 tests/test_live_cdp.py` (via port 9222).
 * **Scenarios:**
-  1. Injection and initialization on live MediaWiki diffs (e.g., Odoacer `diff=1379486498`, Zagreb Airport `diff=1379409916`).
+  1. Injection and initialization on live MediaWiki diffs (e.g., Odoacer `diff=1379486498`, Zagreb Airport `diff=1379409916`, Kim Domingo `diff=1379491398`, Cosmic inflation `diff=1379470949`, Zipf's law `diff=1379548357`).
   2. OOUI 3-way toggle interaction: Visual Diff <-> Wikitext Diff <-> RefDiff Decoupled Diff.
   3. VisualEditor visual diff interop (no leaked citation rows).
   4. Native `Extension:Popups` hovercard integration (hovering `⟨1⟩` or `⟨~sfn~⟩` triggers rich reference tooltip).
@@ -166,3 +166,14 @@ npm run test:live
 | **P3** | Nested Transclusions | Test citations wrapped inside `{{refn|...}}`, `{{sfnp}}`, and infobox template parameters. |
 | **P4** | Mobile Diff Layout | Test table mutation on MinervaNeue mobile skin where side-by-side diff rows are stacked. |
 | **P5** | Live Editor Hooks | Test multiple sequential diff updates fired by `mw.hook('wikipage.diff')` during live AJAX previewing. |
+
+### 5.1 Real-World Diffs & Verification Queue
+
+| Diff / Article | Revision | Focus Area & Verification Rationale | Status |
+|---|---|---|:---:|
+| [Odoacer](https://en.wikipedia.org/w/index.php?diff=1379486498) | `1379486498` | Shortened footnotes (`{{sfn}}`) & author-year popup anchor discovery | Verified |
+| [Zagreb Airport](https://en.wikipedia.org/w/index.php?diff=1379409916) | `1379409916` | High-density 114-ref airport destination table stress test (<50ms budget) | Verified |
+| [Kim Domingo](https://en.wikipedia.org/w/index.php?diff=1379491398) | `1379491398` | `wikidiff2` split tag boundaries (`/<del>&gt;`) & prose callout additions | Verified |
+| [Cosmic inflation](https://en.wikipedia.org/w/index.php?diff=1379470949) | `1379470949` | Whitespace-only prose edits retention without false context conversion | Verified |
+| [Zipf's law](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357) | `1379548357` | Mathematical prose, formulas (`<math>`), and quantitative citation diffs | ⏳ Marked for check |
+
