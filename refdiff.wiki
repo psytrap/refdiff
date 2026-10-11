@@ -203,6 +203,7 @@ While 100% of internal codebase functions are verified, several external edge ca
 
 * '''Malformed or Broken Wikitext:''' Unclosed {{tag|ref}} tags, tags missing closing brackets, or unusual multiline linebreaks inside tags are skipped by the parser and remain untouched in the prose diff without decoupling.
 * '''Nested Transclusions:''' Footnotes wrapped inside complex secondary templates (such as {{tlx|refn}}, {{tlx|sfnp}}, or citations embedded inside infobox templates) are not yet decoupled into scholarly badges.
+* '''Differential Prose Invariance Fuzzing:''' While unit and browser integration tests now explicitly verify whitespace-only edits (such as [[Special:Diff/1379470949|Cosmic inflation]]), systematic differential fuzzing comparing arbitrary real-world {{mono|wikidiff2}} word/character split patterns against RefDiff's post-processing DOM is not yet automated. Very subtle non-character edits (e.g. zero-width spaces, punctuation adjustments, or whitespace directly abutting citation tags) require ongoing regression tracking.
 * '''Mobile Diff Layouts (MinervaNeue):''' Responsive single-column stacked diff tables on Wikipedia's mobile view are not currently part of the automated layout test suite (RefDiff is optimized primarily for desktop two-column diffs).
 * '''Dynamic AJAX Diff Pagination:''' Successive rapid diff updates fired by live script reloads or interactive history navigation without a full page refresh.
 

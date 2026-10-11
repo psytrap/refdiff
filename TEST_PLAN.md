@@ -47,6 +47,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
   2. **Transcluded Citation Templates:** Complex citation templates like `{{refn}}`, `{{sfnp}}`, or citations nested inside infobox tables.
   3. **Alternative Skins & Mobile Layouts:** Stacked diff tables on MinervaNeue (mobile skin) vs Vector-2022 desktop skin.
   4. **Dynamic Page Lifecycle:** MediaWiki `wikipage.diff` hook firing multiple times during live AJAX reloads or history pagination.
+  5. **Prose Diff Retention & False-Negative Invariance:** Automated differential testing comparing MediaWiki's native `diffchange` inventory against RefDiff to guarantee subtle, punctuation, or whitespace-only prose modifications (such as single-space additions like Cosmic Inflation diff=1379470949) are never stripped or converted into context rows.
 
 ---
 
@@ -133,7 +134,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (67 tests in ~20ms)
+# 2. Run the fast headless unit & component test suite (69 tests in ~20ms)
 npm test
 
 # 3. Run combined CI verification
@@ -159,7 +160,8 @@ npm run test:live
 
 | Priority | Area | Proposed Test |
 |---|---|---|
-| **P1** | Malformed Wikitext | Test unclosed `<ref>` tags at line end, self-closing tags without slash, and unescaped HTML entities. |
-| **P2** | Nested Transclusions | Test citations wrapped inside `{{refn|...}}`, `{{sfnp}}`, and infobox template parameters. |
-| **P3** | Mobile Diff Layout | Test table mutation on MinervaNeue mobile skin where side-by-side diff rows are stacked. |
-| **P4** | Live Editor Hooks | Test multiple sequential diff updates fired by `mw.hook('wikipage.diff')` during live AJAX previewing. |
+| **P1** | Prose Diff Retention & Invariance | Differential testing comparing native `diffchange` inventory vs post-RefDiff DOM to ensure subtle/whitespace edits are never masked as context rows. |
+| **P2** | Malformed Wikitext | Test unclosed `<ref>` tags at line end, self-closing tags without slash, and unescaped HTML entities. |
+| **P3** | Nested Transclusions | Test citations wrapped inside `{{refn|...}}`, `{{sfnp}}`, and infobox template parameters. |
+| **P4** | Mobile Diff Layout | Test table mutation on MinervaNeue mobile skin where side-by-side diff rows are stacked. |
+| **P5** | Live Editor Hooks | Test multiple sequential diff updates fired by `mw.hook('wikipage.diff')` during live AJAX previewing. |
