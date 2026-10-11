@@ -23,6 +23,14 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
     assert.strictEqual(norm2.includes('}}'), true, 'Should reconstruct closing }} template syntax');
   });
 
+  test('normalizeDiffTags cleans up empty diffchange tags but preserves whitespace inside diffchange tags', () => {
+    const emptySpan = 'word<del class="diffchange diffchange-inline"></del>another';
+    assert.strictEqual(normalizeDiffTags(emptySpan), 'wordanother', 'Should strip empty diffchange tags');
+
+    const spaceSpan = 'many of<ins class="diffchange diffchange-inline"> </ins> these';
+    assert.strictEqual(normalizeDiffTags(spaceSpan), spaceSpan, 'Should preserve whitespace-only diffchange spans');
+  });
+
   test('sanitizeAnchor sanitizes strings into valid DOM ID tokens', () => {
     assert.strictEqual(sanitizeAnchor('AlicanteRyanair'), 'AlicanteRyanair');
     assert.strictEqual(sanitizeAnchor('exyu_240625'), 'exyu_240625');

@@ -2,7 +2,7 @@
 | name        = RefDiff
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
 | author      = [[User:Powercycler|Powercycler]]
-| status      = Stable (v1.3.0) &bull; [[#Quality Assurance & Automated Testing|67/67 passing (100% coverage)]]
+| status      = Stable (v1.3.0) &bull; [[#Quality Assurance & Automated Testing|69/69 passing (100% coverage)]]
 | version     = 1.3.0
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
@@ -191,7 +191,7 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 
 RefDiff is backed by a rigorous four-level test pyramid and quality assurance framework (specified in detail in {{mono|TEST_PLAN.md}} in the project repository):
 
-* '''100% Headless Function Coverage:''' All 71 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 13 modular unit and component test suites in headless Node.js (67 tests executing in ~20&nbsp;ms).
+* '''100% Headless Function Coverage:''' All 71 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 13 modular unit and component test suites in headless Node.js (69 tests executing in ~20&nbsp;ms).
 * '''In-Place DOM Memento Invariance:''' Rigorously tests that DOM mutations adhere to the Memento pattern—retaining live DOM element closures, event listeners (such as {{mono|inlineFormatToggle.js}} and VisualEditor), and restoring native MediaWiki diff tables byte-for-byte upon mode toggling.
 * '''Shortened Footnotes & Citation Templates:''' Extensively validates tokenization, parameter parsing, entity decoding, and anchor discovery across {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and complex nested {{tag|ref}} tags.
 * '''High-Density Stress Benchmarking:''' Benchmarked on real-world extreme diffs (e.g. airport destination tables with 114 references and split {{mono|diffchange}} boundaries) to guarantee execution under 50&nbsp;ms without browser lag.

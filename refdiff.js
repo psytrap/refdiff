@@ -386,7 +386,7 @@
     // 6. Template closing: }<del/ins>} -> }}<del/ins>
     res = res.replace(/\}<(del|ins)([^>]*)>\}/gi, '}}<$1$2>');
     // 7. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
-    res = res.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
+    res = res.replace(/<(ins|del)\b[^>]*><\/\1>/gi, '');
     return res;
   }
 
@@ -961,8 +961,8 @@
       }
     }
 
-    newDelHtml = newDelHtml.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
-    newAddHtml = newAddHtml.replace(/<(ins|del)\b[^>]*>\s*<\/\1>/gi, '');
+    newDelHtml = newDelHtml.replace(/<(ins|del)\b[^>]*><\/\1>/gi, '');
+    newAddHtml = newAddHtml.replace(/<(ins|del)\b[^>]*><\/\1>/gi, '');
 
     return { newDelHtml, newAddHtml, modifiedCits, nextCounter: citCounter };
   }

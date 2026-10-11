@@ -329,6 +329,80 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
       restoreOriginal(mockTable);
     });
   });
+
+  test('transformProseCells and applyDecoupling preserve prose whitespace diffs (Cosmic Inflation diff)', () => {
+    const delHtml = '<div>many of these&lt;ref name="wmap2"&gt;cite content&lt;/ref&gt;</div>';
+    const addHtml = '<div>many of<ins class="diffchange diffchange-inline"> </ins> these&lt;ref name="wmap2"&gt;cite content&lt;/ref&gt;</div>';
+    const pairs = [
+      {
+        d: { raw: '&lt;ref name="wmap2"&gt;cite content&lt;/ref&gt;', name: 'wmap2', hasChange: false },
+        a: { raw: '&lt;ref name="wmap2"&gt;cite content&lt;/ref&gt;', name: 'wmap2', hasChange: false },
+        name: 'wmap2'
+      }
+    ];
+
+    const result = transformProseCells(delHtml, addHtml, pairs, 1);
+    assert.strictEqual(
+      result.newAddHtml.includes('<ins class="diffchange diffchange-inline"> </ins>'),
+      true,
+      'Should preserve whitespace diffchange tag in added line'
+    );
+    assert.strictEqual(result.newAddHtml.includes('⟨wmap2⟩'), true, 'Should still badge unchanged citation');
+
+    // Test applyDecoupling retains diff row classes when prose change is purely whitespace
+    const mockDelDiv = { innerHTML: delHtml };
+    const mockAddDiv = { innerHTML: addHtml };
+    const mockDelTd = { className: 'diff-deletedline' };
+    const mockAddTd = { className: 'diff-addedline' };
+    let removedMarker = false;
+    const mockMarker = {
+      getAttribute(attr) { return attr === 'data-marker' ? '+' : null; },
+      removeAttribute(attr) { if (attr === 'data-marker') removedMarker = true; }
+    };
+
+    const mockRow = {
+      classList: { contains: () => false },
+      querySelector(sel) {
+        if (sel.includes('diff-deletedline') && sel.includes('div')) return mockDelDiv;
+        if (sel.includes('diff-addedline') && sel.includes('div')) return mockAddDiv;
+        if (sel.includes('diff-deletedline')) return mockDelTd;
+        if (sel.includes('diff-addedline')) return mockAddTd;
+        return null;
+      },
+      querySelectorAll(sel) {
+        if (sel.includes('diff-marker')) return [mockMarker];
+        return [];
+      },
+      parentNode: { insertBefore: () => {} },
+      nextSibling: null
+    };
+
+    const mockTable = {
+      querySelector: () => null,
+      querySelectorAll: (sel) => (sel === 'tr' ? [mockRow] : []),
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    };
+
+    withMockEnvironment({
+      document: {
+        createElement: () => ({
+          className: '',
+          setAttribute() {},
+          removeAttribute() {},
+          style: {},
+          innerHTML: '',
+          remove: () => {}
+        })
+      }
+    }, () => {
+      applyDecoupling(mockTable);
+      assert.strictEqual(mockDelTd.className, 'diff-deletedline', 'Should NOT convert deleted td to context');
+      assert.strictEqual(mockAddTd.className, 'diff-addedline', 'Should NOT convert added td to context');
+      assert.strictEqual(removedMarker, false, 'Should NOT strip data-marker from whitespace diff row');
+      restoreOriginal(mockTable);
+    });
+  });
 });
 
 if (require.main === module) {

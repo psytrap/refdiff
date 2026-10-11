@@ -226,7 +226,16 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Added 6 new unit and component tests in `tests/test_mode_coordinator.js` and `tests/test_pipeline.js`.
   * Total test count expanded to **65 passing tests** across 13 modular suites, completing in **~18–25 ms** with 0 ESLint warnings.
   * Verified **100.0% function coverage** across all **68 of 68 functions** via V8 coverage instrumentation.
-* **Documentation Synchronization:**
-  * Updated on-wiki manual in `refdiff.wiki` with a dedicated `== Configuration & Options ==` guide, infobox status, and comparative mode matrix.
-  * Synchronized test plan and architecture specifications across `TEST_PLAN.md`, `README.md`, `REFDIFF.md`, and `ARCHITECTURE.md`.
+* **In-Toolbar Decouple Toggle (`[✓] Decouple rows`):**
+  * Implemented live checkbox toggle mounted strictly to the left of the mode switcher (`.ve-init-mw-diffPage-diffMode` / `.oo-ui-buttonSelectWidget`) and before fallback mode links.
+  * Leftward placement eliminates layout shifts and button jumping during script loading and mode changes.
+  * Coordinated disabled state during Wikitext/Visual diff modes without removing the element from the DOM.
+  * Added unit tests verifying toggle rendering, preference persistence, and live table re-rendering (67 tests, 71 functions, 100% coverage).
+
+* **Bug Fix: Prose Whitespace Diffs Masked as Context Rows (Cosmic Inflation diff=1379470949):**
+  * **Reported Issue:** Diffs with only whitespace changes in prose (such as an added space `<ins class="diffchange diffchange-inline"> </ins>`) failed to render any changes under RefDiff, appearing as an unchanged context row while displaying normally under Wikitext and Visual diffs.
+  * **Root Cause:** Empty diffchange tag cleanup in `normalizeDiffTags` and `transformProseCells` used `/<(ins|del)\b[^>]*>\s*<\/\1>/gi`. The `\s*` matched and stripped valid whitespace-only diffs (`<ins class="diffchange"> </ins>`). With no diff tags left, `updateProseRowAppearance` falsely classified the row as having no prose changes and converted it to `diff-context`, removing the `+`/`-` markers.
+  * **Resolution:** Replaced the regex with `/<(ins|del)\b[^>]*><\/\1>/gi` to strictly remove truly empty boundary artifacts without affecting whitespace-only diff changes.
+  * **Verification:** Confirmed live in Chromium via CDP on `Cosmic inflation diff=1379470949` that the added space is properly highlighted in blue with `+`/`-` markers and citation badges.
+  * **Test Coverage:** Added regression tests in `tests/test_utils.js` and `tests/test_pipeline.js`. All **69/69 tests passing (100% headless function coverage across 71/71 functions)**.
 
