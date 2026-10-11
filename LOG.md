@@ -254,3 +254,55 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Total test count expanded to **75/75 passing tests** across 13 modular test suites with 0 ESLint warnings.
   * Verified live via Chromium CDP on Wikipedia diffs.
 
+### 2026-10-11: Reference Previews Hovercard Fix & Anonymous Citation Discovery
+
+* **Rich Reference Preview Activation on Badges:**
+  * Resolved missing Reference Preview hovercards on anonymous citations without URLs (such as `<ref>{{Cite book |author=Harris, A. |title=Planetary Dynamics ...}}</ref>`).
+  * Enhanced `findCiteNoteAnchor(name, rawContent, label)` to support:
+    1. Template metadata matching: extracts `title=` and `author=` / `last=` and matches `.references li[id^="cite_note-"]` text.
+    2. Plain-text matching: matches clean non-template substrings against footnotes.
+    3. Positional fallback: maps auto-numbered references (e.g. `ref2`) directly to `cite_note-2`.
+* **Suppression of Obstructive Native `title` Tooltips:**
+  * Omitted the native HTML `title` attribute on all badges linking to `#cite_note-*` in both prose rows and citation diff rows.
+  * Eliminates the black browser OS tooltip (`"Citation metadata modified"`) that previously collided with and obscured Wikipedia's native Reference Preview popup card (`Extension:Popups` / `ext.cite.ux-enhancements`).
+* **Test Suite Expansion:**
+  * Added unit tests in `tests/test_anchor.js` and assertions in `tests/test_renderer.js`.
+  * Total test count: **78/78 passing tests** (100% headless function coverage) with 0 ESLint warnings.
+  * Verified live in Snap Chromium via CDP on Meta-Wiki (`Show_case` diff) and English Wikipedia (`Kim Domingo` diff).
+
+---
+
+## Planned Future Tasks & Architectural Evaluations
+
+### Task: Evaluate Regex-Based Citation Parsing vs. Preloaded MediaWiki / Meta-Wiki Libraries
+
+* **Objective:**
+  Analyze whether maintaining a custom regular expression engine (`REF_REGEX`, `TEMPLATE_REF_REGEX`) remains the optimal long-term strategy for RefDiff, or whether preloaded MediaWiki libraries and ResourceLoader modules (available on Wikimedia projects like Meta-Wiki and English Wikipedia) provide superior wikitext parsing capabilities.
+
+* **Background & Motivation:**
+  * RefDiff currently tokenizes `<ref>...</ref>` tags, self-closing tags, and templates (such as `{{sfn}}`) using custom regular expressions and string normalizers (`normalizeDiffTags`, `stripHtml`).
+  * Regex-based parsing is fast (<25 ms for 100+ citations), has zero runtime dependencies, and runs headlessly in Node.js unit tests without browser or ResourceLoader mocks.
+  * However, wikitext is not a regular grammar. Known challenges with regex include:
+    * Nested templates inside citation parameters (e.g. `{{cite web|title={{lang|es|...}}}}`).
+    * Template markup split unevenly across MediaWiki `<ins class="diffchange">` / `<del class="diffchange">` boundary tags.
+    * Parser functions that generate references dynamically (e.g. `{{#tag:ref|...}}`).
+
+* **Scope of Investigation:**
+  1. **Audit Available Libraries on Wikimedia Projects:**
+     * Inspect ResourceLoader modules preloaded or available on `Special:Diff` on English Wikipedia and Meta-Wiki:
+       * `mediawiki.util` / `mw.util`
+       * `mediawiki.Title`
+       * VisualEditor core and wikitext modules: `ext.visualEditor.mwwikitext`, `ve.dm.MWReferenceModel`, `ve.dm.MWTemplateModel`.
+       * Parsoid HTML data attributes: `typeof="mw:Extension/ref"` and `data-mw` attributes present in Visual Diffs or Parsoid-rendered pages.
+       * Lightweight Wikitext tokenizers/parsers used by WikiEditor or VisualEditor.
+  2. **Comparative Environment Matrix:**
+     * **Meta-Wiki vs. English Wikipedia vs. Third-Party MediaWiki:**
+       * Meta-Wiki has a more minimal default module bundle than English Wikipedia (e.g. different Popups/Cite gadgets).
+       * Determine whether candidate libraries are synchronously available on diff pages or require asynchronous `mw.loader.using()` calls that could delay diff rendering.
+  3. **Trade-Off Analysis:**
+     * **Performance:** Regex parsing runs synchronously in single-digit milliseconds; AST/DOM parsing incurs higher overhead.
+     * **Bundle Size & Portability:** RefDiff is currently a single portable file (`refdiff.js`) usable across user scripts, gadget managers, and CLI drivers. Relying on MediaWiki core modules would tie it strictly to browser environments with ResourceLoader.
+     * **Testing & Maintainability:** The current 78-test headless suite runs in ~20 ms on standard Node.js without requiring a full MediaWiki emulation stack.
+  4. **Exploration of Hybrid Models:**
+     * Evaluate a hybrid approach: retain the fast-path regex engine for common, clean citations, and fall back to native MediaWiki parser utilities only for complex nested templates or unclosed tags.
+

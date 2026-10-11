@@ -389,3 +389,27 @@ RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test 
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
    * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer `diff=1379486498` with 10 shortened footnotes).
    * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards (`Extension:Popups`), visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.
+
+---
+
+## 9. Future Architecture & Evaluation Tasks
+
+### 9.1 Evaluating Regex Parsing vs. Preloaded MediaWiki / Meta-Wiki Libraries
+
+* **Context:**
+  RefDiff currently relies on regular expressions (`REF_REGEX`, `TEMPLATE_REF_REGEX`) and string normalizers to identify and extract `<ref>` tags and shortened footnotes (`{{sfn}}`) from diff table cells.
+
+* **Research Problem:**
+  Wikitext is non-regular; nested templates, complex parser functions (`{{#tag:ref|...}}`), and diffchange tags dissecting template boundaries can challenge pure regex heuristics. MediaWiki environments (such as English Wikipedia and Meta-Wiki) include various preloaded ResourceLoader modules and editing libraries. An architectural evaluation is needed to determine whether native libraries should replace or augment the regex pipeline.
+
+* **Evaluation Dimensions:**
+  1. **Availability Across Wikis:**
+     * Meta-Wiki provides a leaner default module set than English Wikipedia.
+     * Candidate modules (e.g. `mediawiki.util`, `ext.visualEditor.mwwikitext`, `ve.dm.MWReferenceModel`, or Parsoid DOM representations) may not be preloaded on `Special:Diff` on all wikis without explicit asynchronous loading (`mw.loader.using`).
+  2. **Execution Latency & Budget:**
+     * RefDiff executes in <25 ms across 100+ citations using pure string/regex matching. Heavyweight AST parsers or DOM-based tokenizers must be benchmarked against this performance standard.
+  3. **Portability & Headless Testing:**
+     * The current zero-dependency bundle runs anywhere (in-browser gadget, tampermonkey, and headless Node.js tests). Introducing hard dependencies on `mw.*` or `ve.*` would require mocking those frameworks in headless CI or maintaining separate parsing paths.
+  4. **Hybrid Strategy Potential:**
+     * A proposed candidate architecture is a **two-tier parsing model**: fast-path regex execution for standard citations (`<ref name="...">`, `{{Cite book}}`, `{{sfn}}`), with fallback to native MediaWiki parser libraries only when unclosed tags or nested template anomalies are encountered.
+

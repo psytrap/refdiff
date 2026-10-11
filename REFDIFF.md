@@ -114,6 +114,9 @@ Line 42:
 * In the future, MediaWiki's native PHP diff engine (`wikidiff2`) or Parsoid can adopt this pipeline natively as an official tab on `Special:Diff`:  
   `[ Standard Diff | Prose Only | Citation Audit ]`.
 
+### Target D: Client-Side Parser Evolution (Regex vs. Preloaded Libraries)
+* Future analysis task to evaluate whether maintaining the custom regex lexer (`REF_REGEX`, `TEMPLATE_REF_REGEX`) remains optimal versus leveraging preloaded ResourceLoader / MediaWiki libraries (e.g. `mediawiki.util`, `ext.visualEditor.mwwikitext`, or Parsoid data attributes) across Meta-Wiki and English Wikipedia. See [ARCHITECTURE.md](ARCHITECTURE.md#91-evaluating-regex-parsing-vs-preloaded-mediawiki--meta-wiki-libraries) and [LOG.md](LOG.md#task-evaluate-regex-based-citation-parsing-vs-preloaded-mediawiki--meta-wiki-libraries) for details.
+
 ---
 
 ## 5. Algorithmic Pipeline & Technical Design
