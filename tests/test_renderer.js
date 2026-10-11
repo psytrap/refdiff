@@ -44,18 +44,19 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
   test('createProseBadge renders interactive <sup class="reference refdiff-ref"><a href="..."> when href is provided', () => {
     const badge = createProseBadge('norm', 'ref1', '#cite_note-ref1-1');
     assert.strictEqual(badge.includes('<sup class="reference refdiff-ref">'), true, 'Should wrap in sup.reference for ext.popups');
-    assert.strictEqual(badge.includes('<a href="#cite_note-ref1-1" class="ref-badge"'), true, 'Should contain link with href');
+    assert.strictEqual(badge.includes('<a href="#cite_note-ref1-1" class="ref-badge">'), true, 'Should contain link with href and omit title to allow Reference Previews');
+    assert.strictEqual(badge.includes('title='), false, 'Should not render native title attribute when pointing to #cite_note-*');
     assert.strictEqual(badge.includes('⟨ref1⟩'), true);
 
     const modBadge = createProseBadge('mod', 'testRef', '#refdiff-cit-testRef-1');
-    assert.strictEqual(modBadge.includes('<a href="#refdiff-cit-testRef-1" class="ref-badge-mod"'), true);
+    assert.strictEqual(modBadge.includes('<a href="#refdiff-cit-testRef-1" class="ref-badge-mod" title="Citation metadata modified: ⟨~testRef~⟩">'), true, 'Should retain title on internal row anchors');
     assert.strictEqual(modBadge.includes('⟨~testRef~⟩'), true);
   });
 
   test('createProseBadge renders non-link <span> inside <sup class="reference refdiff-ref"> when href is null', () => {
     const badge = createProseBadge('norm', 'ref1', null);
     assert.strictEqual(badge.includes('<sup class="reference refdiff-ref">'), true);
-    assert.strictEqual(badge.includes('<span class="ref-badge"'), true);
+    assert.strictEqual(badge.includes('<span class="ref-badge" title="Citation: ⟨ref1⟩">'), true);
     assert.strictEqual(badge.includes('<a'), false, 'Should not render anchor tag when href is null');
   });
 
@@ -79,6 +80,7 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
       });
       assert.strictEqual(row.id, 'refdiff-cit-exyu_240625-1', 'Row should have rowId assigned');
       assert.strictEqual(row.innerHTML.includes('href="#cite_note-exyu_240625-58"'), true, 'Prefix badge should link to cite_note');
+      assert.strictEqual(row.innerHTML.includes('title='), false, 'Should omit title attribute when citeNoteId is present');
     });
   });
 

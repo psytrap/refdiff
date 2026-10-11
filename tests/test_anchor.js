@@ -79,6 +79,55 @@ suite('src/anchor.js - Footnote Anchor Discovery', () => {
       assert.strictEqual(anchor, 'cite_note-fallback-99');
     });
   });
+
+  test('findCiteNoteAnchor discovers anonymous book/journal references by matching title and author', () => {
+    const mockLi = {
+      id: 'cite_note-2',
+      textContent: 'Harris, A. (2018). Planetary Dynamics. Academic Press. pp. 80–88.'
+    };
+
+    withMockEnvironment({
+      document: {
+        querySelector: () => null,
+        querySelectorAll: (sel) => sel.includes('.references li') ? [mockLi] : []
+      }
+    }, () => {
+      const rawContent = '{{Cite book |author=Harris, A. |title=Planetary Dynamics |year=2018 |pages=80–88 |publisher=Academic Press}}';
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-2', 'Should match note containing author and title');
+    });
+  });
+
+  test('findCiteNoteAnchor discovers anonymous references by plain text content', () => {
+    const mockLi = {
+      id: 'cite_note-plain-7',
+      textContent: 'Archives of the Royal Society, Box 44, Folder 12, Unpublished manuscript.'
+    };
+
+    withMockEnvironment({
+      document: {
+        querySelector: () => null,
+        querySelectorAll: (sel) => sel.includes('.references li') ? [mockLi] : []
+      }
+    }, () => {
+      const rawContent = '<ref>Archives of the Royal Society, Box 44, Folder 12, Unpublished manuscript.</ref>';
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-plain-7', 'Should match note containing plain text');
+    });
+  });
+
+  test('findCiteNoteAnchor falls back to sequential positional numbering (e.g. ref2 -> cite_note-2)', () => {
+    withMockEnvironment({
+      document: {
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        getElementById: (id) => id === 'cite_note-2' ? { id: 'cite_note-2' } : null
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(null, '', 'ref2');
+      assert.strictEqual(anchor, 'cite_note-2', 'Should resolve ref2 to cite_note-2 via positional fallback');
+    });
+  });
 });
 
 if (require.main === module) {

@@ -653,12 +653,14 @@
 
   /**
    * Discovers the corresponding #cite_note anchor ID in the live document, if present.
-   * Matches by explicit reference name or unique URL in rendered references.
+   * Matches by explicit reference name, sfn parameters, unique URL, template title/author,
+   * plain text content, or sequential reference numbering.
    * @param {string|null} name Reference name attribute
    * @param {string} rawContent Raw wikitext content of the reference
+   * @param {string} [label] Badge label (e.g. 'ref2', 'kami')
    * @returns {string|null} Anchor element ID (e.g. 'cite_note-AlicanteRyanair-57') or null
    */
-  function findCiteNoteAnchor(name, rawContent) {
+  function findCiteNoteAnchor(name, rawContent, label) {
     if (typeof document === 'undefined' || !document.querySelector) return null;
 
     // 1. Try explicit reference name (e.g. cite_note-name-1 or cite_note-FOOTNOTE...)
@@ -680,8 +682,8 @@
       }
     }
 
-    // 2. If sfn template, match author/year in .references li text
     if (rawContent && typeof rawContent === 'string') {
+      // 2. If sfn template, match author/year in .references li text
       if (/\{\{\s*sfn/i.test(rawContent)) {
         const info = extractSfnInfo(rawContent.replace(/^\{\{\s*sfn[a-z]*\|?/i, '').replace(/\}\}$/, ''));
         if (info && info.authors && info.authors.length) {
@@ -718,6 +720,48 @@
             }
           }
         }
+      }
+
+      // 4. Citation template metadata matching (title and/or author)
+      const titleM = rawContent.match(/\btitle\s*=\s*([^|}]+)/i);
+      const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').replace(/['[\]]/g, '').trim().toLowerCase() : '';
+
+      const authorM = rawContent.match(/\b(?:author|last|author1|last1)\s*=\s*([^|}]+)/i);
+      const author = authorM ? authorM[1].replace(/<[^>]+>/g, '').replace(/['[\]]/g, '').trim().toLowerCase() : '';
+
+      if (title || author) {
+        const allNotes = document.querySelectorAll('.references li[id^="cite_note-"], li[id^="cite_note-"]');
+        for (let i = 0; i < allNotes.length; i++) {
+          const text = (allNotes[i].textContent || '').toLowerCase();
+          if (title && author) {
+            if (text.includes(title) && text.includes(author)) return allNotes[i].id;
+          } else if (title && title.length >= 4 && text.includes(title)) {
+            return allNotes[i].id;
+          } else if (author && author.length >= 4 && text.includes(author)) {
+            return allNotes[i].id;
+          }
+        }
+      }
+
+      // 5. Plain text reference matching (non-template <ref>Some text...</ref>)
+      const cleanText = rawContent.replace(/<[^>]+>/g, '').replace(/\{\{[^}]+\}\}/g, '').trim();
+      if (cleanText.length >= 10) {
+        const needle = cleanText.slice(0, 40).toLowerCase();
+        const allNotes = document.querySelectorAll('.references li[id^="cite_note-"], li[id^="cite_note-"]');
+        for (let i = 0; i < allNotes.length; i++) {
+          const text = (allNotes[i].textContent || '').toLowerCase();
+          if (text.includes(needle)) return allNotes[i].id;
+        }
+      }
+    }
+
+    // 6. Positional anonymous reference fallback (e.g. label 'ref2' -> id 'cite_note-2')
+    if (label) {
+      const numMatch = String(label).match(/^ref(\d+)$/i);
+      if (numMatch) {
+        const candidate = (document.getElementById && document.getElementById(`cite_note-${numMatch[1]}`)) ||
+          (document.querySelector && document.querySelector(`[id="cite_note-${numMatch[1]}"]`));
+        if (candidate && candidate.id) return candidate.id;
       }
     }
 
@@ -788,7 +832,9 @@
 
     if (href) {
       const escapedHref = href.replace(/"/g, '&quot;');
-      return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}" title="${title}">${inner}</a></sup>`;
+      const isCiteNote = href.startsWith('#cite_note-');
+      const titleAttr = isCiteNote ? '' : ` title="${title}"`;
+      return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}"${titleAttr}>${inner}</a></sup>`;
     }
     return `<sup class="${CLASSES.REF_CONTAINER}"><span class="${badgeClass}" title="${title}">${inner}</span></sup>`;
   }
@@ -817,9 +863,11 @@
     let delContent = mc.oldRaw;
     let addContent = mc.newRaw;
     const badgeHref = mc.citeNoteId ? ` href="#${mc.citeNoteId.replace(/"/g, '&quot;')}"` : '';
+    const isCiteNote = !!mc.citeNoteId;
 
     if (mc.isAdd) {
-      addPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_ADD}" title="Added citation">⟨+${mc.label}+⟩</a></sup> `;
+      const titleAttr = isCiteNote ? '' : ' title="Added citation"';
+      addPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_ADD}"${titleAttr}>⟨+${mc.label}+⟩</a></sup> `;
       const cleanContent = addContent ? addContent.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
       addContent = cleanContent ? `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${cleanContent}</ins>` : '';
     } else if (mc.isDel) {
@@ -827,7 +875,8 @@
       const cleanContent = delContent ? delContent.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
       delContent = cleanContent ? `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${cleanContent}</del>` : '';
     } else {
-      const modBadge = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_MOD}" title="Citation metadata modified">⟨~${mc.label}~⟩</a></sup> `;
+      const titleAttr = isCiteNote ? '' : ' title="Citation metadata modified"';
+      const modBadge = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_MOD}"${titleAttr}>⟨~${mc.label}~⟩</a></sup> `;
       delPrefix = modBadge;
       addPrefix = modBadge;
     }
@@ -944,7 +993,7 @@
       const a = pair.a;
       const label = pair.name || (a && a.label) || (d && d.label) || `ref${citCounter++}`;
       const refContent = (a && (a.content || a.raw)) || (d && (d.content || d.raw)) || '';
-      const citeNoteId = findCiteNoteAnchor((a && a.name) || (d && d.name) || pair.name, refContent);
+      const citeNoteId = findCiteNoteAnchor((a && a.name) || (d && d.name) || pair.name, refContent, label);
 
       if (d && a) {
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
