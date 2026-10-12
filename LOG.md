@@ -381,6 +381,19 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Documentation Updates:**
   * Updated `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), and `ARCHITECTURE.md` (§7.4).
 
+---
+
+### 2026-10-12: Ecosystem Documentation — RefCruncher Tool Addition
+
+* **Context & Motivation:**
+  * Added [**RefCruncher**](https://en.wikipedia.org/wiki/User:Guywan/Scripts/RefCruncher) (`User:Guywan/Scripts/RefCruncher.js`) by User:Guywan to the list of similar and complementary tools across project documentation.
+* **Architectural Findings & Synergies:**
+  * **Shared Goal (Template De-cluttering):** Like RefDiff and References Segregator, RefCruncher tackles the readability issues caused by inline `<ref>...</ref>` templates.
+  * **Lifecycle Differentiation:** RefCruncher acts in `Special:Edit` by collapsing wikitext citation strings into compact, clickable chips directly in the editing textarea. RefDiff operates during review on `Special:Diff` by decoupling references into mathematical badges and dedicated diff rows.
+* **Documentation Updates:**
+  * Updated `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), `ARCHITECTURE.md` (§7.5), and `proposal/CONCEPT.md` (§8.3).
+
+
 
 
 

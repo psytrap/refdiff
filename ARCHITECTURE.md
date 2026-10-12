@@ -390,6 +390,12 @@ Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `Harv
 1. **Architectural Differentiation:** wikEdDiff generates an alternative unified inline view (`div#wikEdDiffContainer`) featuring word- and character-level diffing, moved text block detection, syntax highlighting, and visual cleanup. In contrast, RefDiff operates on the native two-column MediaWiki diff table (`table.diff`), specifically targeting **citation camouflage** by separating prose edits from citation metadata changes.
 2. **DOM Isolation:** wikEdDiff renders into its own independent container above or below `table.diff`. Because RefDiff strictly queries and decorates `table.diff` elements using isolated classes (`refdiff-cit-row`, `refdiff-cit-addedline`), both tools execute without DOM collision or script interference.
 
+### 7.5 Editor Decluttering Tools: References Segregator & RefCruncher
+While RefDiff addresses citation camouflage during **revision diff review** (`Special:Diff`), other community tools target the exact same cognitive overload during **wikitext editing** (`Special:Edit`):
+1. **References Segregator** (`User:PleaseStand/segregate-refs.js`): Splits the edit window into two vertical panes, hoisting citation definitions into a dedicated bottom pane while editing prose cleanly above.
+2. **RefCruncher** ([`User:Guywan/Scripts/RefCruncher.js`](https://en.wikipedia.org/wiki/User:Guywan/Scripts/RefCruncher)): Replaces bulky inline `<ref>...</ref>` spans with interactive, collapsed inline chips directly inside the wikitext textarea, expanding on-click when reference editing is required.
+3. **Synergy with `<references hidden>`:** Both editor scripts attempt to mitigate inline template sprawl client-side. The `<references hidden>` architecture natively solves this problem at the wikitext storage level, eliminating the need for client-side regex folding or artificial split panes.
+
 ---
 
 ## 8. Verification & Test Architecture

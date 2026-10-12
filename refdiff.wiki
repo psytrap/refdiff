@@ -237,6 +237,11 @@ RefDiff is part of a broader ecosystem for citation management:
 | Writers, copyeditors
 | Splits citations into a second pane in the edit window; re-inlines upon save.
 |-
+| '''In-Editor Ref Collapsing'''
+| [[:en:User:Guywan/Scripts/RefCruncher|User:Guywan/Scripts/RefCruncher]]
+| Writers, wikitext editors
+| Collapses ("crunches") verbose inline {{tag|ref}} tags into compact, clickable inline chips inside the wikitext editor to reduce clutter while writing.
+|-
 | '''Footnote Auditing'''
 | [[:en:User:Trappist the monk/HarvErrors|User:Trappist the monk/HarvErrors]]
 | Source auditors
@@ -270,6 +275,7 @@ RefDiff is part of a broader ecosystem for citation management:
 * [[:en:User:Cacycle/wikEdDiff|User:Cacycle/wikEdDiff]] – Improved inline diff engine with syntax highlighting and moved-text detection
 * [[:en:Wikipedia:ProveIt|Wikipedia:ProveIt]] – Graphical citation manager gadget for the source editor
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
+* [[:en:User:Guywan/Scripts/RefCruncher|User:Guywan/Scripts/RefCruncher]] – Wikitext editor script that collapses inline citations into compact chips
 * [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
 * [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]] – Automated source discovery and verification tool
 * {{mono|TEST_PLAN.md}} – Formal test plan and quality assurance specification

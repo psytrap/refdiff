@@ -482,6 +482,7 @@ Introducing section-scoped reference blocks interacts with several components ac
 * **VisualEditor (VE):** Needs an authoring option or schema rule to place new reference definitions into the current section's `<references hidden>` rather than inline.
 * **Wikitext 2017 / SyntaxHighlighter:** Syntax styling already recognizes `<references>` naturally; highlighting rules can style the `hidden` attribute as a recognized keyword.
 * **IDE & Language Tools:** Wikitext LSP extensions (VS Code, Vim) can leverage section-scoped blocks for localized autocomplete of `ref name="..."`.
+* **Wikitext Decluttering Scripts (References Segregator, RefCruncher, ProveIt):** Community user scripts built to reduce inline citation clutter client-side (by splitting panes or collapsing tags into chips) gain native data-model support, as wikitext is already cleanly partitioned.
 
 ### 8.4 Bots & Maintenance Automation
 * **Pywikibot:** The standard Python framework for Wikipedia bots. Citation normalization and dead link detection scripts will target section blocks directly.
