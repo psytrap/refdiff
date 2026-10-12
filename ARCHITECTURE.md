@@ -385,6 +385,11 @@ Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `Harv
 2. **Synergy with `<references hidden>`:** By organizing source definitions in section-scoped blocks (`<references hidden>`), reference definitions reside locally within the section where they are cited. ProveIt can immediately discover, edit, and auto-fill complete citation templates directly within section editing mode, resolving the W190 barrier without requiring complex cross-section API orchestration.
 3. **Role in the Citation Lifecycle:** While ProveIt simplifies citation creation and modification during *authoring* (`Special:Edit`), RefDiff isolates and visualizes citation changes during *review* (`Special:Diff`), forming complementary bookends of the citation workflow.
 
+### 7.4 Similar & Complementary Diff Tools: wikEdDiff
+[**wikEdDiff**](https://en.wikipedia.org/wiki/User:Cacycle/wikEdDiff) (`User:Cacycle/wikEdDiff.js`) is an established MediaWiki diff enhancement tool that computes an inline visual diff directly in the browser:
+1. **Architectural Differentiation:** wikEdDiff generates an alternative unified inline view (`div#wikEdDiffContainer`) featuring word- and character-level diffing, moved text block detection, syntax highlighting, and visual cleanup. In contrast, RefDiff operates on the native two-column MediaWiki diff table (`table.diff`), specifically targeting **citation camouflage** by separating prose edits from citation metadata changes.
+2. **DOM Isolation:** wikEdDiff renders into its own independent container above or below `table.diff`. Because RefDiff strictly queries and decorates `table.diff` elements using isolated classes (`refdiff-cit-row`, `refdiff-cit-addedline`), both tools execute without DOM collision or script interference.
+
 ---
 
 ## 8. Verification & Test Architecture

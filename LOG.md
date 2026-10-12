@@ -369,5 +369,18 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Prose/Citation Boundary Decoupling:** Verify that reference decoupling accurately isolates citation metadata while preserving formula syntax, punctuation, and statistical annotations in prose.
   * **DOM Snapshot Invariance:** Ensure mode toggles (Visual / Wikitext / RefDiff) and in-place DOM restoration remain byte-for-byte lossless on quantitative article structures.
 
+---
+
+### 2026-10-12: Ecosystem Documentation — wikEdDiff Tool Addition
+
+* **Context & Motivation:**
+  * Added [**wikEdDiff**](https://en.wikipedia.org/wiki/User:Cacycle/wikEdDiff) (`User:Cacycle/wikEdDiff.js`) to the list of similar and complementary tools across project documentation.
+* **Architectural Findings & Synergies:**
+  * **Categorization as Similar Diff Tool:** Like RefDiff, wikEdDiff targets revision diff comprehension on Wikipedia. While wikEdDiff computes an alternative inline visual diff with character-level granularity, syntax highlighting, and moved-block detection, RefDiff operates on the native two-column diff table specifically to decouple citation noise ("template camouflage") from human prose.
+  * **DOM Isolation:** wikEdDiff generates an isolated inline diff container (`div#wikEdDiffContainer`), while RefDiff safely modifies `table.diff` using dedicated CSS classes (`refdiff-cit-row`, `refdiff-cit-addedline`), ensuring complete cohabitation without script collisions.
+* **Documentation Updates:**
+  * Updated `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), and `ARCHITECTURE.md` (§7.4).
+
+
 
 

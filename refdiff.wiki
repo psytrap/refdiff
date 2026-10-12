@@ -222,6 +222,11 @@ RefDiff is part of a broader ecosystem for citation management:
 | Reviewers, patrollers, fact-checkers
 | Decouples citations in the {{mono|Special:Diff}} view.
 |-
+| '''Inline Diff Engine'''
+| [[:en:User:Cacycle/wikEdDiff|User:Cacycle/wikEdDiff]]
+| Reviewers, diff power-users
+| Improved inline diff engine featuring word- and character-level comparisons, moved text block detection, and syntax highlighting.
+|-
 | '''In-Diff Editing'''
 | [[:m:User:Jon Harald Søby/diffedit.js|User:Jon Harald Søby/diffedit]]
 | Reviewers, rapid-fixers
@@ -262,6 +267,7 @@ RefDiff is part of a broader ecosystem for citation management:
 * [[/Show case|/Show case]] – Live showcase diff page
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
+* [[:en:User:Cacycle/wikEdDiff|User:Cacycle/wikEdDiff]] – Improved inline diff engine with syntax highlighting and moved-text detection
 * [[:en:Wikipedia:ProveIt|Wikipedia:ProveIt]] – Graphical citation manager gadget for the source editor
 * [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]] – Editor-side reference decoupling tool
 * [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
