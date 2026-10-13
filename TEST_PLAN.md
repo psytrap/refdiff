@@ -177,5 +177,6 @@ npm run test:live
 | [Cosmic inflation](https://en.wikipedia.org/w/index.php?diff=1379470949) | `1379470949` | Whitespace-only prose edits retention without false context conversion | Verified |
 | [Zipf's law](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357) | `1379548357` | Footnote unwrapping (`{{efn}}`), `{{rp}}` page suffix retention, nested refs & brace delimiter guards | Verified |
 | [Donnie Brasco (film)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354) | `1380017400` | Unclosed quote attribute (`<ref name="mojo_2>`) tolerated; correct badge `⟨+mojo_2+⟩` & anchor discovery verified | Verified |
+| [Bihar Legislative Assembly](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737) | `1379207737` | Quotation attribute truncation on embedded apostrophe (`name="...Speaker's..."`) & space-to-underscore anchor discovery | ⏳ Needs fix |
 
 
