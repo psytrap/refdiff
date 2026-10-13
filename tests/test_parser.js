@@ -34,6 +34,15 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     assert.strictEqual(refs[0].hasChange, true, 'Should mark reference as containing changes');
   });
 
+  test('extracts reference name with unclosed quotation mark (Donnie Brasco diff=1380017400)', () => {
+    const sample = '&lt;ref name="mojo_2&gt;{{cite web|url = https://example.com}}&lt;/ref&gt;';
+    const refs = parseRefs(sample);
+    assert.strictEqual(refs.length, 1);
+    assert.strictEqual(extractName(refs[0].attrs), 'mojo_2', 'Should tolerate unclosed quote before tag close');
+    assert.strictEqual(refs[0].name, 'mojo_2');
+    assert.strictEqual(refs[0].label, 'mojo_2');
+  });
+
   test('extractSfnInfo parses single author and year correctly', () => {
     const info = extractSfnInfo('|Castritius|2005');
     assert.strictEqual(info.label, 'Castritius 2005');

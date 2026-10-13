@@ -289,6 +289,21 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Total test count expanded to **86/86 passing tests** across 13 modular test suites with 0 ESLint warnings.
   * `Zipf's law` (`diff=1379548357`) marked as Verified in `TEST_PLAN.md`.
 
+### 2026-10-13: Unclosed Quote Attribute Toleration & Standalone Added Citation Lines (Donnie Brasco diff=1380017400)
+
+* **Bug Diagnosis (`Donnie Brasco (film)` diff=1380017400):**
+  * On line 40 of English Wikipedia revision 1380017400, an editor added a reference with a typo missing the closing quote before the tag bracket: `<ref name="mojo_2>{{cite web|url = https://www.boxofficemojo.com/title/tt0119008/}}</ref>`.
+  * MediaWiki's native Cite extension tolerates unclosed quotes up to the closing `>` bracket and generates the anchor `id="cite_note-mojo_2-4"`.
+  * RefDiff's `extractName(attrsStr)` strictly required matching closing quotes (`/(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;)/`), causing it to return `null`.
+  * As a result, RefDiff fell back to assigning an anonymous label `"ref1"` (`⟨+ref1+⟩`), and `findCiteNoteAnchor(null, ...)` failed to link to `#cite_note-mojo_2-4`, breaking native Reference Preview hovercards.
+* **Architectural & Algorithmic Solutions:**
+  * **Quote Toleration in `extractName`:** Enhanced the attribute extraction regex in `extractName` to accept unclosed quotes bounded by `/`, `&gt;`, `>`, or string end: `/(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;|\/|&gt;|>|\s*$)|name\s*=\s*([^\s"'>&]+)/i`.
+  * **Accurate Badge & Anchor Resolution:** RefDiff now correctly extracts `"mojo_2"`, labels the badge `⟨+mojo_2+⟩`, and resolves the target anchor `cite_note-mojo_2-4` for native Reference Preview hovercards.
+* **Verification & Testing:**
+  * Added unit test in `tests/test_parser.js` (`extracts reference name with unclosed quotation mark (Donnie Brasco diff=1380017400)`).
+  * Total test count expanded to **87/87 passing tests** across 13 modular test suites with 0 ESLint warnings.
+  * `Donnie Brasco (film)` (`diff=1380017400`) marked as Verified in `TEST_PLAN.md`.
+
 ---
 
 ## Planned Future Tasks & Architectural Evaluations

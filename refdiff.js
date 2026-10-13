@@ -391,7 +391,7 @@
   function extractName(attrsStr) {
     if (!attrsStr) return null;
     const clean = stripHtml(attrsStr);
-    const m = clean.match(/name\s*=\s*(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;)|name\s*=\s*([^\s"'>&]+)/i);
+    const m = clean.match(/name\s*=\s*(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;|\/|&gt;|>|\s*$)|name\s*=\s*([^\s"'>&]+)/i);
     return m ? (m[1] || m[2]).trim() : null;
   }
 
