@@ -114,8 +114,8 @@ This provides the architectural separation of a multi-file project while preserv
 | :--- | :--- | :--- |
 | **`src/constants.js`** | `REF_REGEX`, `TEMPLATE_REF_REGEX`, `STORAGE_KEY`, `SELECTORS`, `CLASSES`, `HOOKS`, `BADGE_STYLES` | Centralizes regex patterns, storage keys, DOM selectors, CSS classes, hook names, and inline badge styles. |
 | **`src/state.js`** | `state` (`origTableHtml`, `isDecoupled`, `initRetries`, `modifiedRows`, etc.) | Encapsulates runtime state, lifecycle flags, and modified row snapshot mementos. |
-| **`src/utils.js`** | `stripHtml`, `escapeRegex`, `extractName`, `normalizeDiffTags`, `extractSfnInfo` | Preprocesses diff boundary splits, regex escaping, HTML stripping, name extraction, and sfn parameter parsing. |
-| **`src/parser.js`** | `parseRefs` | Unified reference parser. Scans `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`), preserving document order. |
+| **`src/utils.js`** | `stripHtml`, `escapeRegex`, `extractName`, `normalizeDiffTags`, `hasBalancedDiffTags`, `extractSfnInfo` | Preprocesses diff boundary splits, regex escaping, HTML stripping, name extraction, diffchange tag balance, and sfn parameter parsing. |
+| **`src/parser.js`** | `parseRefs` | Unified reference parser. Scans `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`), filtering nested refs and preserving document order. |
 | **`src/pairing.js`** | `pairReferences` | 3-pass heuristic matching associating deleted citations with added citations (name, content equality, positional alignment). |
 | **`src/anchor.js`** | `sanitizeAnchor`, `findCiteNoteAnchor` | Scans live article preview for matching footnote IDs (`cite_note-*`, `cite_note-FOOTNOTE*`) and binds native `Extension:Popups`. |
 | **`src/renderer.js`** | `createProseBadge`, `createCitRow`, `replaceRefInHtml` | Constructs mathematical angle bracket badges (`⟨ref1⟩`, `⟨~mod~⟩`) and decoupled citation diff rows (`<tr class="refdiff-cit-row">`). |
@@ -281,9 +281,13 @@ In addition to standard `<ref>` tags, millions of Wikipedia articles use Shorten
 
 RefDiff integrates dedicated lexing and parsing for footnote templates:
 ```javascript
-const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|rp|harv|harvnb|harvtxt|harvp)\b((?:(?!\{\{\s*(?:sfn|sfnp|sfnm|sfnmp|efn|r\b|\/)).)*?)\}\}/gi;
+const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|harv|harvnb|harvtxt|harvp)\b((?:[^{}]|\{\{(?:[^{}]|\{\{[^{}]*\}\})*\}\})*?)\}\}/gi;
 ```
 
+* **Nested Template Resilience:** Balanced matching supports templates nested up to 2 levels deep (e.g. `{{efn|as acknowledged<ref name=zipf1949/>{{rp|546}}}}`), preventing premature termination at inner `}}` delimiters.
+* **Separation of Page Number Suffixes (`{{rp|...}}`):** In MediaWiki, `{{rp|page}}` provides an inline page suffix for preceding citation callouts (rendering `[1]:546`). Because `{{rp}}` is not an independent footnote definition, it is preserved inline directly attached to the reference badge rather than decoupled into citation diff rows.
+* **Diffchange Tag Balance Validation (`hasBalancedDiffTags`):** Validates that matches do not cross unbalanced `<del>` or `<ins>` boundaries. This prevents treating unwrapped footnotes (where editors remove outer footnote templates into top-level prose) as broken or corrupt citations.
+* **Hierarchical Container Filtering:** Filters out references nested within outer footnote containers (such as `<ref>` tags inside `{{efn|...}}`), ensuring outer explanatory footnotes decouple as a single cohesive unit without replacement collisions.
 * **Intelligent Author & Year Labeling (`extractSfnInfo`):** Positional parameters are extracted and formatted into human-readable scholarly labels:
   * `{{sfn|Castritius|2005}}` $\rightarrow$ `⟨Castritius 2005⟩`
   * `{{sfn|Reichert|Wolfram|2010|p=574}}` $\rightarrow$ `⟨Reichert & Wolfram 2010⟩` (page arguments cleanly omitted from prose badges)
@@ -403,7 +407,7 @@ While RefDiff addresses citation camouflage during **revision diff review** (`Sp
 RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification):
 
 1. **Modular Unit & Component Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **79 zero-dependency tests** (100% headless function coverage) across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
+   * **86 zero-dependency tests** (100% headless function coverage) across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
    * Fast execution budget: entire suite executes in **~18–25 ms** via `node tests/runner.js` (`npm test`).
    * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js` or `node tests/test_pairing.js`).
    * **Mock Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures.

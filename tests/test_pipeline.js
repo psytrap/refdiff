@@ -421,6 +421,37 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     assert.strictEqual(result.modifiedCits[0].newRaw, '&lt;ref name="kami" /&gt;');
     assert.strictEqual(result.modifiedCits[0].isAdd, true);
   });
+
+  test('transformProseCells accurately handles unwrapped footnotes and preserves rp page suffixes without spurious modified badges (Zipf\'s law diff=1379548357)', () => {
+    const rawDel = '<div><del class="diffchange diffchange-inline">Zipf&#039;s law had been discovered before Zipf,{{efn|as</del> Zipf acknowledged&lt;ref name=zipf1949/&gt;{{rp|546}}<del class="diffchange diffchange-inline">}}</del> <del class="diffchange diffchange-inline">first</del> by the French stenographer [[Jean-Baptiste Estoup]] in 1916,{{refn|</div>';
+    const rawAdd = '<div><ins class="diffchange diffchange-inline">As</ins> Zipf acknowledged<ins class="diffchange diffchange-inline">,</ins>&lt;ref name=zipf1949/&gt;{{rp|546}} <ins class="diffchange diffchange-inline">the frequency relationship now called Zipf&#039;s law had been discovered</ins> by the French stenographer [[Jean-Baptiste Estoup]] in 1916,{{refn|</div>';
+
+    const normDel = normalizeDiffTags(rawDel);
+    const normAdd = normalizeDiffTags(rawAdd);
+    const delRefs = parseRefs(normDel);
+    const addRefs = parseRefs(normAdd);
+
+    // Only intact <ref name=zipf1949/> should be parsed; unwrapped efn and rp should not be parsed as standalone citations
+    assert.strictEqual(delRefs.length, 1, 'Only zipf1949 should be in delRefs');
+    assert.strictEqual(delRefs[0].name, 'zipf1949');
+    assert.strictEqual(addRefs.length, 1, 'Only zipf1949 should be in addRefs');
+    assert.strictEqual(addRefs[0].name, 'zipf1949');
+
+    const pairs = pairReferences(delRefs, addRefs);
+    assert.strictEqual(pairs.length, 1);
+    assert.strictEqual(pairs[0].name, 'zipf1949');
+
+    const result = transformProseCells(normDel, normAdd, pairs, 1);
+
+    // Verified badge placement and prose preservation
+    assert.strictEqual(result.newDelHtml.includes('⟨zipf1949⟩'), true, 'Should include normal zipf1949 badge in deleted line');
+    assert.strictEqual(result.newAddHtml.includes('⟨zipf1949⟩'), true, 'Should include normal zipf1949 badge in added line');
+    assert.strictEqual(result.newDelHtml.includes('{{rp|546}}'), true, 'Should preserve {{rp|546}} in deleted line');
+    assert.strictEqual(result.newAddHtml.includes('{{rp|546}}'), true, 'Should preserve {{rp|546}} in added line');
+    assert.strictEqual(result.newDelHtml.includes('}}}'), false, 'Must not contain corrupted triple braces');
+    assert.strictEqual(result.newAddHtml.includes('~546~'), false, 'Must not contain spurious 546 modified badge');
+    assert.strictEqual(result.modifiedCits.length, 0, 'No spurious modified citation rows should be created');
+  });
 });
 
 if (require.main === module) {

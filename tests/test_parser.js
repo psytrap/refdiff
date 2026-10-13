@@ -98,6 +98,36 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     assert.strictEqual(refs[3].label, 'bar');
     assert.strictEqual(refs[3].name, 'bar');
   });
+
+  test('parseRefs filters out nested <ref> tags contained within {{efn}} footnote templates', () => {
+    const html = 'Prose {{efn|Footnote text with &lt;ref name="inner"&gt;Source data&lt;/ref&gt; inside}} and outside &lt;ref name="outer"&gt;Outer source&lt;/ref&gt;';
+    const refs = parseRefs(html);
+
+    assert.strictEqual(refs.length, 2, 'Should only contain the outer efn and the outside ref');
+    assert.strictEqual(refs[0].isTemplate, true);
+    assert.strictEqual(refs[0].templateName, 'efn');
+    assert.strictEqual(refs[0].label, 'note');
+
+    assert.strictEqual(refs[1].isTemplate, false);
+    assert.strictEqual(refs[1].name, 'outer');
+  });
+
+  test('parseRefs ignores unwrapped template syntax crossing diffchange boundaries', () => {
+    const html = '<div><del class="diffchange diffchange-inline">Zipf&#039;s law had been discovered before Zipf,{{efn|as</del> Zipf acknowledged&lt;ref name=zipf1949/&gt;{{rp|546}}<del class="diffchange diffchange-inline">}} first</del> by Estoup</div>';
+    const refs = parseRefs(html);
+
+    assert.strictEqual(refs.length, 1, 'Should only parse intact <ref name=zipf1949/>');
+    assert.strictEqual(refs[0].isTemplate, false);
+    assert.strictEqual(refs[0].name, 'zipf1949');
+  });
+
+  test('parseRefs does not treat {{rp}} page suffix as an independent reference', () => {
+    const html = 'Text&lt;ref name="book"&gt;Book cite&lt;/ref&gt;{{rp|123-125}} more text.';
+    const refs = parseRefs(html);
+
+    assert.strictEqual(refs.length, 1, 'Only <ref> should be parsed, not {{rp}}');
+    assert.strictEqual(refs[0].name, 'book');
+  });
 });
 
 if (require.main === module) {

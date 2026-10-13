@@ -5,7 +5,7 @@
  */
 
 const { assert, suite, test, finishStandalone } = require('./harness.js');
-const { stripHtml, normalizeDiffTags, sanitizeAnchor, escapeRegex } = require('../refdiff.js');
+const { stripHtml, normalizeDiffTags, hasBalancedDiffTags, sanitizeAnchor, escapeRegex } = require('../refdiff.js');
 
 suite('src/utils.js - Text Utilities & Normalization', () => {
   test('stripHtml removes all HTML tags and leaves text intact', () => {
@@ -21,6 +21,22 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
     const rawClosingSplit = '{{sfn|Reichert|Wolfram|2010|p=574}<ins class="diffchange diffchange-inline">}</ins>';
     const norm2 = normalizeDiffTags(rawClosingSplit);
     assert.strictEqual(norm2.includes('}}'), true, 'Should reconstruct closing }} template syntax');
+  });
+
+  test('normalizeDiffTags preserves adjacent template braces without corrupting into triple braces', () => {
+    const adjacent = '{{rp|546}}<del class="diffchange diffchange-inline">}}</del> <del class="diffchange diffchange-inline">first</del>';
+    const normalized = normalizeDiffTags(adjacent);
+    assert.strictEqual(normalized.includes('}}}'), false, 'Must not produce spurious triple braces');
+    assert.strictEqual(normalized, '{{rp|546}}<del class="diffchange diffchange-inline">}} first</del>', 'Should merge adjacent del spans cleanly');
+  });
+
+  test('hasBalancedDiffTags validates balanced vs unbalanced diffchange tags', () => {
+    assert.strictEqual(hasBalancedDiffTags('plain text'), true);
+    assert.strictEqual(hasBalancedDiffTags('<del class="diffchange">deleted</del>'), true);
+    assert.strictEqual(hasBalancedDiffTags('note <del>old</del><ins>new</ins> text'), true);
+    assert.strictEqual(hasBalancedDiffTags('{{efn|as</del> text <del>}}</del>'), false, 'Orphaned </del> must be invalid');
+    assert.strictEqual(hasBalancedDiffTags('text <del class="diffchange">unclosed'), false, 'Unclosed <del> must be invalid');
+    assert.strictEqual(hasBalancedDiffTags('text </ins>'), false, 'Orphaned </ins> must be invalid');
   });
 
   test('normalizeDiffTags cleans up empty diffchange tags but preserves whitespace inside diffchange tags', () => {

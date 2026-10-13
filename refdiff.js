@@ -65,10 +65,11 @@
    * Matches citation and footnote templates in diff HTML:
    * - {{sfn|...}}, {{sfnp|...}}, {{sfnm|...}}, {{sfnmp|...}} (Shortened footnotes)
    * - {{efn|...}}, {{efn-la|...}}, etc. (Explanatory footnotes)
-   * - {{r|...}}, {{rp|...}} (Reference shorthand)
+   * - {{r|...}} (Reference shorthand)
    * - {{harvnb|...}}, {{harv|...}}, etc. (Harvard citations)
+   * Supports nested templates (e.g. {{efn|...{{cite book|...}}...}}).
    */
-  const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|rp|harv|harvnb|harvtxt|harvp)\b((?:(?!\{\{\s*(?:sfn|sfnp|sfnm|sfnmp|efn|r\b|\/)).)*?)\}\}/gi;
+  const TEMPLATE_REF_REGEX = /\{\{\s*(?:<(?:ins|del)[^>]*>)?\s*(sfn|sfnp|sfnm|sfnmp|efn|efn-[a-z0-9_-]+|r|harv|harvnb|harvtxt|harvp)\b((?:[^{}]|\{\{(?:[^{}]|\{\{[^{}]*\}\})*\}\})*?)\}\}/gi;
 
   const STORAGE_KEY = 'refdiff-active';
   const STORAGE_KEY_SEPARATE = 'refdiff-separate-changed';
@@ -414,15 +415,58 @@
     res = res.replace(/(\/|\/&gt;)<(del|ins)([^>]*)>&gt;/gi, '/&gt;<$2$3>');
     // 4. Opening tag: &lt;ref...<del...>&gt; -> &lt;ref...&gt;<del...>
     res = res.replace(/(&lt;ref\b(?:(?!&gt;)[\s\S])*?)<(del|ins)([^>]*)>&gt;/gi, '$1&gt;<$2$3>');
-    // 5. Template opening: {<del/ins...>{ -> <del/ins...>{{
-    res = res.replace(/\{<(del|ins)([^>]*)>\{/gi, '<$1$2>{{');
-    // 6. Template closing: }<del/ins>} -> }}<del/ins>
-    res = res.replace(/\}<(del|ins)([^>]*)>\}/gi, '}}<$1$2>');
+    // 5. Template opening: {<del/ins...>{ -> <del/ins...>{{ (guarded against adjacent braces)
+    res = res.replace(/(?<!\{)\{(<(?:del|ins)[^>]*>)\{(?!\{)/gi, '$1{{');
+    // 6. Template closing: }<del/ins>} -> }}<del/ins> (guarded against adjacent braces)
+    res = res.replace(/(?<!\})\}(<(?:del|ins)[^>]*>)\}(?!\})/gi, '}}$1');
     // 7. Merge adjacent diffchange spans of identical type separated only by whitespace:
     res = res.replace(/<\/(ins|del)>(\s*)<\1\b[^>]*>/gi, '$2');
     // 8. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
     res = res.replace(/<(ins|del)\b[^>]*><\/\1>/gi, '');
     return res;
+  }
+
+  /**
+   * Checks whether diffchange (<del> and <ins>) tags inside a string are strictly balanced.
+   * Prevents matching syntax fragments that cross diffchange boundaries (such as unwrapped templates).
+   * @param {string} str
+   * @returns {boolean}
+   */
+  function hasBalancedDiffTags(str) {
+    if (!str || typeof str !== 'string') return true;
+    let delDepth = 0;
+    let insDepth = 0;
+    for (let i = 0; i < str.length; i++) {
+      if (str.startsWith('<del', i)) {
+        const end = str.indexOf('>', i);
+        if (end !== -1) {
+          delDepth++;
+          i = end;
+          continue;
+        }
+      }
+      if (str.startsWith('</del>', i)) {
+        delDepth--;
+        if (delDepth < 0) return false;
+        i += 5;
+        continue;
+      }
+      if (str.startsWith('<ins', i)) {
+        const end = str.indexOf('>', i);
+        if (end !== -1) {
+          insDepth++;
+          i = end;
+          continue;
+        }
+      }
+      if (str.startsWith('</ins>', i)) {
+        insDepth--;
+        if (insDepth < 0) return false;
+        i += 5;
+        continue;
+      }
+    }
+    return delDepth === 0 && insDepth === 0;
   }
 
   /**
@@ -498,6 +542,7 @@
     // 1. Scan <ref> tags
     REF_REGEX.lastIndex = 0;
     while ((m = REF_REGEX.exec(normalized)) !== null) {
+      if (!hasBalancedDiffTags(m[0])) continue;
       const hasChange = m[0].includes(CLASSES.DIFFCHANGE);
       const name = extractName(m[1]);
       refs.push({
@@ -515,6 +560,7 @@
     // 2. Scan citation & footnote templates ({{sfn}}, {{r}}, {{efn}}, etc.)
     TEMPLATE_REF_REGEX.lastIndex = 0;
     while ((m = TEMPLATE_REF_REGEX.exec(normalized)) !== null) {
+      if (!hasBalancedDiffTags(m[0])) continue;
       const templateName = m[1].toLowerCase();
       const rawArgs = m[2];
       const hasChange = m[0].includes(CLASSES.DIFFCHANGE);
@@ -525,7 +571,7 @@
         const info = extractSfnInfo(rawArgs);
         label = info.label;
         nameToken = info.anchorToken || info.label;
-      } else if (templateName === 'r' || templateName === 'rp') {
+      } else if (templateName === 'r') {
         const parts = stripHtml(rawArgs).split('|').map(s => s.trim()).filter(Boolean);
         const refName = parts.find(p => !p.includes('=')) || 'ref';
         label = refName;
@@ -552,10 +598,20 @@
       });
     }
 
-    // 3. Sort refs by document index to strictly preserve appearance order
-    refs.sort((r1, r2) => r1.index - r2.index);
+    // 3. Filter out references nested inside another reference (e.g. <ref> inside {{efn}})
+    const topLevelRefs = refs.filter((r1, i) => {
+      const r1End = r1.index + r1.raw.length;
+      return !refs.some((r2, j) => {
+        if (i === j) return false;
+        const r2End = r2.index + r2.raw.length;
+        return r1.index >= r2.index && r1End <= r2End && r1.raw.length < r2.raw.length;
+      });
+    });
 
-    return refs;
+    // 4. Sort refs by document index to strictly preserve appearance order
+    topLevelRefs.sort((r1, r2) => r1.index - r2.index);
+
+    return topLevelRefs;
   }
   /* === [END VIRTUAL FILE: src/parser.js] === */
 
@@ -1993,6 +2049,7 @@
     extractName,
     extractSfnInfo,
     normalizeDiffTags,
+    hasBalancedDiffTags,
     parseRefs,
     pairReferences,
     sanitizeAnchor,

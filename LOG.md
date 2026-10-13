@@ -270,6 +270,25 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Total test count: **78/78 passing tests** (100% headless function coverage) with 0 ESLint warnings.
   * Verified live in Snap Chromium via CDP on Meta-Wiki (`Show_case` diff) and English Wikipedia (`Kim Domingo` diff).
 
+### 2026-10-13: Unwrapped Footnote & Template Delimiter Bugfixes (Zipf's Law diff=1379548357)
+
+* **Bug Diagnosis (`Zipf's law` diff=1379548357):**
+  * When an explanatory footnote (`{{efn|as Zipf acknowledged<ref name=zipf1949/>{{rp|546}}}}`) was unwrapped into top-level prose (`As Zipf acknowledged,<ref name=zipf1949/>{{rp|546}} ...`), multiple compounding issues occurred:
+    1. `{{rp|546}}` (Reference Page suffix) was included in `TEMPLATE_REF_REGEX`, causing `546` to be parsed as an independent citation and spuriously paired with the deleted `{{efn}}`, producing a bogus modified citation badge `⟨~546~⟩` and a nonsensical citation row.
+    2. `TEMPLATE_REF_REGEX` terminated prematurely at the inner nested `{{rp|546}}` closing braces `}}`, leaving orphaned braces and broken template fragments.
+    3. `normalizeDiffTags` rule 6 (`res.replace(/\}<(del|ins)...>\}/, ...)` lacked lookaround assertions, causing the closing brace of adjacent preceding templates (like `{{rp|546}}<del>}}</del>`) to be erroneously merged into triple braces `}}}`.
+    4. Unwrapped template syntax spanning across `</del>` into unchanged prose was mistakenly parsed as a deleted citation entity, swallowing unchanged prose and colliding with inner `<ref>` string replacements.
+* **Architectural & Algorithmic Solutions:**
+  * **Omission of `{{rp}}` from Citation Parser:** Removed `rp` from `TEMPLATE_REF_REGEX` and `parseRefs`. `{{rp|page}}` provides an inline page suffix modifying the preceding citation callout (rendering `[1]:546`) and is preserved attached to the reference badge directly in prose.
+  * **Nested Template Resilience in `TEMPLATE_REF_REGEX`:** Updated pattern with balanced matching supporting templates up to 2 levels deep, preventing premature termination at inner template braces.
+  * **Adjacent Template Delimiter Lookaround Guards (`normalizeDiffTags`):** Added `(?<!\{)` / `(?!\{)` to rule 5 and `(?<!\})` / `(?!\})` to rule 6, preventing delimiter corruption when templates immediately precede split diffchange tags.
+  * **Diffchange Tag Balance Validator (`hasBalancedDiffTags`):** Ensured candidate `<ref>` and template matches do not cross unbalanced `<del>` or `<ins>` boundaries. Unwrapped footnote delimiters are preserved in prose diffs without polluting citation inventories.
+  * **Hierarchical Container Filtering:** Filtered out inner references nested inside outer footnote containers (e.g. `<ref>` inside `{{efn}}`), ensuring the outer footnote decouples cohesively without replacement collisions.
+* **Verification & Testing:**
+  * Added unit and regression tests in `tests/test_constants.js`, `tests/test_utils.js`, `tests/test_parser.js`, and `tests/test_pipeline.js`.
+  * Total test count expanded to **86/86 passing tests** across 13 modular test suites with 0 ESLint warnings.
+  * `Zipf's law` (`diff=1379548357`) marked as Verified in `TEST_PLAN.md`.
+
 ---
 
 ## Planned Future Tasks & Architectural Evaluations
