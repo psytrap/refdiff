@@ -406,11 +406,11 @@ While RefDiff addresses citation camouflage during **revision diff review** (`Sp
 
 RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification):
 
-1. **Modular Unit & Component Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **87 zero-dependency tests** (100% headless function coverage) across **13 modular test files** mapped 1-to-1 to each virtual file of `refdiff.js`.
-   * Fast execution budget: entire suite executes in **~18–25 ms** via `node tests/runner.js` (`npm test`).
-   * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js` or `node tests/test_pairing.js`).
-   * **Mock Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures.
+1. **Modular Unit, Component & Real DOM Testing (`tests/test_*.js` & `tests/runner.js`):**
+   * **97 tests** (100% headless function & DOM integration coverage) across **14 modular test files** covering virtual modules and real DOM integration.
+   * Fast execution budget: entire suite executes in **~250 ms** via `node tests/runner.js` (`npm test`).
+   * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js`, `node tests/test_pairing.js`, or `node tests/test_jsdom.js`).
+   * **Mock & JSDOM Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures, supplemented by `tests/test_jsdom.js` running against real MediaWiki diff fixtures.
    * **Parser & Templates (`tests/test_parser.js`, `tests/test_constants.js`):** XML entity decoding (`&quot;`), self-closing tags, nested `diffchange` spans, boundary split normalization, `TEMPLATE_REF_REGEX`, mixed sequential order, unclosed quotation attribute toleration (`name="foo>`), and `extractSfnInfo` for 1, 2, 3, and 4+ authors.
    * **Heuristic Pairing (`tests/test_pairing.js`):** 3-pass matching algorithm, insertions at front/end, surrounded edits, pure additions/deletions, self-closing identicals, and `{{sfn}}` pairing by label.
    * **Anchor Discovery & Popups (`tests/test_anchor.js`):** Resolves explicit named footnotes, anonymous URL matching, shortened `cite_note-FOOTNOTE*` anchors, and `sanitizeAnchor` tokenization.
@@ -418,6 +418,7 @@ RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test 
    * **Mode Coordination & UI (`tests/test_mode_coordinator.js`, `tests/test_dom_helpers.js`):** 3-way mode switching (visual/wikitext/refdiff), row categorization, `wikitextBodyUpdate` hook firing, and locking `mw-diffPage-inline-toggle-switch`.
    * **Persistence (`tests/test_state.js`):** `localStorage`, `mw.storage`, and `?refdiff=0/1` URL parameter overrides.
    * **Stress & Performance Benchmarks (`tests/test_benchmarks.js`):** Real-world stress testing on high-density changesets (e.g. enwiki `diff=1379409916`, airport destination tables with 114 dense citations verified in <50ms with 0 leaks).
+   * **Real DOM Integration & JSDOM Testing (`tests/test_jsdom.js`):** Real DOM test suite verifying full table decoupling, byte-for-byte in-place Memento restoration, OOUI button mounting, native inline switch locking, `MouseEvent` delegation with class flashing, and on-wiki `<nowiki>` comment protection.
 
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.

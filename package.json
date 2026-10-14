@@ -23,6 +23,7 @@
   "author": "RefDiff Contributors",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^6.4.0"
+    "eslint": "^6.4.0",
+    "jsdom": "^30.1.2"
   }
 }

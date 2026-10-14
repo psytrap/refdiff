@@ -1,3 +1,4 @@
+/* <nowiki> */
 // ==UserScript==
 // @name         RefDiff
 // @namespace    https://github.com/m-k/einzelnachweise
@@ -1231,7 +1232,9 @@
       const target = document.getElementById(href.slice(1));
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (typeof target.scrollIntoView === 'function') {
+          target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
         target.classList.remove(CLASSES.FLASH_CIT);
         void target.offsetWidth;
         target.classList.add(CLASSES.FLASH_CIT);
@@ -1240,7 +1243,9 @@
       const target = document.getElementById(href.slice(1));
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (typeof target.scrollIntoView === 'function') {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         try {
           if (window.history && window.history.pushState) {
             window.history.pushState(null, '', href);
@@ -1941,12 +1946,15 @@
         }
 
         // Watch for VisualEditor DOM re-renders of the button container
-        const observer = new MutationObserver(() => {
-          if (!document.getElementById('refdiff-ooui-btn')) {
-            init();
-          }
-        });
-        observer.observe(diffModeContainer, { childList: true, subtree: true });
+        const ObsClass = (typeof window !== 'undefined' && window.MutationObserver) || (typeof MutationObserver !== 'undefined' ? MutationObserver : null);
+        if (ObsClass) {
+          const observer = new ObsClass(() => {
+            if (!document.getElementById('refdiff-ooui-btn')) {
+              init();
+            }
+          });
+          observer.observe(diffModeContainer, { childList: true, subtree: true });
+        }
       }
     } else {
       if (document.getElementById('refdiff-mode-bar')) return;
@@ -2080,3 +2088,5 @@
   };
   /* === [END VIRTUAL FILE: src/exports.js] === */
 });
+
+/* </nowiki> */

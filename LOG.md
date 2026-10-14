@@ -304,6 +304,26 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Total test count expanded to **87/87 passing tests** across 13 modular test suites with 0 ESLint warnings.
   * `Donnie Brasco (film)` (`diff=1380017400`) marked as Verified in `TEST_PLAN.md`.
 
+### 2026-10-14: Real DOM Testing in JSDOM & On-Wiki <nowiki> Protection (Ultraviolet Benchmarks)
+
+* **Motivation & Architectural Context:**
+  * Comparative review against Wikipedia's [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) userscript (`poc/ultraviolet/COMPARISON.md`) identified key areas for hardening:
+    1. **Mock Weakness Elimination:** Testing RefDiff against a real headless DOM environment (`jsdom`) using real MediaWiki `table.diff` fixtures (`tests/comprehensive_test.html`, `tests/stress_test_1379409916.html`).
+    2. **On-Wiki Template Protection:** Protecting the script against on-wiki wikitext template expansion (`{{sfn}}`, `{{efn}}`) and parameter substitution (`~~~~`) by wrapping the deployment in `/* <nowiki> */` and `/* </nowiki> */`.
+* **Implementation Details:**
+  * **JSDOM Integration (`tests/test_jsdom.js`):**
+    * Added `jsdom` devDependency to `package.json`.
+    * Implemented 10 real DOM test scenarios in `tests/test_jsdom.js`: full diff table decoupling, byte-for-byte in-place Memento restoration, 114-ref airport destination table stress testing, OOUI button mounting and 3-way mode switching, native inline diff switch locking, fallback mode bar mounting, footnote anchor resolution via real `document.querySelector`, `MouseEvent` delegation with class flashing, inline modified refs toggle mode, and nowiki protection.
+  * **Defensive DOM Guards in `refdiff.js`:**
+    * Safely guarded `scrollIntoView` calls (`typeof target.scrollIntoView === 'function'`) to ensure compatibility with headless and non-standard browser DOM environments.
+    * Safely guarded `MutationObserver` instantiation (`window.MutationObserver || MutationObserver`).
+  * **On-Wiki `<nowiki>` Protection:**
+    * Wrapped `refdiff.js` at line 1 with `/* <nowiki> */` and at the file end with `/* </nowiki> */`.
+    * Added automated test ensuring `<nowiki>` delimiters remain balanced with zero unclosed internal tags.
+* **Verification & Results:**
+  * Test count expanded to **97/97 passing tests** across 14 modular test suites with 0 ESLint warnings.
+  * Entire suite executes in **~250 ms** via `npm test` and `npm run ci`.
+
 ---
 
 ## Planned Future Tasks & Architectural Evaluations

@@ -22,7 +22,8 @@ const testFiles = [
   './test_renderer.js',
   './test_state.js',
   './test_utils.js',
-  './test_benchmarks.js'
+  './test_benchmarks.js',
+  './test_jsdom.js'
 ];
 
 for (const file of testFiles) {
