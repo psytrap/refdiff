@@ -8,6 +8,7 @@
     "test": "node tests/runner.js",
     "test:live": "python3 tests/test_live_cdp.py",
     "test:bench": "python3 tests/test_live_benchmarks.py",
+    "preflight": "npm run ci && node tests/test_deployment.js && npm run test:live && npm run test:bench",
     "check:deploy": "node scripts/check_live_deployment.js",
     "bump": "node scripts/bump_version.js",
     "ci": "npm run lint && npm run test"

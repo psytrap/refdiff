@@ -27,8 +27,7 @@ All checks must pass before release:
 ```bash
 node scripts/bump_version.js <patch|minor|major>  # Automated version bump across manifests & docs
 git diff --stat && git diff                       # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
-npm run ci && node tests/test_deployment.js      # Headless unit, real DOM & pre-flight (115 tests, 10 gates)
-npm run test:live && npm run test:bench         # Level 4: Live browser CDP & 5 live benchmark diffs (monkey patching)
+npm run preflight                                 # Full pre-flight: CI, 10 gates, live CDP & 5 benchmark diffs
 npm run check:deploy                            # Live on-wiki deployment audit across Wikimedia APIs
 ```
 - **Two-Phase Version Strategy, Uprev Cadence & Diff Audit:** (1) *Feature Finished & Pre-Flight Pass:* execute patch uprev bump (`node scripts/bump_version.js patch`); (2) *After Deployment:* execute minor uprev bump (`node scripts/bump_version.js minor`). Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); every uprev strictly triggers a formal diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
@@ -45,10 +44,8 @@ npm run check:deploy                            # Live on-wiki deployment audit 
 
 ## 3. Rollout Rings
 
-### Ring 0: Version Bump, Local Verification & Pre-Flight (Cleared)
-- **Version Bump (Patch Uprev):** Assure a formal version uprev is executed across manifests via patch bump (`node scripts/bump_version.js patch`) upon feature completion and pre-flight pass; sync release SHA-1 (`458222a2`), and verify clean tree with small incremental scope.
-- **Mandatory Diff Audit & CDP:** Run diff audit (`git diff`); we always run live browser CDP tests (`npm run test:live`) before any update to `refdiff.js`. All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
-- **Release Tag:** Tag release: `git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`.
+### Ring 0: Local Release Tagging & Baseline (Cleared)
+- **Release Tag & Baseline:** Tag release: `git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`. Verify clean working tree and release SHA-1 (`458222a2`) before on-wiki deployment.
 
 ### Ring 1: Update Meta-Wiki Script Lead (`m.WM refdiff.js`)
 1. **Script Lead (m.WM):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js).
@@ -82,9 +79,8 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Version Bump (Patch Uprev):** Assure version uprev before deployment; execute patch bump upon feature completion (`node scripts/bump_version.js patch`) and sync release SHA-1 (`458222a2`).
-- [ ] **Pre-Flight Quality Gates:** Assure a formal version uprev is executed; run live browser CDP tests (`npm run test:live` on port 9222) and 5 live benchmarks via monkey patching (`npm run test:bench`) before updating `refdiff.js`; diff audit (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates).
-- [ ] **Git:** Tag release `v1.4.1` and push (`git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`).
+- [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`: CI, 10 gates, live CDP, 5 live benchmark diffs).
+- [ ] **Git Release Tag (Ring 0):** Tag release `v1.4.1` and push (`git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
 - [ ] **Update en.WP SHA Pointer:** Update `en:User:Powercycler/refdiff.js` with new SHA pointer.
