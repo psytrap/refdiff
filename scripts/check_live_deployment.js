@@ -195,11 +195,21 @@ async function auditDeployment() {
   } else {
     const rev = enCommon.revisions && enCommon.revisions[0];
     const content = rev ? (rev['*'] || '') : '';
-    const loadsScript = content.includes('refdiff.js');
+    const loadsMetaLead = content.includes('meta.wikimedia.org') && content.includes('refdiff.js');
+    const loadsEnPointer = (content.includes('User:Powercycler/refdiff.js') || content.includes('refdiff.js')) && !loadsMetaLead;
+    let statusText = 'DEPLOYED (No RefDiff loader detected)';
+    let detailText = `Rev ${rev.revid} (${rev.timestamp}). Optional install / testing hook.`;
+    if (loadsEnPointer) {
+      statusText = 'FINAL PRODUCTION INSTALL (via en.WP Pointer / ScriptInstaller)';
+      detailText = `Rev ${rev.revid} (${rev.timestamp}). Configured via canonical en.WP script pointer (production install).`;
+    } else if (loadsMetaLead) {
+      statusText = 'EARLY TESTING HARNESS (Direct Meta-Wiki load)';
+      detailText = `Rev ${rev.revid} (${rev.timestamp}). Direct Meta-Wiki loader present for staging verification.`;
+    }
     reports.push({
-      target: 'en:User:Powercycler/common.js (Early Testing Harness)',
-      status: loadsScript ? 'CONFIGURED FOR EARLY TESTING' : 'DEPLOYED (No RefDiff loader detected)',
-      details: `Rev ${rev.revid} (${rev.timestamp}). ${loadsScript ? 'Active loader present for staging verification.' : 'Optional early testing hook.'}`,
+      target: 'en:User:Powercycler/common.js (User Installation)',
+      status: statusText,
+      details: detailText,
       ok: true
     });
   }
