@@ -44,7 +44,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 #### RefDiff Checklist & Status Dashboard
 
-##### Active Release (v1.3.0)
+##### Active Release (v1.4.0)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
@@ -1252,6 +1252,27 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2 Pre-Flight Quality Gates, §3 Ring 0, §5 Runbook Checklist; strictly maintained at 91 lines < 100 limit).
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.3 Real DOM Regression Harness).
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (added automated assertion verifying that DEPLOYMENT_PLAN.md mandates CDP before any update to `refdiff.js`).
+
+---
+
+### 2026-10-14: Uprev to v1.4.0 & Codified Mandatory Pre-Deployment Uprev Invariant
+
+* **Context & Architectural Invariant:**
+  * Prior to initiating on-wiki deployment, performed a formal minor version uprev from `v1.3.0` to **`v1.4.0`** across all manifests and documentation artifacts.
+  * Formally established the deployment invariant: **Maintainers and release automation must ALWAYS assure a formal version uprev is executed across all repository manifests (`package.json`, `package-lock.json`, `refdiff.js`, `refdiff.wiki`, `DEPLOYMENT_PLAN.md`, `AUDIT_STRATEGY.md`) before initiating on-wiki deployment.** Deploying against unbumped version numbers or stale git tags is strictly prohibited.
+  * Release scope for `v1.4.0` consolidates major improvements developed since initial v1.3.0:
+    - *Inline Modified Refs Mode:* Decouple toggle allowing modified citations to stay in prose with hovercards while keeping pure additions/deletions separated.
+    - *XSS-Immune DOM Construction:* Complete replacement of template strings with safe DOM builder `el()` (M1 resolution).
+    - *Attribute & Quote Robustness:* Resilient parsing of unclosed quotes, embedded apostrophes, and underscore anchor normalization (Bihar & Donnie Brasco diffs).
+    - *Footnote & Template Delimiters:* Robust lookarounds preventing false-positive badges on `{{rp}}` page suffixes and nested footnote templates.
+* **Artifacts Synchronized:**
+  * Updated [`package.json`](package.json) & [`package-lock.json`](package-lock.json) (`1.4.0`).
+  * Updated [`refdiff.js`](refdiff.js) (`// @version 1.4.0`).
+  * Updated [`refdiff.wiki`](refdiff.wiki) (`| status = Stable (v1.4.0)`, `| version = 1.4.0`).
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (version `1.4.0`, pre-deployment uprev policy, release tag `v1.4.0`; 91 lines `< 100`).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (version `1.4.0`, §2.8 pre-deployment uprev policy).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (automated assertion for pre-deployment uprev policy).
+  * Updated [`LOG.md`](LOG.md) (Dashboard `v1.4.0` and changelog).
 
 
 

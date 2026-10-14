@@ -1,6 +1,6 @@
 # RefDiff: Deployment Plan
 
-> **Version:** 1.3.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
+> **Version:** 1.4.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
 > **Script Lead:** Meta-Wiki (`m.WM`) &bull; **Doc Lead:** English Wikipedia (`en.WP`) &bull; **en.WP Script:** SHA Pointer  
 > **CI Status:** 115/115 passing, 0 lint warnings
 
@@ -30,10 +30,10 @@ npm run ci && node tests/test_deployment.js  # Headless unit, real DOM & pre-fli
 npm run test:live                           # Level 4: Live browser CDP integration (port 9222)
 npm run check:deploy                        # Live on-wiki deployment audit across Wikimedia APIs
 ```
-- **Uprev Cadence & Diff Audit:** Enforce smaller, focused changes between uprevs (no monolithic diffs); every uprev strictly triggers a formal diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
+- **Uprev Cadence & Diff Audit:** Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); every uprev strictly triggers a formal diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
 - **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
-- **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync (`1.3.0`), size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
+- **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync (`1.4.0`), size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
 - **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
 - **Stress & Benchmark Budget:** < 50ms processing on 114-reference table (`test_benchmarks.js`).
 - **Mandatory Live CDP Invariant (Level 4):** We always run live browser CDP tests (`npm run test:live` via port 9222) before any update to `refdiff.js` to verify real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
@@ -44,9 +44,9 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 ## 3. Rollout Rings
 
 ### Ring 0: Local Verification & Pre-Flight (Cleared)
-- Clean working tree, small incremental scope & version `1.3.0` sync; uprev-triggered diff audit cleared per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, metric sync, concise hunks).
+- Clean working tree, small incremental scope & version `1.4.0` sync; uprev-triggered diff audit cleared per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, metric sync, concise hunks).
 - Mandatory CDP verification: we always run live browser CDP tests (`npm run test:live`) before any update to `refdiff.js`. All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
-- Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
+- Release tag: `git tag -a v1.4.0 -m "Release v1.4.0" && git push origin v1.4.0`.
 
 ### Ring 1: Update Meta-Wiki Script Lead (`m.WM refdiff.js`)
 1. **Script Lead (m.WM):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js).
@@ -79,8 +79,8 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight (Mandatory CDP & Diff Audit):** We always run live browser CDP tests (`npm run test:live` on port 9222) before any update to `refdiff.js`; run diff audit (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates).
-- [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
+- [ ] **Pre-Flight (Mandatory Uprev, CDP & Diff Audit):** Assure version uprev before deployment; run live browser CDP tests (`npm run test:live` on port 9222) before updating `refdiff.js`; run diff audit (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates).
+- [ ] **Git:** Tag release `v1.4.0` and push (`git tag -a v1.4.0 -m "Release v1.4.0" && git push origin v1.4.0`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
 - [ ] **Update en.WP SHA Pointer:** Update `en:User:Powercycler/refdiff.js` with new SHA pointer.

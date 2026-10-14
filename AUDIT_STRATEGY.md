@@ -1,6 +1,6 @@
 # RefDiff: Audit and Review Strategy
 
-> **Status:** Active & Implemented &bull; **Version:** 1.3.0  
+> **Status:** Active & Implemented &bull; **Version:** 1.4.0  
 > **Target Audience:** Script Maintainers, Wikimedia Reviewers, Wikipedia Patrollers & Source Auditors  
 > **Governing Artifacts:** [`refdiff.js`](refdiff.js), [`tests/`](tests/), [`refdiff.wiki`](refdiff.wiki), [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`LOG.md`](LOG.md)
 
@@ -112,7 +112,7 @@ To ensure tests remain resilient, diagnostic, and maintainable, RefDiff enforces
 * **Sandboxed Mock Isolation:** Scoped `withMockEnvironment()` guarantees state restoration with zero cross-test interference.
 
 #### Sufficiency Audit: Is it Enough?
-**Verdict: Sufficient for production release (v1.3.0), with explicit, monitored boundaries.**
+**Verdict: Sufficient for production release (v1.4.0), with explicit, monitored boundaries.**
 * **100% Core Production Coverage:** 71 of 71 internal functions covered, authentic DOM fixtures in JSDOM, live CDP browser automation, and stress benchmarks.
 * **Monitored Testing Boundaries:**
   1. *Malformed Wikitext:* Unclosed `<ref>` tags gracefully remain in-situ in prose.
@@ -179,11 +179,12 @@ git status --short
 > [!TIP]
 > **Case Study in Incomplete Cleanups:** During the v1.3.0 audit, a quick `git diff` review revealed that while the `archive/` prototype directory was deleted, four documentation files still referenced dead `archive/python-prototype/` links, and two tables listed 113 instead of 115 tests. Running the `git diff` quick review protocol eliminated these discrepancies before release tagging.
 
-#### Uprev Cadence & Mandatory Diff Audit Trigger
+#### Mandatory Pre-Deployment Uprev & Diff Audit Trigger
 
-To ensure diff reviews remain fast, high-confidence, and zero-defect, all future releases enforce two core policies:
-1. **Smaller Changes Between Uprevs:** Version bumps (patch, minor) must be scoped to small, single-focus increments rather than massive, monolithic changesets. Small batches prevent reviewer fatigue, keep hunks immediately comprehensible, and make regressions straightforward to isolate.
-2. **Uprev Triggers Diff Audit:** Every version bump (`package.json`, `refdiff.js`, UserScript header) strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md).
+To ensure diff reviews remain fast, high-confidence, and zero-defect, all releases enforce core uprev policies:
+1. **Mandatory Uprev Before Deployment:** Maintainers and release automation must assure a formal version uprev is executed across all repository manifests (`package.json`, `refdiff.js`, `refdiff.wiki`, `DEPLOYMENT_PLAN.md`) before initiating on-wiki deployment. Deploying against unbumped version numbers is prohibited.
+2. **Smaller Changes Between Uprevs:** Version bumps (patch, minor) must be scoped to small, single-focus increments rather than massive, monolithic changesets. Small batches prevent reviewer fatigue, keep hunks immediately comprehensible, and make regressions straightforward to isolate.
+3. **Uprev Triggers Diff Audit:** Every version bump strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md).
 
 ---
 

@@ -299,6 +299,14 @@ suite('Deployment & Release Pre-Flight Checks', () => {
       true,
       'DEPLOYMENT_PLAN.md must enforce that we always run CDP before any update to refdiff.js'
     );
+
+    // 10. Mandatory pre-deployment uprev policy
+    assert.strictEqual(
+      deployPlanContent.includes('assure a formal version uprev is executed') &&
+      deployPlanContent.includes('Assure version uprev before deployment'),
+      true,
+      'DEPLOYMENT_PLAN.md must enforce mandatory pre-deployment uprev policy'
+    );
   });
 });
 
