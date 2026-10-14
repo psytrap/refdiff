@@ -62,7 +62,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
 | **R.2** | Dynamic AJAX / SPA Re-entrancy | High | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
-| **R.3** | Patrol Tool Non-Interference Contract | High | 🔮 Future | Byte-for-byte protection of diff headers & Twinkle/HotCat nodes |
+| **R.3** | Tool Non-Interference (Twinkle & Ultraviolet) | High | 🔮 Future | TODO: Check Twinkle rollback buttons and Ultraviolet CVPI overlay compatibility |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
 ##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
@@ -92,8 +92,9 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
   * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
 - [ ] **Step R.3: Core Patrol Tool Non-Interference Contract (Tier 2 — High)**
+  * **TODO:** Check Twinkle and Ultraviolet compatibility in live reviews and automated test contracts.
   * Add automated assertions verifying that RefDiff mutations are strictly confined to `tbody > tr.diff-deletedline`, `tr.diff-addedline`, and `tr.refdiff-cit-row`.
-  * Guarantee that header nodes (`tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, `.diff-notice`, `.diff-multi`) and third-party buttons (Twinkle rollback/vandalism links) remain 100% byte-for-byte untouched.
+  * Guarantee that header nodes (`tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, `.diff-notice`, `.diff-multi`) and third-party buttons (Twinkle rollback/vandalism links, Ultraviolet CVPI overlay interface) remain 100% byte-for-byte untouched.
 - [ ] **Step R.4: Client-Side Observability & Diagnostic Troubleshooting Mode (Tier 2 — Normal)**
   * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
   * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
@@ -1200,6 +1201,24 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js) (removed canary endpoints).
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (asserted absence of canary channel and presence of no-canary policy).
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7) and [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Items).
+
+---
+
+### 2026-10-14: Tracked TODO for Twinkle and Ultraviolet Compatibility Verification
+
+* **Context & Architectural Scope:**
+  * Added formal tracking item and TODOs across testing, deployment, and audit frameworks to verify RefDiff compatibility and non-interference with the two prominent Wikipedia patrol tools: **WP:Twinkle** (51k+ installs, core diff header rollback/vandalism links) and **WP:Ultraviolet** (~750 installs, CVPI dynamic overlay interface).
+* **Key Provisions & Invariants:**
+  * *Twinkle Non-Interference:* Diff headers (`tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, `.diff-notice`) and rollback/warning action nodes must remain 100% byte-for-byte untouched.
+  * *Ultraviolet Interoperability:* RefDiff DOM transformations and Memento snapshots must not disrupt or collide with Ultraviolet's reactive floating toolbar (`cvpi`).
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§5 Runbook Checklist item for live compatibility check).
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item R.3).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7 Tier 2 Ecosystem Non-Interference).
+  * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§5 Future Test Expansion Roadmap).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (added automated assertion for compatibility check tracking).
+  * Updated [`tests/test_jsdom.js`](tests/test_jsdom.js) (added TODO comment for contract tests).
+
 
 
 

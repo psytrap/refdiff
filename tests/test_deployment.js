@@ -281,6 +281,9 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     // 7. Uprev cadence & diff audit trigger policy
     assert.strictEqual(deployPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'DEPLOYMENT_PLAN.md must enforce uprev cadence and diff audit policy');
     assert.strictEqual(deployPlanContent.includes('smaller, focused changes between uprevs'), true, 'DEPLOYMENT_PLAN.md must require small changes between uprevs');
+
+    // 8. Tool compatibility check (Twinkle & Ultraviolet)
+    assert.strictEqual(deployPlanContent.includes('Twinkle') && deployPlanContent.includes('Ultraviolet'), true, 'DEPLOYMENT_PLAN.md must track Twinkle and Ultraviolet compatibility');
   });
 });
 

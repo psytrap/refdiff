@@ -92,4 +92,5 @@ Immediately verify published script on 5 live benchmark diffs:
 - [ ] **Publish Lead Docs:** Update `en:User:Powercycler/RefDiff` & verify Meta doc soft redirect.
 - [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
 - [ ] **Live Smoke Check:** `npm run check:deploy` passes; verify 5 live benchmark diffs on en.WP.
+- [ ] **TODO (Tool Compatibility):** Check Twinkle and Ultraviolet compatibility on live en.WP diffs.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.

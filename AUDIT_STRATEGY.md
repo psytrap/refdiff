@@ -128,7 +128,7 @@ To govern the transition from initial release to broad community gadget candidac
 
 #### Tier 2: 50-User Community Reviewer Scale (Gadget Proposal Prerequisite)
 1. **Critical Mass Threshold:** $\ge 50$ active NPP/RC reviewers sustained over $\ge 60$ days with 0 critical regressions.
-2. **Ecosystem Non-Interference:** Formal automated test assertions verifying zero disruption to diff headers, revision metadata, and third-party buttons (Twinkle, HotCat, diffedit).
+2. **Ecosystem Non-Interference:** Formal automated test assertions verifying zero disruption to diff headers, revision metadata, and third-party buttons (TODO: check Twinkle and Ultraviolet compatibility, HotCat, diffedit).
 3. **Dynamic SPA Re-Entrancy:** Safe re-initialization on sequential `wikipage.diff` Ajax table swaps without Memento memory leaks.
 4. **Client-Side Observability:** Opt-in diagnostic troubleshooting flag (`?refdiff_debug=1`) for rapid triage of reviewer bug reports.
 5. **Community Consensus:** Formal RFC proposal on `Wikipedia:Village pump (technical)` for definition as an opt-in gadget in `MediaWiki:Gadgets-definition`.

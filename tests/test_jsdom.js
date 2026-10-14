@@ -345,6 +345,7 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
     assert.strictEqual(/<\/?\s*nowiki\s*\/?>/i.test(inner), false, 'refdiff.js should not have internal unescaped nowiki tags');
   });
 
+  // TODO: Check Twinkle and Ultraviolet compatibility (zero disruption to diff headers, rollback buttons, and CVPI overlays).
 });
 
 finishStandalone();
