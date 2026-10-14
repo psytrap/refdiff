@@ -30,7 +30,7 @@ npm run ci && node tests/test_deployment.js  # Headless unit, real DOM & pre-fli
 npm run test:live                           # Level 4: Live browser CDP integration (port 9222)
 npm run check:deploy                        # Live on-wiki deployment audit across Wikimedia APIs
 ```
-- **Diff Review Hygiene:** Zero debris, no uncommitted changes, concise hunks (`git diff --stat && git diff`).
+- **Diff Review Hygiene:** Verified according to [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, synced metrics, concise hunks via `git diff --stat && git diff`).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
 - **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
 - **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync (`1.3.0`), size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
@@ -44,8 +44,8 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 ## 3. Rollout Rings
 
 ### Ring 0: Local Verification (Cleared)
-- Clean working tree, version `1.3.0` synchronized, `git diff` quick review cleared (zero debris).
-- Level 2–4 verified: JSDOM fixtures, sub-50ms benchmarks, and live Chromium CDP suite.
+- Clean working tree & version `1.3.0` sync; quick diff audit cleared per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, metric sync, concise hunks).
+- All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
 ### Ring 1: Pinned Commit Canary
@@ -68,7 +68,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 ### Ring 3: Community Feedback & Gadget Candidacy
 - Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
-- Gadget candidacy once 50+ active reviewers adopt with zero critical regressions over 60 days.
+- Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-gate-100-user-gadget-scale--beyond): Tier 1 pilot (10 users) followed by Tier 2 gadget candidacy (50–100+ active reviewers over 60 days).
 
 ---
 
