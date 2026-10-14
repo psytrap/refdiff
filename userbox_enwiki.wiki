@@ -10,8 +10,6 @@
 | info-s   = 8
 | info-lh  = 1.25em
 | info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| usercategory = Wikipedians who use RefDiff
-| nocat    = {{{nocat|}}}
 }}</includeonly><noinclude>
 == Usage ==
 Place the following wikitext on your user page:
@@ -33,9 +31,5 @@ Place the following wikitext on your user page:
 | info-s   = 8
 | info-lh  = 1.25em
 | info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
 }}
-
-[[Category:Wikipedia user scripts user templates]]
-[[Category:Wikipedians who use RefDiff| ]]
 </noinclude>
