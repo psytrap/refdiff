@@ -10,6 +10,7 @@
 | Artifact | Source File | On-Wiki Destination |
 |:---|:---|:---|
 | **Production Script** | [`refdiff.js`](refdiff.js) | `m:User:Powercycler/refdiff.js` &bull; `en:User:Powercycler/refdiff.js` |
+| **Beta Channel Script** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff-beta.js` (Opt-in, activated at > 10 users) |
 | **Documentation** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` &bull; `m:User:Powercycler/RefDiff` |
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` |
 | **en.WP Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) (§1, §2) | `en:Template:User RefDiff` &bull; `en:Template:User RefDiff/doc` |
@@ -48,6 +49,12 @@ npm run ci && node tests/test_deployment.js
   4. `Cosmic inflation` (diff=1379470949) — pure whitespace prose changes preserved.
   5. `Donnie Brasco` (diff=1380017400) — unclosed quote in attributes handled safely.
 
+### Ring 1.5: Opt-In Beta Channel (Activated at > 10 Users)
+- **Activation Trigger:** Active user base exceeds 10 editors (tracked via `Special:WhatLinksHere/Template:User_RefDiff`).
+- **Channel Target:** `en:User:Powercycler/refdiff-beta.js`.
+- **Audience:** Opt-in volunteer reviewers testing release candidates 7 days before general production rollout.
+- **Graduation Gate:** 7 days on beta with zero P0/P1 defect reports across $\ge 50$ real diff reviews.
+
 ### Ring 2: Production Publishing
 1. **Scripts:** Copy [`refdiff.js`](refdiff.js) to `m:User:Powercycler/refdiff.js` and `en:User:Powercycler/refdiff.js`.
 2. **Docs:** Copy [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` and `m:User:Powercycler/RefDiff`.
@@ -78,6 +85,7 @@ npm run ci && node tests/test_deployment.js
 
 - [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` passes.
 - [ ] **Git:** Tag release `v1.3.0` and push.
+- [ ] **Beta Channel (if > 10 users):** Publish release candidate to `refdiff-beta.js` 7 days prior to Ring 2.
 - [ ] **Publish Scripts:** Update `m:User:Powercycler/refdiff.js` and `en:User:Powercycler/refdiff.js`.
 - [ ] **Publish Docs:** Update `en:User:Powercycler/RefDiff` and `m:User:Powercycler/RefDiff`.
 - [ ] **Publish Userboxes:** Create `Template:User RefDiff` (+ `/doc`) on en.WP and `User:Powercycler/User RefDiff` on Meta.

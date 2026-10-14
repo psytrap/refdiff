@@ -840,6 +840,20 @@ This register serves as the authoritative system of record for all real-world Wi
     5. **Architectural Decision on i18n:** Formalized deliberate omission of internationalization in favor of a language-agnostic, zero-overhead mathematical notation design (ADR §3.1).
   * With all insights incorporated into [`ARCHITECTURE.md`](ARCHITECTURE.md), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`TEST_PLAN.md`](TEST_PLAN.md), and [`LOG.md`](LOG.md), the temporary `poc/ultraviolet/` directory (9.4 MB) has been decommissioned and removed.
 
+---
+
+### 2026-10-14: Added Opt-In Beta Release Option (>10 Users) to `DEPLOYMENT_PLAN.md`
+
+* **Context & Motivation:**
+  * To support phased growth as RefDiff expands toward ~100 active reviewers, [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) was updated to introduce a dedicated **Beta Release Option (Ring 1.5)** triggered when the active user base exceeds 10 editors.
+* **Key Provisions:**
+  * *Activation Trigger:* Monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching > 10 user pages.
+  * *On-Wiki Destination:* `en:User:Powercycler/refdiff-beta.js`.
+  * *Operational Policy:* Release candidates are deployed to the beta channel for 7 days before Ring 2 general production rollout.
+  * *Graduation Gate:* 7 days with zero P0/P1 defects across $\ge 50$ real diff reviews required to promote beta to production.
+  * *Checklist Synchronization:* Added beta channel publishing step to the Operator Deployment Runbook.
+
+
 
 
 
