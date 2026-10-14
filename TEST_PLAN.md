@@ -7,7 +7,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
 ## 1. Test Strategy & Quality Metrics
 
 ### Quantitative Metrics
-* **Unit, Component & Real DOM Tests (`npm test` / `npm run ci`):** **113 passing tests** across **15 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
+* **Unit, Component & Real DOM Tests (`npm test` / `npm run ci`):** **114 passing tests** across **15 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
 * **Execution Time:** **~20 ms** (unit suites) / **~250 ms** (combined with headless JSDOM suites via `npm run ci`).
 * **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`, `node tests/test_deployment.js`).
 * **Code Coverage (Headless Node.js):** **100.0% function coverage** (71 of 71 functions) measured via V8 coverage without browser shims.

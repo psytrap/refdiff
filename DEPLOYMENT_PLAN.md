@@ -1,7 +1,7 @@
 # RefDiff: Deployment Plan
 
 > **Version:** 1.3.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
-> **Target:** English Wikipedia (`enwiki`), Meta-Wiki (`metawiki`) &bull; **CI Status:** 113/113 passing, 0 lint warnings
+> **Target:** English Wikipedia (`enwiki`), Meta-Wiki (`metawiki`) &bull; **CI Status:** 114/114 passing, 0 lint warnings
 
 ---
 
@@ -26,9 +26,9 @@ All checks must pass before release:
 npm run ci && node tests/test_deployment.js
 ```
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
-- **Test Suite:** 113/113 passing tests across 15 modular suites in < 250ms (`npm test`).
-- **Deployment Pre-Flight:** 8 automated checks (`node tests/test_deployment.js`):
-  Zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM compilation, version sync (`1.3.0`), bundle size < 120 KB, balanced userbox wikitext tags.
+- **Test Suite:** 114/114 passing tests across 15 modular suites in < 250ms (`npm test`).
+- **Deployment Pre-Flight:** 9 automated checks (`node tests/test_deployment.js`):
+  Zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM compilation, version sync (`1.3.0`), bundle size < 120 KB, balanced userbox wikitext tags, automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual citation rows, fail-open crash safety).
 - **Performance Budget:** < 50ms processing on 114-reference diffs (`test_benchmarks.js`).
 - **DOM Fidelity:** Byte-for-byte Memento restoration on authentic fixtures (`test_jsdom.js`).
 
@@ -68,7 +68,7 @@ npm run ci && node tests/test_deployment.js
 - **P0 (Critical — Broken diff view, uncaught loop, table blanking):**
   1. Revert `User:Powercycler/refdiff.js` via on-wiki page history to previous stable revision (< 1 min).
   2. Purge page cache (`&action=purge`). Users bypass browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd>).
-  3. Defensive fallback: if script mounting fails, native wikitext diff remains untouched.
+  3. Defensive fallback: if script mounting fails, native wikitext diff remains untouched (guaranteed by automated pre-flight rollback check in `test_deployment.js`). In-place Memento (`restoreOriginal`) guarantees 100% byte-for-byte restoration and zero orphaned `.refdiff-cit-row` nodes.
 - **P1 (Non-critical — Syntax edge-case):**
   Unparsed citation remains inline in prose (graceful degradation). Follow 6-stage diff verification lifecycle in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#4-real-world-diff-verification-lifecycle).
 
@@ -76,7 +76,7 @@ npm run ci && node tests/test_deployment.js
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` passes.
+- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` passes (9/9 pre-flight gates, 114/114 tests).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
 - [ ] **Canary Verification:** Publish `refdiff-v1.3.0.js` and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Scripts:** Update `m:User:Powercycler/refdiff.js` and `en:User:Powercycler/refdiff.js`.

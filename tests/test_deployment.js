@@ -8,6 +8,7 @@
  *  - Distribution budget & file size guards
  *  - Public API contract and global namespace hygiene
  *  - On-wiki template syntax integrity (userbox.wiki, userbox_enwiki.wiki)
+ *  - Automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual nodes, fail-open safety)
  */
 
 const fs = require('fs');
@@ -159,6 +160,68 @@ suite('Deployment & Release Pre-Flight Checks', () => {
 
       // Verify presence of {{Userbox
       assert.strictEqual(content.includes('{{Userbox'), true, `${file.name} must invoke {{Userbox`);
+    }
+  });
+
+  test('validates automated rollback and incident recovery: restoreOriginal guarantees byte-for-byte DOM restoration and fail-open safety', () => {
+    const { JSDOM } = require('jsdom');
+    const RefDiff = require('../refdiff.js');
+
+    // 1. Create a realistic MediaWiki diff table
+    const sampleTableHtml = [
+      '<table class="diff">',
+      '  <tbody>',
+      '    <tr class="diff-title"><td class="diff-otitle">Old</td><td class="diff-ntitle">New</td></tr>',
+      '    <tr>',
+      '      <td class="diff-marker" data-marker="-">−</td>',
+      '      <td class="diff-deletedline"><div>Text before &lt;ref name="cite1"&gt;Old citation &lt;del class="diffchange diffchange-inline"&gt;1&lt;/del&gt;&lt;/ref&gt; text after.</div></td>',
+      '      <td class="diff-marker" data-marker="+">+</td>',
+      '      <td class="diff-addedline"><div>Text before &lt;ref name="cite1"&gt;Old citation &lt;ins class="diffchange diffchange-inline"&gt;2&lt;/ins&gt;&lt;/ref&gt; text after.</div></td>',
+      '    </tr>',
+      '  </tbody>',
+      '</table>'
+    ].join('\n');
+
+    const dom = new JSDOM(`<!DOCTYPE html><html><body>${sampleTableHtml}</body></html>`);
+    const origWindow = global.window;
+    const origDoc = global.document;
+    global.window = dom.window;
+    global.document = dom.window.document;
+
+    try {
+      const table = dom.window.document.querySelector('table.diff');
+      const originalHtml = table.innerHTML;
+
+      // Apply decoupling
+      RefDiff.applyDecoupling(table);
+      assert.notStrictEqual(table.innerHTML, originalHtml, 'Table must be mutated after decoupling');
+      const injectedRows = table.querySelectorAll('.refdiff-cit-row');
+      assert.ok(injectedRows.length > 0, 'Decoupling must inject citation rows');
+
+      // Execute automated rollback via restoreOriginal
+      RefDiff.restoreOriginal(table);
+
+      // Verify 100% byte-for-byte DOM recovery
+      assert.strictEqual(table.innerHTML, originalHtml, 'Rollback must restore original diff table byte-for-byte');
+
+      // Verify zero residual nodes
+      const remainingCitRows = table.querySelectorAll('.refdiff-cit-row');
+      assert.strictEqual(remainingCitRows.length, 0, 'Rollback must leave zero orphaned .refdiff-cit-row nodes in DOM');
+
+      // Verify fail-open safety on null/invalid inputs
+      let errorThrown = false;
+      try {
+        RefDiff.applyDecoupling(null);
+        RefDiff.restoreOriginal(null);
+        RefDiff.applyDecoupling({});
+        RefDiff.restoreOriginal({});
+      } catch (e) {
+        errorThrown = true;
+      }
+      assert.strictEqual(errorThrown, false, 'applyDecoupling and restoreOriginal must fail-open safely on invalid inputs');
+    } finally {
+      global.window = origWindow;
+      global.document = origDoc;
     }
   });
 });

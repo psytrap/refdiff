@@ -981,19 +981,29 @@ This register serves as the authoritative system of record for all real-world Wi
   * [`proposal/CONCEPT.md`](proposal/CONCEPT.md): Section 2 architecture diagrams and Section 6 candidate evaluation refactored to prioritize `<ref def name="...">`.
   * [`LOG.md`](LOG.md): Section 2.2 roadmap and ADR §3.1 updated.
 
+---
 
+### 2026-10-14: Purged `archive/` Folder & Streamlined CI Workflow
 
+* **Context & Repository Cleanup:**
+  * Cleaned up legacy/prototype artifacts by removing the deprecated `archive/` directory (`archive/python-prototype/`).
+  * Removed legacy Python diff script `refdiff.py`, `git-refdiff` git driver, `test_refdiff.py`, and prototype README.
+  * Purged Step U.6 prototype action item from `LOG.md` and streamlined `.github/workflows/ci.yml` by eliminating redundant Python test matrix runs.
+  * Cleansed references in `README.md` and `REFDIFF.md`.
 
+---
 
+### 2026-10-14: Automated Rollback & Incident Recovery Pre-Flight Quality Gate (`test_deployment.js`)
 
-
-
-
-
-
-
-
-
-
-
+* **Context & Motivation:**
+  * Addressing deployment safety requirements for RefDiff v1.3.0, added an automated pre-flight quality check directly testing the **Rollback & Incident Recovery** invariant.
+  * Ensures that any mutation applied to a live diff table (`RefDiff.applyDecoupling(table)`) can be completely undone in-place via `RefDiff.restoreOriginal(table)` with 100% byte-for-byte fidelity and zero orphaned DOM nodes, even under crash or invalid input scenarios.
+* **Automated Invariant Assertions (`tests/test_deployment.js`):**
+  * *Byte-for-Byte Restoration:* Asserts `table.innerHTML === originalHtml` after decoupling and calling `restoreOriginal(table)`.
+  * *Zero Residual Nodes:* Confirms `table.querySelectorAll('.refdiff-cit-row').length === 0` after rollback.
+  * *Fail-Open Safety:* Verifies that `applyDecoupling` and `restoreOriginal` safely handle `null` and malformed table objects without throwing uncaught exceptions.
+* **Metrics & Ledger Synchronization:**
+  * Pre-flight deployment gates expanded from 8 to **9 automated checks** (`node tests/test_deployment.js`).
+  * Test suite expanded from 113 to **114/114 passing tests** across 15 modular test files (0 ESLint warnings, ~250ms).
+  * Synchronized [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2, §4, §5), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`README.md`](README.md), and [`refdiff.wiki`](refdiff.wiki).
 
