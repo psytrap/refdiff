@@ -82,21 +82,6 @@ node tests/test_jsdom.js
 npm run test:live
 ```
 
-### 4. Archived: Python Prototype (`archive/python-prototype/`)
-
-The repository includes the archived proof-of-concept Python 3 engine and Git external diff driver in [`archive/python-prototype/`](archive/python-prototype/):
-
-```bash
-# Compare local wikitext revisions via archived CLI
-python3 archive/python-prototype/refdiff.py old.wiki new.wiki
-
-# Show compact diffstat summary
-python3 archive/python-prototype/refdiff.py --stat old.wiki new.wiki
-
-# Run archived prototype tests
-PYTHONPATH=archive/python-prototype python3 -m unittest discover archive/python-prototype/tests
-```
-
 
 ### Key Pillars
 1. **Readable Wikitext, References Still Nearby:** Sentences stay free of template clutter, yet full citations remain conveniently close within the same section.

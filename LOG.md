@@ -81,10 +81,9 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **U.3** | Phase 1: Community Wishlist Submission | P2 | 🔲 Planned | Submit proposal to `meta:Community Wishlist` for endorsements |
 | **U.4** | Phase 2: Feedback Synthesis | P1 | 🔲 Planned | Track editor reactions on syntax options & VE/mobile |
 | **U.5** | Phase 2: Specification Refinement | P2 | 🔲 Planned | Update [`CONCEPT.md`](proposal/CONCEPT.md) & [`PROPOSAL.md`](proposal/PROPOSAL.md) |
-| **U.6** | Phase 3: Python CLI Tool (`refdiff.py`) | P2 | ✅ Completed (Archived) | Standalone CLI prototype implemented in [`archive/python-prototype/`](archive/python-prototype/) |
-| **U.7** | Phase 3: Re-Scoping Bot Prototype | P3 | 🔲 Planned | Bot algorithm for automated anchor re-scoping |
-| **U.8** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Planned | `{{#invoke:RefDef|...}}` on-wiki template prototype |
-| **U.9** | Phase 4: Upstream Extension:Cite Patch | P1 | 🔲 Planned | Experimental Gerrit patch for MediaWiki core `Extension:Cite` |
+| **U.6** | Phase 3: Re-Scoping Bot Prototype | P3 | 🔲 Planned | Bot algorithm for automated anchor re-scoping |
+| **U.7** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Planned | `{{#invoke:RefDef|...}}` on-wiki template prototype |
+| **U.8** | Phase 4: Upstream Extension:Cite Patch | P1 | 🔲 Planned | Experimental Gerrit patch for MediaWiki core `Extension:Cite` |
 
 #### Upstream Strategy Phases (Detail)
 
@@ -100,21 +99,19 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ##### Phase 2: Feedback Synthesis & Specification Iteration
 - [ ] **Step U.4: Monitor Community & Developer Reactions**
-  * Track feedback on syntax choices (`<references hidden>` vs `<references-def>` vs `<references display="none">`).
+  * Track feedback on syntax choices (`<ref def>`, `<references def>`, `<references hidden>`).
   * Note community questions regarding VisualEditor UX and mobile rendering.
 - [ ] **Step U.5: Refine Specification**
   * Incorporate edge cases and consensus items into [CONCEPT.md](proposal/CONCEPT.md) and [PROPOSAL.md](proposal/PROPOSAL.md).
 
-##### Phase 3: Proof of Concept (PoC) Prototype
-- [x] **Step U.6: Python CLI Demonstration Tool (`refdiff.py` / `ref-scope`)**
-  * Built standalone Python script in [`archive/python-prototype/refdiff.py`](archive/python-prototype/refdiff.py) (834 lines) parsing wikitext and `<references hidden>` blocks with word diffs and stats. Archived in `bd8acaa` after graduating to native in-browser `refdiff.js`.
-- [ ] **Step U.7: Automated Re-Scoping Bot Prototype**
-  * Implement the basic "bot cleanup" algorithm: detect moved `<ref name="..." />` anchors and auto-migrate definitions between `<references hidden>` blocks.
+##### Phase 3: Proof of Concept & Migration Tooling
+- [ ] **Step U.6: Automated Re-Scoping Bot Prototype**
+  * Implement the basic "bot cleanup" algorithm: detect moved `<ref name="..." />` anchors and auto-migrate definitions between sections.
 
 ##### Phase 4: Upstream MediaWiki Integration
-- [ ] **Step U.8: Lua / Scribunto Prototype**
+- [ ] **Step U.7: Lua / Scribunto Prototype**
   * Provide a lightweight template/module implementation (`{{#invoke:RefDef|...}}`) for wikis that want to test the workflow without server modifications.
-- [ ] **Step U.9: MediaWiki Extension:Cite Patch (Gerrit)**
+- [ ] **Step U.8: MediaWiki Extension:Cite Patch (Gerrit)**
   * Work with Wikimedia developers on an experimental patch for `Extension:Cite`.
 
 ---

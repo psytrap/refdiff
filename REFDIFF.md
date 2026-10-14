@@ -24,7 +24,6 @@ A zero-loss diff-decoupling engine and visualization gadget for MediaWiki `Speci
 * **Full Tool Name:** `RefDiff`
 * **Conceptual Subtitle:** `Ref-Differentiator`
 * **User Script / Gadget:** `refdiff.js` (for MediaWiki `Special:Diff`)
-* **Archived Early Prototype:** Python proof-of-concept in [`archive/python-prototype/`](archive/python-prototype/)
 
 ---
 
@@ -254,15 +253,5 @@ mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js'
 Install `refdiff.js` directly as a user script in Tampermonkey, Violentmonkey, or Greasemonkey using the raw script URL:
 `https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js`
 
-### Option D: Archived Python CLI Prototype
-See [`archive/python-prototype/README.md`](archive/python-prototype/README.md) for running the archived Python 3 prototype:
-
-```bash
-# Compare local wikitext revisions
-python3 archive/python-prototype/refdiff.py old.wiki new.wiki
-
-# Compact diffstat summary
-python3 archive/python-prototype/refdiff.py --stat old.wiki new.wiki
-```
 
 
