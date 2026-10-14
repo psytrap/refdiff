@@ -17,6 +17,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
   * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Meta-Wiki and cross-wiki user pages.
   * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki):** Dedicated English Wikipedia userbox template (`Template:User RefDiff`) with TemplateData documentation.
+  * 🚀 **[DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md):** Phased rollout protocol (Rings 0–3), pre-flight gates, rollback runbook, and health checks.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -793,6 +794,27 @@ This register serves as the authoritative system of record for all real-world Wi
     * Integrated `test_deployment.js` into `tests/runner.js`.
     * Test suite expanded from 103 to **111/111 passing tests** across **15 modular test files** (0 ESLint warnings, ~250ms).
     * Synchronized metrics across `TEST_PLAN.md`, `AUDIT_STRATEGY.md`, `README.md`, `refdiff.wiki`, and `LOG.md`.
+
+---
+
+### 2026-10-14: Deployment Plan (`DEPLOYMENT_PLAN.md`) & Test Sufficiency Audit Migration (`AUDIT_STRATEGY.md` §2.6)
+
+* **Context & Motivation:**
+  * Created a concise, high-signal release operations plan ([`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md)) establishing the rollout lifecycle for RefDiff v1.3.0 across English Wikipedia and Meta-Wiki.
+  * Recognized that Section 1 of `TEST_PLAN.md` ("Is it Enough or Too Much?") is an audit and governance evaluation, not an operational test execution plan. Formalized the evaluation into `AUDIT_STRATEGY.md` (§2.6) and refactored `TEST_PLAN.md` §1 to focus strictly on operational test metrics while delegating the evaluation.
+* **Key Implementations:**
+  * **Concise Deployment Plan (`DEPLOYMENT_PLAN.md`):**
+    * *Artifact Inventory & Target Destinations:* Mapped 6 deployment artifacts to on-wiki targets (`m:User:Powercycler/refdiff.js`, `en:User:Powercycler/refdiff.js`, `en:Template:User RefDiff`, etc.).
+    * *Pre-Flight Quality Gates:* Unified command `npm run ci && node tests/test_deployment.js` covering syntax, 111/111 unit tests, 8 deployment checks, sub-50ms benchmark budget, and JSDOM DOM fidelity.
+    * *Progressive Rollout Rings:* Ring 0 (Local Pre-Flight) $\rightarrow$ Ring 1 (Pinned Commit Canary `refdiff-v1.3.0.js` on 5 benchmark diffs) $\rightarrow$ Ring 2 (Production Publishing on Meta & en.WP) $\rightarrow$ Ring 3 (Community Outreach on `WT:Citing sources` & `VPT`).
+    * *Rollback Protocol:* Defined instant on-wiki history reversion (< 1 min) and cache purge for P0 incidents, plus graceful degradation lifecycle for P1 syntax edge cases.
+    * *Operator Runbook:* Compact 7-item deployment checklist.
+  * **Test Proportionality & Sufficiency Audit (`AUDIT_STRATEGY.md` §2.6):**
+    * *Proportionality ("Is it Too Much?"):* Evaluated zero runner bloat (built-in Node `assert`), high-value invariants (split diffchanges, Memento, anchor discovery), sandboxed mock isolation (`withMockEnvironment()`), and deterministic execution.
+    * *Sufficiency ("Is it Enough?"):* Audited 100% headless function coverage, authentic MediaWiki DOM fixtures, live CDP browser automation, and benchmark budgets; articulated explicit known risk boundaries (malformed wikitext, transcluded templates, mobile MinervaNeue layouts, AJAX dynamic lifecycle).
+  * **Operational Test Plan Refactoring (`TEST_PLAN.md` §1):**
+    * Refocused Section 1 strictly on quantitative metrics and test suite architecture, adding an explicit delegation callout to `AUDIT_STRATEGY.md` §2.6 and `LOG.md` §3.3.
+
 
 
 

@@ -4,50 +4,18 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
 
 ---
 
-## 1. Executive Evaluation: "Is it Enough or Too Much?"
+## 1. Test Strategy & Quality Metrics
 
 ### Quantitative Metrics
 * **Unit, Component & Real DOM Tests (`npm test` / `npm run ci`):** **111 passing tests** across **15 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
 * **Execution Time:** **~20 ms** (unit suites) / **~250 ms** (combined with headless JSDOM suites via `npm run ci`).
-* **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`).
+* **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`, `node tests/test_deployment.js`).
 * **Code Coverage (Headless Node.js):** **100.0% function coverage** (71 of 71 functions) measured via V8 coverage without browser shims.
 * **Browser Runtime Coverage (Chromium CDP):** Real MediaWiki DOM integration, OOUI visual transitions, and hovercard popups verified end-to-end via [`tests/test_live_cdp.py`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_live_cdp.py).
 * **Linting (`npm run lint`):** **0 errors, 0 warnings** across all files.
 
----
-
-### Is it Too Much?
-**Verdict: No.**
-* **Zero Runner Bloat:** The test suite uses Node's built-in `assert` module without third-party frameworks (no Jest, Mocha, Karma, or Babel overhead). It executes instantaneously in under 30 milliseconds.
-* **No Redundant Tests:** Each assertion targets a specific regression point or MediaWiki architectural constraint:
-  - Splitting of tag boundaries by MediaWiki's internal `diffchange` algorithm.
-  - In-place DOM Memento preservation to avoid invalidating `inlineFormatToggle.js` and VisualEditor event closures.
-  - Template parameter parsing for shortened footnotes (`{{sfn}}`, `{{r}}`, `{{efn}}`).
-   - Anchor discovery for native `Extension:Popups` / Reference Previews tooltip generation.
-   - Configurable inline-change mode (`[✓] Inline modified refs` / `inlineModified: true`) preserving inline `<del>`/`<ins>` wikitext with prepended badges while collapsing unchanged citations into hoverable badges and keeping added/deleted citations decoupled.
-   - Dynamic in-toolbar toggle (`[ ] Inline modified refs`) placed to the left of the mode bar to prevent UI layout jumps.
- * **Sandboxed Mock Isolation:** All DOM/window mocks use a scoped `withMockEnvironment()` harness that guarantees restoration and prevents cross-test global pollution.
- * **Minimal Maintenance Cost:** Pure unit, component, and benchmark tests execute deterministically without network calls or flaky async timeouts.
-
----
-
-### Is it Enough?
-**Verdict: It is sufficient for current production use, with targeted expansion areas for complex wikitext edge cases.**
-* **Core Functionality is Fully Covered:**
-  - Wikitext reference parsing and attribute extraction (including entities like `&quot;`).
-  - Pairing heuristics (1-to-1, additions, deletions, surrounded edits, identical references).
-  - Badge formatting with mathematical brackets (`⟨ref1⟩`, `⟨~name~⟩`).
-  - Decoupling pipeline and round-trip DOM snapshot restoration.
-  - Configurable decoupled vs inline-modified mode (`inlineModified` / `separateChanged` via `window.refdiffConfig`, URL param, storage, or toolbar checkbox `[ ] Inline modified refs`).
-  - Preference persistence (`localStorage`, `mw.storage`, URL parameters).
-  - OOUI mode selection and body row toggling.
-  - High-density stress testing (114 citations in a single table benchmarked < 50ms).
-* **Identified Coverage Gaps (Prioritized for Future Enhancements):**
-  1. **Malformed Wikitext:** Unclosed `<ref>` tags, nested `<ref>` inside templates, multiline citations with unusual carriage returns.
-  2. **Transcluded Citation Templates:** Complex citation templates like `{{refn}}`, `{{sfnp}}`, or citations nested inside infobox tables.
-  3. **Alternative Skins & Mobile Layouts:** Stacked diff tables on MinervaNeue (mobile skin) vs Vector-2022 desktop skin.
-  4. **Dynamic Page Lifecycle:** MediaWiki `wikipage.diff` hook firing multiple times during live AJAX reloads or history pagination.
-  5. **Prose Diff Retention & False-Negative Invariance:** Automated differential testing comparing MediaWiki's native `diffchange` inventory against RefDiff to guarantee subtle, punctuation, or whitespace-only prose modifications (such as single-space additions like Cosmic Inflation diff=1379470949) are never stripped or converted into context rows.
+> [!NOTE]
+> **Audit & Sufficiency Review in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#26-test-proportionality--sufficiency-audit-is-it-enough-or-too-much):** The qualitative evaluation of whether the test suite is "too much" (over-testing, runner bloat, maintenance overhead) or "enough" (risk assessment, gap analysis, malformed wikitext boundaries) is governed by **[`AUDIT_STRATEGY.md` (§2.6 Test Proportionality & Sufficiency Audit)](AUDIT_STRATEGY.md#26-test-proportionality--sufficiency-audit-is-it-enough-or-too-much)**. Real-world diff verification transitions are authoritatively recorded in **[`LOG.md` (§3.3)](LOG.md#33-real-world-diff-verification-register)**.
 
 ---
 

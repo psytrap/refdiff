@@ -19,6 +19,7 @@ This project introduces a model that decouples **Source Organization** (section-
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
 * 🗃️ **[userbox.wiki](userbox.wiki)** – Generic / Meta-Wiki userbox template (`{{User:Powercycler/User RefDiff}}`).
 * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki)** – English Wikipedia dedicated userbox template and documentation (`Template:User RefDiff`).
+* 🚀 **[DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md)** – Multi-ring rollout plan, pre-flight quality gates, rollback protocol, and operator runbook.
 * 📝 **[POST.md](proposal/POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
 
