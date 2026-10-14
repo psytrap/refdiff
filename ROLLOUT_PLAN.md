@@ -1,6 +1,6 @@
 # RefDiff: Rollout and Deployment Plan
 
-> **Version:** 1.4.1 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
+> **Status:** Active Deployment Framework &bull; **Strategy:** Two-Phase Version Cadence (Patch Pre-Flight &bull; Minor Post-Shipment)  
 > **Script Lead:** Meta-Wiki (`m.WM`) &bull; **Doc Lead:** English Wikipedia (`en.WP`) &bull; **en.WP Script:** SHA Pointer  
 > **CI Status:** 115/115 passing, 0 lint warnings
 
@@ -45,7 +45,7 @@ npm run check:deploy                            # Live on-wiki deployment audit 
 ## 3. Rollout Rings
 
 ### Ring 0: Local Release Tagging & Baseline (Cleared)
-- **Release Tag & Baseline:** Tag release: `git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`. Verify clean working tree and release SHA-1 (`458222a2`) before on-wiki deployment.
+- **Release Tag & Baseline:** Tag release candidate: `git tag -a v<version> -m "Release v<version>" && git push origin v<version>`. Verify clean working tree and release SHA-1 (`refdiff.js`) before on-wiki deployment.
 
 ### Ring 1: Update Meta-Wiki Script Lead (`m.WM refdiff.js`)
 1. **Script Lead (m.WM):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js).
@@ -55,7 +55,7 @@ npm run check:deploy                            # Live on-wiki deployment audit 
 ### Ring 2: Early Testing on en.WP & SHA Pointer Uprev (No Canary Needed)
 During deployment stages, no canary needed: we early test via `en:User:Powercycler/common.js` and only uprev the SHA pointer in `en:User:Powercycler/refdiff.js` once verified:
 1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify 5 live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
-2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA-1 pointer (`458222a2...`).
+2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA pointer (`// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: <sha1>)`).
 3. **Lead Docs (en.WP):** Publish [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (lead documentation).
 4. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
 5. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
@@ -80,7 +80,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 ## 5. Deployment Runbook Checklist
 
 - [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment; execute patch bump only once during pre-flight (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`: CI, 10 gates, live CDP, 5 live benchmark diffs).
-- [ ] **Git Release Tag (Ring 0):** Tag release `v1.4.1` and push (`git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`).
+- [ ] **Git Release Tag (Ring 0):** Tag release candidate and push (`git tag -a v<version> -m "Release v<version>"`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
 - [ ] **Update en.WP SHA Pointer:** Update `en:User:Powercycler/refdiff.js` with new SHA pointer.

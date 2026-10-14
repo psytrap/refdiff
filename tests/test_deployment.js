@@ -256,11 +256,7 @@ suite('Deployment & Release Pre-Flight Checks', () => {
       'ROLLOUT_PLAN.md must be titled "RefDiff: Rollout and Deployment Plan" in text'
     );
 
-    // 2. Version consistency and unversioned filename policy (no versions in filenames)
-    const planVersionMatch = rolloutPlanContent.match(/\*\*Version:\*\*\s*([0-9]+\.[0-9]+\.[0-9]+)/);
-    assert.ok(planVersionMatch, 'ROLLOUT_PLAN.md must declare Version');
-    assert.strictEqual(planVersionMatch[1], pkg.version, 'ROLLOUT_PLAN.md version must match package.json');
-
+    // 2. Unversioned filename and release channel policy (no versions in filenames)
     assert.strictEqual(/refdiff-v[0-9]/.test(rolloutPlanContent), false, 'ROLLOUT_PLAN.md must not contain versioned filenames (policy: no versions in filenames)');
     assert.strictEqual(/refdiff-canary/i.test(rolloutPlanContent), false, 'ROLLOUT_PLAN.md must not contain canary channel (policy: no canary, only uprev when ready)');
     assert.strictEqual(rolloutPlanContent.includes('no canary needed'), true, 'ROLLOUT_PLAN.md must explicitly document no canary needed policy');

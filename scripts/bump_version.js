@@ -7,8 +7,6 @@
  *  2. package-lock.json
  *  3. refdiff.js (@version in UserScript header)
  *  4. refdiff.wiki (| version = X.Y.Z and | status = Stable (vX.Y.Z))
- *  5. ROLLOUT_PLAN.md (> **Version:** X.Y.Z)
- *  6. AUDIT_STRATEGY.md (> **Version:** X.Y.Z)
  *
  * Usage:
  *   node scripts/bump_version.js patch
@@ -29,8 +27,6 @@ const pkgPath = path.join(rootDir, 'package.json');
 const pkgLockPath = path.join(rootDir, 'package-lock.json');
 const refdiffJsPath = path.join(rootDir, 'refdiff.js');
 const refdiffWikiPath = path.join(rootDir, 'refdiff.wiki');
-const rolloutPlanPath = path.join(rootDir, 'ROLLOUT_PLAN.md');
-const auditStrategyPath = path.join(rootDir, 'AUDIT_STRATEGY.md');
 
 function computeNextVersion(currentVersion, bumpType) {
   const parts = currentVersion.split('.').map(Number);
@@ -108,36 +104,6 @@ function bumpVersion(bumpType, dryRun = false) {
       .replace(/(\|\s*status\s*=\s*Stable \(v)[0-9]+\.[0-9]+\.[0-9]+(\))/, `$1${nextVersion}$2`);
     if (!dryRun) fs.writeFileSync(refdiffWikiPath, updatedWikiRaw, 'utf8');
     console.log(`  [✓] refdiff.wiki               -> ${nextVersion}`);
-  }
-
-  // 5. ROLLOUT_PLAN.md
-  if (fs.existsSync(rolloutPlanPath)) {
-    const planRaw = fs.readFileSync(rolloutPlanPath, 'utf8');
-    let updatedPlanRaw = planRaw
-      .replace(/(\*\*Version:\*\*\s*)[0-9]+\.[0-9]+\.[0-9]+/, `$1${nextVersion}`)
-      .replace(/(git tag -a v)[0-9]+\.[0-9]+\.[0-9]+(\s+-m\s+"Release v)[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${nextVersion}$2${nextVersion}$3`)
-      .replace(/(git push origin v)[0-9]+\.[0-9]+\.[0-9]+/g, `$1${nextVersion}`)
-      .replace(/(Tag release `v)[0-9]+\.[0-9]+\.[0-9]+/g, `$1${nextVersion}`);
-
-    if (jsSha1) {
-      const shortSha = jsSha1.slice(0, 8);
-      updatedPlanRaw = updatedPlanRaw
-        .replace(/(release SHA-1 \(`)[a-f0-9]{8}(`\))/g, `$1${shortSha}$2`)
-        .replace(/(SHA-1 pointer \(`)[a-f0-9]{8}(\.\.\.`\))/g, `$1${shortSha}$2`);
-    }
-
-    if (!dryRun) fs.writeFileSync(rolloutPlanPath, updatedPlanRaw, 'utf8');
-    console.log(`  [✓] ROLLOUT_PLAN.md            -> ${nextVersion}`);
-  }
-
-  // 6. AUDIT_STRATEGY.md
-  if (fs.existsSync(auditStrategyPath)) {
-    const auditRaw = fs.readFileSync(auditStrategyPath, 'utf8');
-    const updatedAuditRaw = auditRaw
-      .replace(/(\*\*Version:\*\*\s*)[0-9]+\.[0-9]+\.[0-9]+/, `$1${nextVersion}`)
-      .replace(/(\(v)[0-9]+\.[0-9]+\.[0-9]+(\))/g, `$1${nextVersion}$2`);
-    if (!dryRun) fs.writeFileSync(auditStrategyPath, updatedAuditRaw, 'utf8');
-    console.log(`  [✓] AUDIT_STRATEGY.md          -> ${nextVersion}`);
   }
 
   console.log('-'.repeat(72));
