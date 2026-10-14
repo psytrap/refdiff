@@ -815,6 +815,19 @@ This register serves as the authoritative system of record for all real-world Wi
   * **Operational Test Plan Refactoring (`TEST_PLAN.md` §1):**
     * Refocused Section 1 strictly on quantitative metrics and test suite architecture, adding an explicit delegation callout to `AUDIT_STRATEGY.md` §2.6 and `LOG.md` §3.3.
 
+---
+
+### 2026-10-14: Refactored `AUDIT_STRATEGY.md` for Conciseness and Clarity
+
+* **Context & Motivation:**
+  * Following document growth across recent audit and clean-code additions, `AUDIT_STRATEGY.md` was refactored to eliminate redundant ASCII diagrams, duplicated multi-column tables, and verbose boilerplate while preserving 100% of governance rules, taxonomies, and section anchor targets.
+* **Key Refactorings:**
+  * *Pillar 1 (Engineering Integrity):* Streamlined K1/M1/M6/M7 findings summary into a clean bullet list, consolidated test smell rules (Assertion Roulette, Mystery Guest, Over-Mocking, Polluted Globals, Conditional Logic, Timing Flakes) with an explicit pre-merge checklist, and preserved the §2.6 proportionality/sufficiency evaluation.
+  * *Pillar 2 (Editorial Integrity):* Condensed Template Camouflage and AI Slop threat/audit workflows, tri-mode triage matrix, and ecosystem synergies (`diffedit`, `CNfirmed`, `HarvErrors`, Popups).
+  * *Lifecycle & Quality Gates:* Maintained the 6-stage diff verification lifecycle diagram and unified continuous quality gate criteria table.
+  * *Document Footprint:* Reduced document from 296 lines (~25.6 KB) to ~175 lines (~14.5 KB), enhancing scannability and legibility.
+
+
 
 
 
