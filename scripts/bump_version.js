@@ -113,10 +113,19 @@ function bumpVersion(bumpType, dryRun = false) {
   // 5. ROLLOUT_PLAN.md
   if (fs.existsSync(rolloutPlanPath)) {
     const planRaw = fs.readFileSync(rolloutPlanPath, 'utf8');
-    const updatedPlanRaw = planRaw.replace(
-      /(>\s*\*\*Version:\*\*\s*)[0-9]+\.[0-9]+\.[0-9]+/,
-      `$1${nextVersion}`
-    );
+    let updatedPlanRaw = planRaw
+      .replace(/(\*\*Version:\*\*\s*)[0-9]+\.[0-9]+\.[0-9]+/, `$1${nextVersion}`)
+      .replace(/(git tag -a v)[0-9]+\.[0-9]+\.[0-9]+(\s+-m\s+"Release v)[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${nextVersion}$2${nextVersion}$3`)
+      .replace(/(git push origin v)[0-9]+\.[0-9]+\.[0-9]+/g, `$1${nextVersion}`)
+      .replace(/(Tag release `v)[0-9]+\.[0-9]+\.[0-9]+/g, `$1${nextVersion}`);
+
+    if (jsSha1) {
+      const shortSha = jsSha1.slice(0, 8);
+      updatedPlanRaw = updatedPlanRaw
+        .replace(/(release SHA-1 \(`)[a-f0-9]{8}(`\))/g, `$1${shortSha}$2`)
+        .replace(/(SHA-1 pointer \(`)[a-f0-9]{8}(\.\.\.`\))/g, `$1${shortSha}$2`);
+    }
+
     if (!dryRun) fs.writeFileSync(rolloutPlanPath, updatedPlanRaw, 'utf8');
     console.log(`  [✓] ROLLOUT_PLAN.md            -> ${nextVersion}`);
   }
@@ -124,10 +133,9 @@ function bumpVersion(bumpType, dryRun = false) {
   // 6. AUDIT_STRATEGY.md
   if (fs.existsSync(auditStrategyPath)) {
     const auditRaw = fs.readFileSync(auditStrategyPath, 'utf8');
-    const updatedAuditRaw = auditRaw.replace(
-      /(>\s*\*\*Version:\*\*\s*)[0-9]+\.[0-9]+\.[0-9]+/,
-      `$1${nextVersion}`
-    );
+    const updatedAuditRaw = auditRaw
+      .replace(/(\*\*Version:\*\*\s*)[0-9]+\.[0-9]+\.[0-9]+/, `$1${nextVersion}`)
+      .replace(/(\(v)[0-9]+\.[0-9]+\.[0-9]+(\))/g, `$1${nextVersion}$2`);
     if (!dryRun) fs.writeFileSync(auditStrategyPath, updatedAuditRaw, 'utf8');
     console.log(`  [✓] AUDIT_STRATEGY.md          -> ${nextVersion}`);
   }
@@ -135,23 +143,27 @@ function bumpVersion(bumpType, dryRun = false) {
   console.log('-'.repeat(72));
   console.log(' Version bump complete. Next steps:');
   console.log('  1. Review diff:            git diff --stat && git diff');
-  console.log('  2. Pre-flight CI:          npm run ci && node tests/test_deployment.js');
-  console.log('  3. Live CDP verification:  npm run test:live');
-  console.log('  4. Git tag & commit:       git commit -am "chore(release): v' + nextVersion + '" && git tag -a v' + nextVersion + ' -m "Release v' + nextVersion + '"');
+  console.log('  2. Pre-flight CI:          npm run preflight');
+  console.log('  3. Git tag & commit:       git commit -am "chore(release): v' + nextVersion + '" && git tag -a v' + nextVersion + ' -m "Release v' + nextVersion + '"');
+  console.log('  4. Shipment & On-Wiki:     Deploy to Meta-Wiki & en.WP, then npm run check:deploy');
+  console.log('  5. Feature Uprev:          Execute minor bump ONLY after shipment verification');
   console.log('='.repeat(72));
 
   return { currentVersion, nextVersion, jsSha1 };
 }
 
 if (require.main === module) {
-  const arg = process.argv[2];
-  if (!arg || arg === '--help' || arg === '-h') {
-    console.log('Usage: node scripts/bump_version.js <patch|minor|major|X.Y.Z> [--dry-run]');
-    process.exit(arg ? 0 : 1);
+  const args = process.argv.slice(2);
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('Usage: node scripts/bump_version.js [patch|minor|major|X.Y.Z] [--dry-run]');
+    console.log('  Default: patch (pre-flight candidate uprev)');
+    console.log('  Feature uprev (minor/major) is executed only after shipment across Wikimedia targets.');
+    process.exit(0);
   }
-  const dryRun = process.argv.includes('--dry-run');
+  const dryRun = args.includes('--dry-run');
+  const bumpType = args.find(a => !a.startsWith('--')) || 'patch';
   try {
-    bumpVersion(arg, dryRun);
+    bumpVersion(bumpType, dryRun);
   } catch (err) {
     console.error(`Error: ${err.message}`);
     process.exit(1);

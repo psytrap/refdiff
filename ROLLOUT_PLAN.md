@@ -25,12 +25,12 @@
 
 All checks must pass before release:
 ```bash
-node scripts/bump_version.js <patch|minor|major>  # Automated version bump across manifests & docs
+node scripts/bump_version.js patch                # Patch uprev for pre-flight testing (feature uprev only after shipment)
 git diff --stat && git diff                       # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
 npm run preflight                                 # Full pre-flight: CI, 10 gates, live CDP & 5 benchmark diffs
 npm run check:deploy                            # Live on-wiki deployment audit across Wikimedia APIs
 ```
-- **Two-Phase Version Strategy, Uprev Cadence & Diff Audit:** (1) *Feature Finished & Pre-Flight Pass:* execute patch uprev bump (`node scripts/bump_version.js patch`); (2) *After Deployment:* execute minor uprev bump (`node scripts/bump_version.js minor`). Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); every uprev strictly triggers a formal diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
+- **Two-Phase Version Strategy, Uprev Cadence & Diff Audit:** Versioning follows a strict two-phase cadence: (1) *Pre-Flight Testing:* execute a patch uprev (`node scripts/bump_version.js patch`) **only once during pre-flight** to validate the release candidate—feature uprevs are never performed during pre-flight; (2) *Post-Shipment:* execute a feature uprev (`node scripts/bump_version.js minor` or `major`) **then only after shipment** is verified live on Wikimedia (`npm run check:deploy`). Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); and ensure every uprev triggers a diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
 - **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
 - **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync across manifests, size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
@@ -60,10 +60,10 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 4. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
 5. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
 
-### Ring 3: Community Feedback, Gadget Candidacy & Minor Uprev
+### Ring 3: Community Feedback, Gadget Candidacy & Post-Shipment Feature Uprev
 - Post announcement on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
 - Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-pilot-50-user-gadget-milestone--beyond): Tier 1 pilot (10 users) followed by Tier 2 gadget candidacy (50-user reviewer milestone over 60 days).
-- **Post-Deployment Minor Uprev:** Once on-wiki rollout is completed and verified across all Wikimedia targets (`npm run check:deploy` passes), execute minor bump (`node scripts/bump_version.js minor`) to stamp deployed milestone.
+- **Post-Shipment Feature Uprev:** Once on-wiki rollout is completed and verified across all Wikimedia targets (`npm run check:deploy` passes), execute feature uprev bump (`node scripts/bump_version.js minor`, or `major`) to stamp the deployed milestone.
 
 ---
 
@@ -79,7 +79,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`: CI, 10 gates, live CDP, 5 live benchmark diffs).
+- [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment; execute patch bump only once during pre-flight (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`: CI, 10 gates, live CDP, 5 live benchmark diffs).
 - [ ] **Git Release Tag (Ring 0):** Tag release `v1.4.1` and push (`git tag -a v1.4.1 -m "Release v1.4.1" && git push origin v1.4.1`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
@@ -89,4 +89,4 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 - [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; verify diffs on en.WP.
 - [ ] **TODO (Tool Compatibility):** Check Twinkle and Ultraviolet compatibility on live en.WP diffs.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.
-- [ ] **Post-Deployment Minor Uprev:** Execute minor bump (`node scripts/bump_version.js minor`) after live rollout verification across Wikimedia targets.
+- [ ] **Post-Shipment Feature Uprev (Ring 3):** Execute feature uprev bump (`node scripts/bump_version.js minor`, or `major`) then only after shipment across Wikimedia targets.
