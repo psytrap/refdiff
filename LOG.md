@@ -1289,6 +1289,20 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (added automated title assertion and path verification).
   * Updated [`LOG.md`](LOG.md) (overview index, dashboard deliverable, step R.8, and changelog).
 
+---
+
+### 2026-10-14: Codified and Automated Version Bump in Rollout and Deployment Plan
+
+* **Context & Architectural Rationale:**
+  * Explicitly codified the **Version Bump** step into the phased release workflow within [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
+  * Formalized the version bump across Section 2 (Pre-Flight Quality Gates), Section 3 (Ring 0: Version Bump, Local Verification & Pre-Flight), and Section 5 (Deployment Runbook Checklist).
+  * Created [`scripts/bump_version.js`](scripts/bump_version.js) and added the `npm run bump` npm lifecycle script to automate atomic semver bumps across all manifests (`package.json`, `package-lock.json`, `refdiff.js`, `refdiff.wiki`, `ROLLOUT_PLAN.md`, `AUDIT_STRATEGY.md`) with automated SHA-1 hash recalculation.
+* **Artifacts Synchronized:**
+  * Created [`scripts/bump_version.js`](scripts/bump_version.js) with `--dry-run` and semver validation.
+  * Added `"bump": "node scripts/bump_version.js"` to [`package.json`](package.json).
+  * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2, §3 Ring 0, §5 Checklist; verified at 93 lines `< 100`).
+  * Verified 115/115 tests, 10/10 deployment pre-flight gates, and 5/5 live CDP tests.
+
 
 
 

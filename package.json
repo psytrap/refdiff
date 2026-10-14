@@ -8,6 +8,7 @@
     "test": "node tests/runner.js",
     "test:live": "python3 tests/test_live_cdp.py",
     "check:deploy": "node scripts/check_live_deployment.js",
+    "bump": "node scripts/bump_version.js",
     "ci": "npm run lint && npm run test"
   },
   "repository": {
