@@ -10,7 +10,7 @@
 
 The **Audit and Review Strategy** establishes the quality, security, and editorial governance framework for RefDiff across two pillars:
 
-1. **Pillar 1: Codebase & Security Audit (Engineering Integrity):** Enforces Wikimedia gadget security compliance, clean code and anti-test-smell standards, real DOM regression testing (JSDOM and live CDP), and test proportionality.
+1. **Pillar 1: Codebase & Security Audit (Engineering Integrity):** Enforces Wikimedia gadget security compliance, clean code and anti-test-smell standards, real DOM regression testing (JSDOM and live CDP), test proportionality, and the "Git Diff as Quick Review" zero-debris protocol.
 2. **Pillar 2: Editorial Source Audit (Editorial Integrity):** Provides patrollers with actionable workflows to uncover "template camouflage", combat "AI slop", and audit citations parameter-by-parameter on `Special:Diff`.
 
 ---
@@ -136,6 +136,38 @@ To govern the transition from canary release to broad community gadget candidacy
 
 ---
 
+### 2.8 "Git Diff as Quick Review" Protocol (Clean & Complete Codebase Hygiene)
+
+Even when test suites pass 100%, automated assertions cannot detect incomplete refactorings, stale documentation metrics, orphaned links, or extraneous debug debris. Maintainers and auditors enforce the **"Git Diff as Quick Review"** protocol as an essential pre-merge audit gate:
+
+```bash
+# 1. Concise summary of modified line counts and file scope
+git diff --stat
+
+# 2. Line-by-line inspection of unstaged working tree changes
+git diff
+
+# 3. Final verification of staged commit payload
+git diff --staged
+
+# 4. Status check to ensure no untracked scratch files remain
+git status --short
+```
+
+#### The 4-Point Diff Audit Invariant Checklist
+
+| Checkpoint | Target of Scrutiny in `git diff` | Failure Signature & Anti-Pattern Caught |
+|:---|:---|:---|
+| **1. Zero Debris & Scratch Residue** | Diff hunks must contain zero lingering `console.log`, temporary test variables, debug flags (`window.rw_debug`), or scratch test dumps. | Leftover exploratory prints, temporary variables (`let temp = ...`), disabled tests. |
+| **2. Completeness of Cleanups** | When removing or deprecating an artifact, path, or function, verify that all references across docs, tables, and test harnesses are completely updated. | Removing a folder (e.g. `archive/`) but leaving dead markdown links; deleting a parameter without updating docstrings. |
+| **3. Metric & Spec Synchronization** | Any change altering test counts, pre-flight checks, release versions, or canonical target URLs must update all governing specifications in lockstep. | Adding a test file while `TEST_PLAN.md` or `ARCHITECTURE.md` still reports obsolete counts (e.g. 113 vs 115). |
+| **4. Hunk Conciseness & Zero Noise** | Every modified line must serve a dedicated purpose. Avoid gratuitous whitespace modifications, formatting churn, or accidental unrelated file touches. | Auto-formatter re-indenting 300 unchanged lines; accidental trailing whitespace; accidental touches to scratch files. |
+
+> [!TIP]
+> **Case Study in Incomplete Cleanups:** During the v1.3.0 audit, a quick `git diff` review revealed that while the `archive/` prototype directory was deleted, four documentation files still referenced dead `archive/python-prototype/` links, and two tables listed 113 instead of 115 tests. Running the `git diff` quick review protocol eliminated these discrepancies before release tagging.
+
+---
+
 ## 3. Pillar 2: Editorial Review & Source Auditing Playbook
 
 ### 3.1 The "Template Camouflage" Audit Workflow
@@ -205,6 +237,8 @@ All criteria must pass before merging or tagging releases:
 | **Code Style & Linting** | **0 errors, 0 ESLint warnings** | `npm run lint` |
 | **Clean Code & Test Smells** | **AAA pattern, descriptive assertions, 0 global leaks** | `npm test && npm run lint` |
 | **Deployment Pre-Flight** | **10 checks: zero BOM, nowiki, version sync, rollback, deployment consistency** | `node tests/test_deployment.js` |
+| **Live On-Wiki Deployment** | **All release targets verified & synchronized across Wikimedia APIs** | `npm run check:deploy` |
+| **Diff Review Hygiene** | **Zero debris, no orphaned references, concise hunks, synchronized metrics** | `git diff --stat && git diff` |
 | **CI Execution Budget** | **< 250 ms across all 15 test suites** | `npm run ci` |
 | **Stress Benchmark Budget** | **< 50 ms on 114-reference table** | `node tests/test_benchmarks.js` |
 | **DOM Memento Invariance** | **Byte-for-byte table restoration** | `node tests/test_jsdom.js` |

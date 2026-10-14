@@ -1089,4 +1089,20 @@ This register serves as the authoritative system of record for all real-world Wi
   * Added `npm run check:deploy` script to [`package.json`](package.json).
   * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§5 Runbook Checklist) to require `npm run check:deploy`.
 
+---
+
+### 2026-10-14: Formalized "Git Diff as Quick Review" Protocol in AUDIT_STRATEGY.md
+
+* **Context & Motivation:**
+  * Formalized the practice of performing a structured `git diff` review before every commit and release into the engineering audit playbook.
+  * Ensures that automated test passes are supplemented by a fast human/maintainer review to guarantee zero debris, complete refactorings, concise hunks, and metric synchronization.
+* **Key Provisions & Invariants (`AUDIT_STRATEGY.md` §2.8):**
+  * *1. Zero Debris & Scratch Residue:* Diff hunks must contain zero lingering `console.log`, temporary flags, or scratch files.
+  * *2. Completeness of Cleanups:* Deprecated paths or files (e.g. `archive/`) must have all references simultaneously removed.
+  * *3. Metric & Spec Synchronization:* Test counts (115) and pre-flight gates (10) must update across all docs in lockstep.
+  * *4. Hunk Conciseness:* Every changed line must serve a dedicated purpose, avoiding formatting noise or accidental touches.
+* **Artifacts Synchronized:**
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§1 Executive Summary, §2.8 Protocol, §5 Quality Gates).
+
+
 
