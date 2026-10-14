@@ -29,7 +29,9 @@ const localWiki = fs.readFileSync(path.join(rootDir, 'refdiff.wiki'), 'utf8');
 const localUserbox = fs.readFileSync(path.join(rootDir, 'userbox_enwiki.wiki'), 'utf8');
 
 const localJsSha1 = crypto.createHash('sha1').update(localJs, 'utf8').digest('hex');
+const localJsTrimmedSha1 = crypto.createHash('sha1').update(localJs.trimEnd(), 'utf8').digest('hex');
 const localWikiSha1 = crypto.createHash('sha1').update(localWiki, 'utf8').digest('hex');
+const localWikiTrimmedSha1 = crypto.createHash('sha1').update(localWiki.trimEnd(), 'utf8').digest('hex');
 
 function getGitReleaseInfo() {
   try {
@@ -46,10 +48,12 @@ function getGitReleaseInfo() {
       stdio: ['pipe', 'pipe', 'ignore']
     });
     const tagJsSha1 = crypto.createHash('sha1').update(tagJs, 'utf8').digest('hex');
+    const tagJsTrimmedSha1 = crypto.createHash('sha1').update(tagJs.trimEnd(), 'utf8').digest('hex');
 
     return {
       tag: latestTag,
       jsSha1: tagJsSha1,
+      jsTrimmedSha1: tagJsTrimmedSha1,
       sizeKb: (tagJs.length / 1024).toFixed(1)
     };
   } catch (_) {
@@ -148,8 +152,8 @@ async function auditDeployment() {
   } else {
     const rev = metaLead.revisions && metaLead.revisions[0];
     const liveSha1 = rev ? rev.sha1 : '';
-    const matchTree = liveSha1 === localJsSha1;
-    const matchTag = gitRelease && liveSha1 === gitRelease.jsSha1;
+    const matchTree = liveSha1 === localJsSha1 || liveSha1 === localJsTrimmedSha1;
+    const matchTag = gitRelease && (liveSha1 === gitRelease.jsSha1 || liveSha1 === gitRelease.jsTrimmedSha1);
     const isSync = matchTree || matchTag;
 
     let syncStatus = 'DEPLOYED & SYNCHRONIZED (Script Lead)';
@@ -212,8 +216,14 @@ async function auditDeployment() {
     const rev = enPointer.revisions && enPointer.revisions[0];
     const content = rev ? (rev['*'] || '') : '';
     const isForwarder = content.includes('mw.loader.load') && (content.includes('meta.wikimedia.org') || content.includes('User:Powercycler/refdiff.js'));
-    const referencesTree = content.includes(localJsSha1.slice(0, 8)) || content.includes(localJsSha1) || content.includes(`v${pkg.version}`);
-    const referencesTag = gitRelease && (content.includes(gitRelease.jsSha1.slice(0, 8)) || content.includes(gitRelease.jsSha1) || content.includes(gitRelease.tag));
+    const referencesTree = content.includes(localJsSha1.slice(0, 8)) || content.includes(localJsSha1) ||
+      content.includes(localJsTrimmedSha1.slice(0, 8)) || content.includes(localJsTrimmedSha1) ||
+      content.includes(`v${pkg.version}`);
+    const referencesTag = gitRelease && (
+      content.includes(gitRelease.jsSha1.slice(0, 8)) || content.includes(gitRelease.jsSha1) ||
+      content.includes(gitRelease.jsTrimmedSha1.slice(0, 8)) || content.includes(gitRelease.jsTrimmedSha1) ||
+      content.includes(gitRelease.tag)
+    );
     const referencesRelease = referencesTree || referencesTag;
     const matchedTag = referencesTag ? gitRelease.tag : `v${pkg.version}`;
     const matchedSha = referencesTag ? gitRelease.jsSha1.slice(0, 8) : localJsSha1.slice(0, 8);
