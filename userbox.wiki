@@ -10,8 +10,6 @@
 | info-s   = {{{info-s|8}}}
 | info-lh  = {{{info-lh|1.25em}}}
 | info     = {{{info|This user reviews diffs and combats [[{{{link|User:Powercycler/RefDiff}}}#The Problem: Template Camouflage|template camouflage]] with '''[[{{{link|User:Powercycler/RefDiff}}}|RefDiff]]'''.}}}
-| usercategory = Wikipedians who use RefDiff
-| nocat    = {{{nocat|}}}
 }}</includeonly><noinclude>
 {{autotranslate|base=User:Powercycler/User RefDiff}}
 <!-- Template Documentation -->
@@ -26,12 +24,11 @@ To add this userbox to your user page, insert:
 {{Userbox
 | border-c = #d4a017
 | border-s = 1
-| id-s     = 11
-| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
+| id-s     = 8
+| id       = <span style="font-family: monospace, Courier, monospace; font-size: 0.75em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 2px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
 | info-s   = 8
 | info-lh  = 1.25em
 | info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
 }}
 
 == Customization Options ==
@@ -44,27 +41,24 @@ You can customize the badge symbol, border colors, and text:
 | {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff}}</nowiki>}}
 | {{Userbox
 | border-c = #d4a017
-| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
+| id       = <span style="font-family: monospace, Courier, monospace; font-size: 0.75em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 2px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
 | info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
 }}
 | '''Default:''' Signature amber modified badge ({{mono|⟨~ref~⟩}}) representing citation decoupling in diffs.
 |-
 | {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⟨ref⟩|border-c=#3366cc}}</nowiki>}}
 | {{Userbox
 | border-c = #3366cc
-| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
+| id       = <span style="font-family: monospace, Courier, monospace; font-size: 0.75em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 2px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
 | info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
 }}
 | '''Minimalist Prose Badge:''' Neutral blue angle bracket badge.
 |-
 | {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⧉ RefDiff|border-c=#3366cc}}</nowiki>}}
 | {{Userbox
 | border-c = #3366cc
-| id       = <span style="font-size: 1.05em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>
+| id       = <span style="font-size: 0.9em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>
 | info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
 }}
 | '''Toolbar Mode Icon:''' Matches the OOUI diff toolbar mode button.
 |}
@@ -84,7 +78,7 @@ You can customize the badge symbol, border colors, and text:
 |-
 | {{mono|id-fc}} || (theme default) || Optional custom font color of the left badge/icon box.
 |-
-| {{mono|id-s}} || {{mono|11}} || Font size of the left badge/icon box (in points).
+| {{mono|id-s}} || {{mono|8}} || Font size of the left badge/icon box (in points).
 |-
 | {{mono|info-c}} || (theme default) || Optional custom background color of the right text box (omit for automatic dark mode support).
 |-
@@ -97,8 +91,6 @@ You can customize the badge symbol, border colors, and text:
 | {{mono|info}} || (see default) || Custom informational text.
 |-
 | {{mono|link}} || {{mono|User:Powercycler/RefDiff}} || Wiki page link for RefDiff (use {{mono|m:User:Powercycler/RefDiff}} for global/Meta-Wiki links).
-|-
-| {{mono|nocat}} || (empty) || Set to {{mono|yes}} or {{mono|true}} to suppress adding the user page to [[:Category:Wikipedians who use RefDiff]].
 |}
 
 == Pure HTML Fallback ==
@@ -108,8 +100,8 @@ For wikis where the {{tlx|Userbox}} template is not installed, use this standalo
 <div class="wikipediauserbox" style="float: left; border: 1px solid #d4a017; margin: 1px; width: 238px;">
 <table role="presentation" style="width: 238px; text-align: left; border-collapse: collapse;">
 <tr>
-  <td style="width: 45px; height: 45px; text-align: center; vertical-align: middle; font-size: 11pt;">
-    <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 4px; border-radius: 3px;">⟨~ref~⟩</span>
+  <td style="width: 45px; height: 45px; text-align: center; vertical-align: middle; font-size: 8pt;">
+    <span style="font-family: monospace; font-size: 0.75em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 2px; border-radius: 3px;">⟨~ref~⟩</span>
   </td>
   <td style="font-size: 8pt; padding: 4pt; line-height: 1.25em; vertical-align: middle;">
     This user reviews diffs and combats <a href="https://en.wikipedia.org/wiki/User:Powercycler/RefDiff#The_Problem:_Template_Camouflage">template camouflage</a> with <b><a href="https://en.wikipedia.org/wiki/User:Powercycler/RefDiff">RefDiff</a></b>.
@@ -122,8 +114,4 @@ For wikis where the {{tlx|Userbox}} template is not installed, use this standalo
 == See Also ==
 * [[User:Powercycler/RefDiff|RefDiff Documentation]]
 * [[Wikipedia:Userboxes]]
-
-[[Category:Userboxes]]
-[[Category:Software user templates]]
-[[Category:Wikipedians who use RefDiff| ]]
 </noinclude>
