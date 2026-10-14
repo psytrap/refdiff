@@ -120,8 +120,8 @@ To ensure tests remain resilient, diagnostic, and maintainable, RefDiff enforces
 
 To govern the transition from canary release to broad community gadget candidacy and eventual mass adoption, RefDiff enforces a phased three-tier stability model:
 
-#### Tier 1: 10-User Early Adopter Gate (Immediate Post-v1.3.0 Release)
-1. **Adoption Threshold:** Active transclusions monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching $\ge 10$ active patrollers on English Wikipedia.
+#### Tier 1: Early Adopter Pilot Gate (10-User Milestone)
+1. **Pilot Adoption Threshold:** Active transclusions monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching $\ge 10$ active patrollers on English Wikipedia.
 2. **Defect Threshold:** Zero uncaught runtime errors (P0) and zero unhandled table corruptions across real Wikipedia diff reviews.
 3. **Fail-Open Invariant:** Uncaught exceptions in any auxiliary component must cleanly restore the native diff view without impacting reviewer workflows or common.js tools (Twinkle, HotCat).
 4. **Direct Qualitative Feedback:** Operational feedback and edge-case diff submissions triaged directly on `en:User talk:Powercycler/RefDiff`.

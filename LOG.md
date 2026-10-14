@@ -26,11 +26,11 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ### 2.1 RefDiff Tool Roadmap (Active In-Browser Gadget)
 
-*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from 10-user early adoption to 100-user opt-in gadget candidacy, delineating mass-scale goals beyond 100 users, and on-wiki rollout.*
+*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from Early Adopter Pilot (10-user milestone) to Community Gadget Candidacy (100-user scale), delineating mass-scale goals beyond 100 users, and on-wiki rollout.*
 
-#### Scaling Progression Overview: 10-User, 100-User & Beyond-100 Tiers
+#### Scaling Progression Overview: 10-User Pilot, 100-User Gadget & Beyond-100 Mass Scale
 
-| Dimension | Tier 1: 10-User Early Adopter Gate | Tier 2: 100-User Opt-In Gadget Scale | Tier 3: Beyond 100-User Goal (Mass Scale & Default Gadget) |
+| Dimension | Tier 1: Early Adopter Pilot (10-User Milestone) | Tier 2: Community Gadget Scale (100-User Opt-In) | Tier 3: Mass Deployment (Beyond 100 Users) |
 | :--- | :--- | :--- | :--- |
 | **Objective** | Validate real-world value with early adopters on en.WP | Qualify for official opt-in English Wikipedia Gadget | Site-wide default gadget or upstream MediaWiki core feature |
 | **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | ~50–100+ active NPP/RC reviewers over 60 days | 1,000+ editors, site-wide default, cross-wiki deployment |
@@ -50,14 +50,14 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Canary next) |
 
-##### Tier 1: 10-User Adoption & Early Stability (Immediate Post-v1.3.0)
+##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
 | **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
-| **R.7** | 10-User Governance & Stability Check | Normal | 🔮 Future | Track $\ge 10$ transclusions via `Template:User RefDiff` & 0 P0 defects |
+| **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `Template:User RefDiff` with 0 P0 defects |
 
-##### Tier 2: 100-User Scale & Opt-In Gadget Candidacy (Post-10-User Validation)
+##### Tier 2: Community Gadget Scale (100-User Opt-In — Post-Pilot)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
@@ -79,15 +79,15 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
   * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Pinned Canary `refdiff-v1.3.0.js` on en.WP), Ring 2 (Production publish to `en:User:Powercycler/refdiff.js`), and Ring 3 (Community feedback).
 
-##### Tier 1 Action Items: 10-User Early Adopter Goal
+##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
   * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
   * Guarantee that unhandled runtime exceptions in RefDiff cleanly restore the native diff table and never bubble to `window.onerror` or abort subsequent scripts in `common.js` (e.g. Twinkle, HotCat).
-- [ ] **Step R.7: 10-User Governance & Stability Check (Tier 1 — Operational)**
-  * Monitor adoption via `Special:WhatLinksHere/Template:User_RefDiff` until reaching $\ge 10$ active patrollers.
+- [ ] **Step R.7: Pilot Cohort Validation & Stability (Tier 1 — Operational)**
+  * Track active pilot adoption via `Special:WhatLinksHere/Template:User_RefDiff` until reaching $\ge 10$ active patrollers on English Wikipedia.
   * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
 
-##### Tier 2 Action Items: 100-User Production Hardening & Opt-In Gadget Scale
+##### Tier 2 Action Items: Community Gadget Scale & Hardening (100-User Scale)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
   * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
   * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
@@ -1127,7 +1127,7 @@ This register serves as the authoritative system of record for all real-world Wi
   * In contrast, formal WCAG 2.1 AA accessibility audits (R.5), multi-skin fallback (Vector 2010/Monobook) and mobile guard (R.6), default-on gadget status (`[default]` in `MediaWiki:Gadgets-definition`), and upstream MediaWiki parser integration are prerequisites for mass scale / site-wide defaults (> 1,000 users).
 * **Key Provisions:**
   * Established a 3-tier scaling progression model across [`LOG.md`](LOG.md) (§2.1) and [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7):
-    * **Tier 1:** 10-User Early Adopter Gate (Early validation on en.WP; R.1, R.7).
+    * **Tier 1:** Early Adopter Pilot (10-User Milestone on en.WP; R.1, R.7).
     * **Tier 2:** 100-User Opt-In Gadget Scale (Community gadget candidacy for NPP/RC; R.2, R.3, R.4).
     * **Tier 3:** Beyond 100-User Goal (Mass scale, default gadget & multi-platform; R.5, R.6, R.9, U.1–U.8).
 
