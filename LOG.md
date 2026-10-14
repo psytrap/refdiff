@@ -44,11 +44,11 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 #### RefDiff Checklist & Status Dashboard
 
-##### Active Release (v1.4.0)
+##### Active Release (v1.4.3)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
-| **R.8** | On-Wiki Phased Rollout (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (Ring 0 cleared, Ring 1 Production publish next) |
+| **R.8** | On-Wiki Phased Rollout (Rings 0–3) | **P0** | ✅ **Completed** | Rollout verified 100% synchronized across Meta-Wiki and en.WP (`npm run check:deploy`) |
 
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
@@ -80,8 +80,8 @@ This log records the rationale, architectural decisions, completed milestones, a
 #### RefDiff Action Items (Detail)
 
 ##### Active Release Action Item
-- [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
-  * Follow [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) through Ring 0 (cleared), Ring 1 (Update Meta script lead `m:User:Powercycler/refdiff.js`), Ring 2 (Early testing on en.WP common.js, SHA pointer uprev, doc publish), and Ring 3 (Community feedback).
+- [x] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
+  * Executed [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) through Ring 0 (cleared), Ring 1 (Meta script lead updated), Ring 2 (Early testing verified on en.WP, SHA pointer published, lead docs published, user space userbox published), and verified 100% synchronized via `npm run check:deploy`.
 
 ##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
@@ -1499,6 +1499,27 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§3 Test Pyramid Level 5 and §4 CI/CD scripts).
   * Updated [`package.json`](package.json) (registered `npm run capture`).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Phased On-Wiki Rollout (v1.4.3) Fully Deployed & Synchronized
+
+* **Context & Deployment Execution:**
+  * Completed phased rollout of RefDiff release **v1.4.3** across Meta-Wiki and English Wikipedia according to [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
+  * **Ring 0 (Cleared):** Release candidate verified clean on `main` and tagged `v1.4.3`.
+  * **Ring 1 (Meta Script Lead):** Updated `m:User:Powercycler/refdiff.js` with v1.4.3 payload (Rev 31167174, 92.2 KB); verified 100% in sync with release SHA-1.
+  * **Ring 2 (English Wikipedia Deployment):**
+    1. *Early Testing Harness:* Verified live functionality on English Wikipedia diffs via `en:User:Powercycler/common.js`.
+    2. *SHA Pointer:* Published pinned loader forwarding to Meta-Wiki script lead with release SHA-1 at `en:User:Powercycler/refdiff.js` (Rev 1380226922).
+    3. *Documentation Lead:* Published authoritative documentation lead at `en:User:Powercycler/RefDiff` (Rev 1380227024, 29.2 KB).
+    4. *User Space Userbox:* Published clean default userbox at `en:User:Powercycler/Userbox RefDiff` (Rev 1380228630).
+* **Live Audit Verification:**
+  * Automated live on-wiki auditor (`node scripts/check_live_deployment.js`) ran against live Wikimedia APIs and returned:
+    **"🎉 ALL TARGETS ARE FULLY DEPLOYED AND SYNCHRONIZED!"**
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.8).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
 
 
 
