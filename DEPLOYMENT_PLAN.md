@@ -12,7 +12,6 @@
 |:---|:---|:---|
 | **Production Script (Lead)** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff.js` (Canonical lead script) |
 | **Meta Loader (Dummy)** | Stub snippet | `m:User:Powercycler/refdiff.js` (1-line `mw.loader.load` forwarding to en.WP) |
-| **Canary Channel** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff-canary.js` (Canary staging channel on en.WP) |
 | **Documentation (Lead)** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` (Authoritative documentation) |
 | **Meta Docs (Dummy)** | Soft redirect | `m:User:Powercycler/RefDiff` (Soft redirect pointing to en.WP) |
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` (Reference test diff) |
@@ -43,21 +42,13 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 ## 3. Rollout Rings
 
-### Ring 0: Local Verification (Cleared)
+### Ring 0: Local Verification & Pre-Flight (Cleared)
 - Clean working tree, small incremental scope & version `1.3.0` sync; uprev-triggered diff audit cleared per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, metric sync, concise hunks).
 - All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
-### Ring 1: Staging Canary
-- Publish `refdiff.js` to `en:User:Powercycler/refdiff-canary.js` (review on-wiki diff preview) and verify with `npm run check:deploy`.
-- Test on 5 live benchmark diffs:
-  1. `Bihar Legislative Assembly` (diff=1379207737) — apostrophe in attrs, underscore footnote anchors.
-  2. `Odoacer` (diff=1379486498) — shortened footnotes (`{{sfn}}`) author-year badges, Popups preview.
-  3. `Zagreb Airport` (diff=1379409916) — 114 references across split diffchange, sub-50ms execution.
-  4. `Cosmic inflation` (diff=1379470949) — pure whitespace prose changes preserved.
-  5. `Donnie Brasco` (diff=1380017400) — unclosed quote in attributes handled safely.
-
-### Ring 2: Production Publishing
+### Ring 1: Production Publishing (en.WP Lead & Meta Dummy)
+We only uprev `en:User:Powercycler/refdiff.js` once local pre-flight gates pass completely (no canary needed):
 1. **Lead Script (en.WP):** Copy [`refdiff.js`](refdiff.js) to `en:User:Powercycler/refdiff.js` (review on-wiki diff preview before saving).
 2. **Meta Loader (Dummy):** Set `m:User:Powercycler/refdiff.js` to 1-line loader forwarding to en.WP (`mw.loader.load('//en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');`).
 3. **Lead Docs (en.WP):** Copy [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (primary documentation).
@@ -65,6 +56,14 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 5. **Showcase:** Verify `m:User:Powercycler/RefDiff/Show_case`.
 6. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
 7. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
+
+### Ring 2: Live Smoke Verification
+Immediately verify published script on 5 live benchmark diffs:
+1. `Bihar Legislative Assembly` (diff=1379207737) — apostrophe in attrs, underscore footnote anchors.
+2. `Odoacer` (diff=1379486498) — shortened footnotes (`{{sfn}}`) author-year badges, Popups preview.
+3. `Zagreb Airport` (diff=1379409916) — 114 references across split diffchange, sub-50ms execution.
+4. `Cosmic inflation` (diff=1379470949) — pure whitespace prose changes preserved.
+5. `Donnie Brasco` (diff=1380017400) — unclosed quote in attributes handled safely.
 
 ### Ring 3: Community Feedback & Gadget Candidacy
 - Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
@@ -88,10 +87,9 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 - [ ] **Pre-Flight (Uprev Diff Audit):** Scoped small change; run uprev-triggered diff audit (`git diff --stat && git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
-- [ ] **Canary Verification:** Publish `refdiff-canary.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
-- [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (canonical production release).
+- [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (we only uprev in en.WP when ready).
 - [ ] **Publish Meta Stub:** Ensure `m:User:Powercycler/refdiff.js` has dummy loader forwarding to en.WP.
 - [ ] **Publish Lead Docs:** Update `en:User:Powercycler/RefDiff` & verify Meta doc soft redirect.
 - [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
-- [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; test diff=1379409916 on en.WP.
+- [ ] **Live Smoke Check:** `npm run check:deploy` passes; verify 5 live benchmark diffs on en.WP.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.

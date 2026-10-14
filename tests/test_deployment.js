@@ -255,7 +255,8 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.strictEqual(planVersionMatch[1], pkg.version, 'DEPLOYMENT_PLAN.md version must match package.json');
 
     assert.strictEqual(/refdiff-v[0-9]/.test(deployPlanContent), false, 'DEPLOYMENT_PLAN.md must not contain versioned filenames (policy: no versions in filenames)');
-    assert.strictEqual(deployPlanContent.includes('en:User:Powercycler/refdiff-canary.js'), true, 'DEPLOYMENT_PLAN.md must declare unversioned canary script target en:User:Powercycler/refdiff-canary.js');
+    assert.strictEqual(/refdiff-canary/i.test(deployPlanContent), false, 'DEPLOYMENT_PLAN.md must not contain canary channel (policy: no canary, only uprev when ready)');
+    assert.strictEqual(deployPlanContent.includes('no canary needed'), true, 'DEPLOYMENT_PLAN.md must explicitly document no canary needed policy');
 
     // 3. Canonical lead script destination consistency
     const canonicalScriptTarget = 'en:User:Powercycler/refdiff.js';

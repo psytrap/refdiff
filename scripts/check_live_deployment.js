@@ -4,11 +4,10 @@
  * Automated Live On-Wiki Deployment Auditor:
  * Queries the live Wikimedia APIs (English Wikipedia & Meta-Wiki) to verify:
  *  1. Canonical Lead Script (en:User:Powercycler/refdiff.js)
- *  2. Staging Canary (en:User:Powercycler/refdiff-canary.js)
- *  3. Canonical Documentation (en:User:Powercycler/RefDiff)
- *  4. Canonical Userbox Template (en:Template:User RefDiff)
- *  5. Meta-Wiki Global Dummy Loader (m:User:Powercycler/refdiff.js)
- *  6. Meta-Wiki Documentation Redirect (m:User:Powercycler/RefDiff)
+ *  2. Canonical Documentation (en:User:Powercycler/RefDiff)
+ *  3. Canonical Userbox Template (en:Template:User RefDiff)
+ *  4. Meta-Wiki Global Dummy Loader (m:User:Powercycler/refdiff.js)
+ *  5. Meta-Wiki Documentation Redirect (m:User:Powercycler/RefDiff)
  *
  * Compares live revisions, timestamps, file sizes, and SHA-1 hashes against local release files.
  */
@@ -71,7 +70,6 @@ async function auditDeployment() {
   try {
     const enRes = await fetchApi('https://en.wikipedia.org/w/api.php', [
       'User:Powercycler/refdiff.js',
-      'User:Powercycler/refdiff-canary.js',
       'User:Powercycler/RefDiff',
       'Template:User RefDiff'
     ]);
@@ -121,28 +119,7 @@ async function auditDeployment() {
     });
   }
 
-  // 2. English Wikipedia - Staging Canary
-  const enCanary = enwikiPages['User:Powercycler/refdiff-canary.js'];
-  if (!enCanary || enCanary.missing !== undefined) {
-    reports.push({
-      target: 'en:User:Powercycler/refdiff-canary.js (Canary)',
-      status: 'NOT DEPLOYED (Missing)',
-      details: 'Page does not exist on en.wikipedia.org yet. Action: Publish canary for Ring 1 verification.',
-      ok: false
-    });
-  } else {
-    const rev = enCanary.revisions && enCanary.revisions[0];
-    const liveSha1 = rev ? rev.sha1 : '';
-    const isSync = liveSha1 === localJsSha1;
-    reports.push({
-      target: 'en:User:Powercycler/refdiff-canary.js (Canary)',
-      status: isSync ? 'DEPLOYED & SYNCHRONIZED' : 'DEPLOYED (Out of Sync)',
-      details: `Rev ${rev.revid} (${rev.timestamp}), SHA-1: ${liveSha1}`,
-      ok: isSync
-    });
-  }
-
-  // 3. English Wikipedia - Canonical Documentation
+  // 2. English Wikipedia - Canonical Documentation
   const enDoc = enwikiPages['User:Powercycler/RefDiff'];
   if (!enDoc || enDoc.missing !== undefined) {
     reports.push({
@@ -262,12 +239,11 @@ async function auditDeployment() {
     console.log(' To complete the deployment according to DEPLOYMENT_PLAN.md:');
     console.log('  1. Publish canonical lead script to en:User:Powercycler/refdiff.js');
     console.log(`     (Copy refdiff.js, ${ (localJs.length / 1024).toFixed(1) } KB)`);
-    console.log('  2. Publish canary release to en:User:Powercycler/refdiff-canary.js');
-    console.log('  3. Update m:User:Powercycler/refdiff.js (Meta-Wiki Beta Channel tracking latest changes, or 1-line loader):');
+    console.log('  2. Update m:User:Powercycler/refdiff.js (Meta-Wiki Beta Channel tracking latest changes, or 1-line loader):');
     console.log(`     Option Beta: Copy latest refdiff.js (${ (localJs.length / 1024).toFixed(1) } KB)`);
     console.log(`     Option Dummy: ${EXPECTED_META_LOADER}`);
-    console.log('  4. Publish documentation to en:User:Powercycler/RefDiff (refdiff.wiki)');
-    console.log('  5. Publish userbox to en:Template:User RefDiff (userbox_enwiki.wiki)');
+    console.log('  3. Publish documentation to en:User:Powercycler/RefDiff (refdiff.wiki)');
+    console.log('  4. Publish userbox to en:Template:User RefDiff (userbox_enwiki.wiki)');
     console.log('------------------------------------------------------------------------\n');
     process.exit(1);
   }

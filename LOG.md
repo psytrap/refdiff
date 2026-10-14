@@ -48,7 +48,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
-| **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Canary next) |
+| **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Production publish next) |
 
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
@@ -77,7 +77,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ##### Active Release Action Item
 - [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
-  * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Staging Canary `refdiff-canary.js` on en.WP), Ring 2 (Production publish to `en:User:Powercycler/refdiff.js`), and Ring 3 (Community feedback).
+  * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Production publish to `en:User:Powercycler/refdiff.js`), Ring 2 (Live smoke test on 5 benchmark diffs), and Ring 3 (Community feedback).
 
 ##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
@@ -1178,6 +1178,29 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2 Pre-Flight Gates, §3 Ring 0, §5 Runbook Checklist).
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.8 Uprev Cadence & Mandatory Diff Audit Trigger, §5 Quality Gates).
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) with automated assertion verifying uprev policy enforcement.
+
+---
+
+### 2026-10-14: Eliminated Staging Canary Channel in Favor of Direct Production Uprev
+
+* **Context & Architectural Rationale:**
+  * Re-evaluated rollout channel complexity following the principle: *"We don't need canary. We just don't uprev in en.WP/refdiff.js during deployment stages until ready."*
+  * A separate on-wiki canary page (`refdiff-canary.js`) introduces unnecessary maintenance overhead, extra endpoint verification, and potential editor confusion over canonical script locations.
+  * Because all pre-flight quality gates (unit tests, authentic DOM JSDOM fixtures, sub-50ms benchmarks, and live browser CDP automation on port 9222) run deterministically in Ring 0, local verification already provides full pre-release safety. We simply do not uprev `en:User:Powercycler/refdiff.js` during deployment stages until all gates and the diff audit pass.
+* **Key Provisions & Invariants:**
+  * *Single Script Target:* `en:User:Powercycler/refdiff.js` is the sole, canonical script destination on English Wikipedia.
+  * *Frozen Production During Deployment Stages:* `en:User:Powercycler/refdiff.js` is frozen during deployment stages and only uprevved at the final release stage.
+  * *Streamlined Rollout Rings:*
+    * **Ring 0:** Local Verification & Pre-Flight Gates (unit, DOM, benchmarks, CDP suite).
+    * **Ring 1:** Production Publishing on English Wikipedia (lead script, docs, userbox, Meta forwarder).
+    * **Ring 2:** Live Smoke Verification on 5 benchmark diffs.
+    * **Ring 3:** Community Outreach & Gadget Candidacy.
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§1 Artifacts Table, §3 Rings 1–2, §5 Runbook).
+  * Updated [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js) (removed canary endpoints).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (asserted absence of canary channel and presence of no-canary policy).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7) and [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Items).
+
 
 
 

@@ -118,7 +118,7 @@ To ensure tests remain resilient, diagnostic, and maintainable, RefDiff enforces
 
 ### 2.7 Adoption & Scaling Policy: 10-User Pilot, 50-User Gadget Milestone & Beyond
 
-To govern the transition from canary release to broad community gadget candidacy and eventual mass adoption, RefDiff enforces a phased three-tier stability model:
+To govern the transition from initial release to broad community gadget candidacy and eventual mass adoption, RefDiff enforces a phased three-tier stability model:
 
 #### Tier 1: Early Adopter Pilot Gate (10-User Milestone)
 1. **Pilot Adoption Threshold:** Active transclusions monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching $\ge 10$ active patrollers on English Wikipedia.
