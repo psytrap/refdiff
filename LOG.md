@@ -1384,3 +1384,18 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§5 Future Test Expansion Roadmap).
   * Ensured `ROLLOUT_PLAN.md` and `refdiff.js` remain clean of TODO items.
 
+---
+
+### 2026-10-14: Automated User Visual Inspection Helper & Rollout Plan Integration
+
+* **Context & Tooling Implementation:**
+  * Created dedicated automation script [`scripts/inspect_diff.py`](scripts/inspect_diff.py) and registered `npm run inspect` in `package.json`.
+  * The tool provides a unified, zero-friction inspection workflow:
+    1. Starts a local CORS-enabled HTTP server on port 8000 serving `refdiff.js` for instant console loading via `mw.loader.load('http://127.0.0.1:8000/refdiff.js')` in any browser.
+    2. If Chromium remote debugging (CDP on port 9222) is active, automatically navigates to the target diff (defaulting to Bihar diff 1379207737), injects `refdiff.js`, verifies OOUI mounting, and leaves the tab open for direct human inspection.
+    3. Keeps the server alive until the reviewer presses Enter or Ctrl+C.
+* **Artifacts Synchronized:**
+  * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2 Pre-Flight Quality Gates and §5 Checklist: integrated `npm run inspect`; verified at 96 lines `< 100`).
+  * Updated [`package.json`](package.json) (registered `"inspect": "python3 scripts/inspect_diff.py"`).
+
+
