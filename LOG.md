@@ -26,21 +26,21 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ### 2.1 RefDiff Tool Roadmap (Active In-Browser Gadget)
 
-*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from 10-user early adoption to 100-user gadget candidacy, patrol tool non-interference, and on-wiki rollout.*
+*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from 10-user early adoption to 100-user opt-in gadget candidacy, delineating mass-scale goals beyond 100 users, and on-wiki rollout.*
 
-#### Scaling Progression Overview: 10-User Goal vs. 100-User Scale
+#### Scaling Progression Overview: 10-User, 100-User & Beyond-100 Tiers
 
-| Dimension | Tier 1: 10-User Adoption Goal (Early Adopter Gate) | Tier 2: 100-User Scale (Community Gadget Candidacy) |
-| :--- | :--- | :--- |
-| **Objective** | Validate real-world value with early adopters on en.WP | Qualify for official English Wikipedia Gadget status |
-| **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | ~50–100+ active NPP/RC reviewers over 60 days |
-| **Distribution** | Personal user script in `common.js` / `global.js` | Built-in MediaWiki Gadget in `Special:Preferences` |
-| **Crash Blast Radius** | Fail-open `try...catch` boundary (reverts to native diff) | Zero blast radius across diverse multi-script ecosystems |
-| **Tool Compatibility** | Non-interference verified on standard diff headers | Formal automated contract tests (Twinkle, HotCat, etc.) |
-| **DOM Lifecycle** | Synchronous diff rendering via `wikipage.diff` hook | Full AJAX/SPA re-entrancy without Memento leaks |
-| **Skins & Viewports** | Primary focus on Vector 2022 desktop | Vector 2022, Vector 2010, Monobook, Minerva auto-disable |
-| **Accessibility** | Semantic HTML, high-contrast angle-bracket badges | Full WCAG 2.1 AA, keyboard focusability, ARIA labels |
-| **Feedback Channel** | Scoped strictly to `en:User talk:Powercycler/RefDiff` | Community RFC on `Wikipedia:Village pump (technical)` |
+| Dimension | Tier 1: 10-User Early Adopter Gate | Tier 2: 100-User Opt-In Gadget Scale | Tier 3: Beyond 100-User Goal (Mass Scale & Default Gadget) |
+| :--- | :--- | :--- | :--- |
+| **Objective** | Validate real-world value with early adopters on en.WP | Qualify for official opt-in English Wikipedia Gadget | Site-wide default gadget or upstream MediaWiki core feature |
+| **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | ~50–100+ active NPP/RC reviewers over 60 days | 1,000+ editors, site-wide default, cross-wiki deployment |
+| **Distribution** | Personal user script in `common.js` / `global.js` | Built-in opt-in Gadget in `Special:Preferences` | Default-enabled gadget (`[default]`) or native `Extension:Cite` |
+| **Crash Blast Radius** | Fail-open `try...catch` boundary (reverts to native diff) | Zero blast radius across diverse multi-script ecosystems | Core platform stability, server-side / Parsoid guarantees |
+| **Tool Compatibility** | Non-interference verified on standard diff headers | Formal automated contract tests (Twinkle, HotCat, etc.) | Universal compatibility across all gadgets and extensions |
+| **DOM Lifecycle** | Synchronous diff rendering via `wikipage.diff` hook | Full AJAX/SPA re-entrancy without Memento leaks | Universal client/server hydration lifecycle |
+| **Skins & Viewports** | Primary focus on Vector 2022 desktop | Vector 2022 desktop (core reviewer skin) | Full multi-skin (Vector 2010, Monobook) & mobile (`MinervaNeue`) |
+| **Accessibility** | Semantic HTML, high-contrast angle-bracket badges | Accessible DOM structure and contrast compliance | Formal WCAG 2.1 AA audit, full screen reader & keyboard nav |
+| **Feedback Channel** | Scoped strictly to `en:User talk:Powercycler/RefDiff` | Community RFC on `Wikipedia:Village pump (technical)` | MediaWiki Phabricator, Gerrit patches, cross-wiki RFCs |
 
 #### RefDiff Checklist & Status Dashboard
 
@@ -50,22 +50,28 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Canary next) |
 
-##### Tier 1: 10-User Adoption & Early Stability (Post-v1.3.0)
+##### Tier 1: 10-User Adoption & Early Stability (Immediate Post-v1.3.0)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
 | **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
 | **R.7** | 10-User Governance & Stability Check | Normal | 🔮 Future | Track $\ge 10$ transclusions via `Template:User RefDiff` & 0 P0 defects |
 
-##### Tier 2: 100-User Production Hardening & Gadget Candidacy (Post-10-User Validation)
+##### Tier 2: 100-User Scale & Opt-In Gadget Candidacy (Post-10-User Validation)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
 | **R.2** | Dynamic AJAX / SPA Re-entrancy | High | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
 | **R.3** | Patrol Tool Non-Interference Contract | High | 🔮 Future | Byte-for-byte protection of diff headers & Twinkle/HotCat nodes |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
-| **R.5** | Accessibility (WCAG 2.1 AA) | High | 🔮 Future | Semantic `aria-label`, keyboard focus navigation, contrast ratio validation |
-| **R.6** | Legacy Skins & Mobile Guard | Normal | 🔮 Future | Vector 2010 fallback bar & graceful Minerva mobile auto-disable |
+
+##### Tier 3: Beyond 100-User Goal (Mass Scale, Default Gadget & Multi-Platform)
+
+| Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
+| :---: | :--- | :---: | :---: | :--- |
+| **R.5** | Accessibility (WCAG 2.1 AA) & Keyboard Nav | High | 🔮 Future | Formal WCAG audit, keyboard focus navigation, contrast ratio validation |
+| **R.6** | Legacy Skins & Mobile Guard | Normal | 🔮 Future | Vector 2010 fallback bar, Monobook parity & graceful Minerva mobile auto-disable |
+| **R.9** | Default-Enabled Gadget RFC | Low | 🔮 Future | Proposal on `Village pump (technical)` for default-on gadget status (`[default]`) |
 
 #### RefDiff Action Items (Detail)
 
@@ -81,7 +87,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Monitor adoption via `Special:WhatLinksHere/Template:User_RefDiff` until reaching $\ge 10$ active patrollers.
   * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
 
-##### Tier 2 Action Items: 100-User Production Hardening & Gadget Scale
+##### Tier 2 Action Items: 100-User Production Hardening & Opt-In Gadget Scale
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
   * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
   * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
@@ -91,13 +97,20 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.4: Client-Side Observability & Diagnostic Troubleshooting Mode (Tier 2 — Normal)**
   * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
   * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
-- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 2 — High)**
+
+##### Tier 3 Action Items: Beyond 100-User Goal (Mass Scale, Default Gadget & Multi-Platform)
+- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 100 Users)**
   * Add semantic `aria-label` attributes to inline badges (e.g. `aria-label="Citation 1"`, `aria-label="Modified citation: name"`).
   * Ensure keyboard focusability (`tabindex="0"`) and <kbd>Enter</kbd>/<kbd>Space</kbd> keydown navigation from prose badge to citation diff row.
   * Verify color contrast ratios for amber (`#9a6700`) and green (`#14866d`) badges satisfy WCAG 2.1 AA (4.5:1) in Vector 2022 Light and Dark themes.
-- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (Tier 2 — Normal)**
+  * *Rationale for Beyond 100 Users:* Formal WCAG 2.1 AA compliance certification is essential for site-wide default enablement across the general readership and editing community; opt-in reviewers in Tier 2 use existing semantic contrast without blocking gadget candidacy.
+- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (Tier 3 — Beyond 100 Users)**
   * Add automated JSDOM test for legacy skins lacking OOUI button containers, verifying fallback mode bar (`#refdiff-mode-bar`) mounting.
   * Add graceful self-disablement invariant for single-column mobile viewports (`MinervaNeue`).
+  * *Rationale for Beyond 100 Users:* Reviewers evaluating NPP/RC diffs operate almost universally on modern desktop (Vector 2022). Legacy skins (Monobook) and mobile web (`MinervaNeue`) are required for universal site default coverage, not 100-user reviewer adoption.
+- [ ] **Step R.9: Default-Enabled Gadget RFC & Site-Wide Governance (Tier 3 — Beyond 100 Users)**
+  * Prepare and submit a community RFC on `Wikipedia:Village pump (technical)` to propose RefDiff as a default-enabled gadget (`[default]`) on English Wikipedia.
+  * Coordinate with MediaWiki interface administrators for inclusion in `MediaWiki:Gadgets-definition`.
 
 ---
 
@@ -1103,6 +1116,21 @@ This register serves as the authoritative system of record for all real-world Wi
   * *4. Hunk Conciseness:* Every changed line must serve a dedicated purpose, avoiding formatting noise or accidental touches.
 * **Artifacts Synchronized:**
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§1 Executive Summary, §2.8 Protocol, §5 Quality Gates).
+
+---
+
+### 2026-10-14: Delineated 100-User Opt-In Gadget Scale from Beyond-100-User Mass Scale
+
+* **Context & Architectural Refinement:**
+  * Reviewed post-v1.3.0 scaling roadmap and clarified that several previously grouped requirements belong **beyond the 100-user goal**.
+  * A 100-user opt-in gadget for English Wikipedia patrollers (NPP/RC) requires stability, SPA diff queue re-entrancy (R.2), patrol tool non-interference (R.3), and diagnostic observability (R.4).
+  * In contrast, formal WCAG 2.1 AA accessibility audits (R.5), multi-skin fallback (Vector 2010/Monobook) and mobile guard (R.6), default-on gadget status (`[default]` in `MediaWiki:Gadgets-definition`), and upstream MediaWiki parser integration are prerequisites for mass scale / site-wide defaults (> 1,000 users).
+* **Key Provisions:**
+  * Established a 3-tier scaling progression model across [`LOG.md`](LOG.md) (§2.1) and [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7):
+    * **Tier 1:** 10-User Early Adopter Gate (Early validation on en.WP; R.1, R.7).
+    * **Tier 2:** 100-User Opt-In Gadget Scale (Community gadget candidacy for NPP/RC; R.2, R.3, R.4).
+    * **Tier 3:** Beyond 100-User Goal (Mass scale, default gadget & multi-platform; R.5, R.6, R.9, U.1–U.8).
+
 
 
 
