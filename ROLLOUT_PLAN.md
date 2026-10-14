@@ -26,17 +26,17 @@ All checks must pass before release:
 ```bash
 node scripts/bump_version.js patch                # Patch uprev for pre-flight testing (feature uprev only after shipment)
 git diff --stat && git diff                       # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
-npm run preflight                                 # Full pre-flight: CI, 10 gates, live CDP & 5 benchmark diffs
+npm run preflight                                 # Full pre-flight: CI, deployment gates, live CDP & benchmarks
 npm run check:deploy                            # Live on-wiki deployment audit across Wikimedia APIs
 ```
 - **Two-Phase Version Strategy, Uprev Cadence & Diff Audit:** Versioning follows a strict two-phase cadence: (1) *Pre-Flight Testing:* execute a patch uprev (`node scripts/bump_version.js patch`) **only once during pre-flight** to validate the release candidate—feature uprevs are never performed during pre-flight; (2) *Post-Shipment:* execute a feature uprev (`node scripts/bump_version.js minor` or `major`) **then only after shipment** is verified live on Wikimedia (`npm run check:deploy`). Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); and ensure every uprev triggers a diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
-- **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
-- **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync across manifests, size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
+- **Headless Test Suite:** Complete unit & DOM test suite passing in < 250ms (`npm test`).
+- **Deployment Pre-Flight:** Automated release gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync across manifests, size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
 - **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
-- **Stress & Benchmark Budget:** < 50ms processing on 114-reference table (`test_benchmarks.js`).
+- **Stress & Benchmark Budget:** < 50ms processing on high-density reference fixtures (`test_benchmarks.js`).
 - **Mandatory Live CDP Invariant (Level 4):** We always run live browser CDP tests (`npm run test:live` via port 9222) before any update to `refdiff.js` to verify real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
-- **Live Benchmark Monkey Patching (`npm run test:bench`):** We test all 5 live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400) directly in Chromium via CDP monkey patching before on-wiki deployment (`test_live_benchmarks.py`).
+- **Live Benchmark Monkey Patching (`npm run test:bench`):** We test canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400) directly in Chromium via CDP monkey patching before on-wiki deployment (`test_live_benchmarks.py`).
 - **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Remote SHA-1 & revision verification across Wikimedia APIs (`scripts/check_live_deployment.js`).
 
 ---
@@ -53,7 +53,7 @@ npm run check:deploy                            # Live on-wiki deployment audit 
 
 ### Ring 2: Early Testing on en.WP & SHA Pointer Uprev (No Canary Needed)
 During deployment stages, no canary needed: we early test via `en:User:Powercycler/common.js` and only uprev the SHA pointer in `en:User:Powercycler/refdiff.js` once verified:
-1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify 5 live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
+1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
 2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA pointer (`// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: <sha1>)`).
 3. **Lead Docs (en.WP):** Publish [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (lead documentation).
 4. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
@@ -78,10 +78,10 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment; execute patch bump only once during pre-flight (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`: CI, 10 gates, live CDP, 5 live benchmark diffs).
+- [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment; execute patch bump only once during pre-flight (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`).
 - [ ] **Git Release Tag (Ring 0):** Tag release candidate and push (`git tag -a v<version> -m "Release v<version>"`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
-- [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
+- [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify canonical live benchmark diffs.
 - [ ] **Update en.WP SHA Pointer:** Update `en:User:Powercycler/refdiff.js` with new SHA pointer.
 - [ ] **Publish Lead Docs (en.WP):** Update `en:User:Powercycler/RefDiff` (en.WP leads docs) & Meta redirect.
 - [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
