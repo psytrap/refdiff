@@ -25,14 +25,17 @@
 
 All checks must pass before release:
 ```bash
-npm run ci && node tests/test_deployment.js
+npm run ci && node tests/test_deployment.js  # Headless unit, real DOM & pre-flight (115 tests, 10 gates)
+npm run test:live                           # Level 4: Live browser CDP integration (port 9222)
+npm run check:deploy                        # Live on-wiki deployment audit across Wikimedia APIs
 ```
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
-- **Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
-- **Deployment Pre-Flight:** 10 automated checks (`node tests/test_deployment.js`):
-  Zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM compilation, version sync (`1.3.0`), bundle size < 120 KB, balanced userbox wikitext tags, automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual citation rows, fail-open crash safety), and deployment consistency (artifacts, destinations, and loader URLs synchronized).
-- **Performance Budget:** < 50ms processing on 114-reference diffs (`test_benchmarks.js`).
-- **DOM Fidelity:** Byte-for-byte Memento restoration on authentic fixtures (`test_jsdom.js`).
+- **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
+- **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync (`1.3.0`), size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
+- **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
+- **Stress & Benchmark Budget:** < 50ms processing on 114-reference table (`test_benchmarks.js`).
+- **Live Browser CDP Integration (Level 4):** Chromium CDP automation on port 9222 verifying real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
+- **Live On-Wiki Deployment Auditor:** Remote SHA-1 & revision verification across Wikimedia APIs (`scripts/check_live_deployment.js`).
 
 ---
 
@@ -40,6 +43,7 @@ npm run ci && node tests/test_deployment.js
 
 ### Ring 0: Local Verification (Cleared)
 - Clean working tree, version `1.3.0` synchronized, all pre-flight gates passing.
+- Level 2–4 verified: JSDOM fixtures, sub-50ms benchmarks, and live Chromium CDP suite.
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
 ### Ring 1: Pinned Commit Canary
@@ -78,7 +82,7 @@ npm run ci && node tests/test_deployment.js
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` passes (10/10 pre-flight gates, 115/115 tests).
+- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
 - [ ] **Canary Verification:** Publish `refdiff-v1.3.0.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (canonical production release).
