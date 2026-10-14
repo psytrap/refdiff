@@ -57,6 +57,29 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step 4.2: MediaWiki Extension:Cite Patch (Gerrit)**
   * Work with Wikimedia developers on an experimental patch for `Extension:Cite`.
 
+### Phase 5: 100-User Production Readiness & Fault Tolerance Roadmap (Open)
+- [ ] **Step 5.1: Fail-Open Crash Isolation & Top-Level Boundary (P0 — Critical)**
+  * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
+  * Guarantee that unhandled runtime exceptions in RefDiff cleanly restore the native diff table and never bubble to `window.onerror` or abort subsequent scripts in `common.js` (e.g. Twinkle, HotCat).
+- [ ] **Step 5.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (P0 — Critical)**
+  * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
+  * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
+- [ ] **Step 5.3: Core Patrol Tool Non-Interference Contract (P1 — High)**
+  * Add automated assertions verifying that RefDiff mutations are strictly confined to `tbody > tr.diff-deletedline`, `tr.diff-addedline`, and `tr.refdiff-cit-row`.
+  * Guarantee that header nodes (`tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, `.diff-notice`, `.diff-multi`) and third-party buttons (Twinkle rollback/vandalism links) remain 100% byte-for-byte untouched.
+- [ ] **Step 5.4: Client-Side Observability & Diagnostic Troubleshooting Mode (P1 — High)**
+  * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
+  * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
+- [ ] **Step 5.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (P1 — High)**
+  * Add semantic `aria-label` attributes to inline badges (e.g. `aria-label="Citation 1"`, `aria-label="Modified citation: name"`).
+  * Ensure keyboard focusability (`tabindex="0"`) and <kbd>Enter</kbd>/<kbd>Space</kbd> keydown navigation from prose badge to citation diff row.
+  * Verify color contrast ratios for amber (`#9a6700`) and green (`#14866d`) badges satisfy WCAG 2.1 AA (4.5:1) in Vector 2022 Light and Dark themes.
+- [ ] **Step 5.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (P1 — High)**
+  * Add automated JSDOM test for legacy skins lacking OOUI button containers, verifying fallback mode bar (`#refdiff-mode-bar`) mounting.
+  * Add graceful self-disablement invariant for single-column mobile viewports (`MinervaNeue`).
+- [ ] **Step 5.7: Governance Policy in AUDIT_STRATEGY.md (P2 — Operational)**
+  * Formalize these requirements in `AUDIT_STRATEGY.md` under §2.7 ("100-User Production Readiness & Fault-Tolerance Policy").
+
 ---
 
 ## 3. Architectural & Audit Registers
@@ -869,6 +892,22 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Metrics Synchronization:**
   * Test suite expanded from 111 to **113/113 passing tests** across **15 modular test files** (0 ESLint warnings, ~250ms).
   * Synchronized metrics across `ARCHITECTURE.md`, `AUDIT_STRATEGY.md`, `DEPLOYMENT_PLAN.md`, `README.md`, `TEST_PLAN.md`, and `refdiff.wiki`.
+
+---
+
+### 2026-10-14: Logged 100-User Production Readiness Remediation Roadmap (Phase 5)
+
+* **Context & Motivation:**
+  * Following an audit analysis of RefDiff against the target profile of a production wiki tool serving **~100 active reviewers** (NPP/RC patrollers), a 7-point remediation roadmap was established and recorded as open action items in Section 2 (Phase 5).
+* **Open Action Items Tracked:**
+  * **Step 5.1 (P0):** Fail-open crash isolation with top-level `try...catch` boundary and fallback restoration.
+  * **Step 5.2 (P0):** Dynamic AJAX/SPA lifecycle re-entrancy and memory isolation in JSDOM tests.
+  * **Step 5.3 (P1):** Core patrol tool non-interference contract (verifying `tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, and Twinkle rollback nodes remain untouched).
+  * **Step 5.4 (P1):** Client-side observability and diagnostic troubleshooting mode (`?refdiff_debug=1` / `refdiffConfig.debug`).
+  * **Step 5.5 (P1):** Accessibility (WCAG 2.1 AA) semantic `aria-label`s, keyboard focusability, and contrast ratio validation.
+  * **Step 5.6 (P1):** Legacy skin (Vector 2010 / Monobook) fallback testing and graceful mobile self-disablement.
+  * **Step 5.7 (P2):** Formalization of 100-user production governance policy in `AUDIT_STRATEGY.md` §2.7.
+
 
 
 
