@@ -66,6 +66,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.10** | Regex Reevaluation & Parser Architecture | High | 🔮 Future | TODO: Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth and token scanner alternatives |
 | **R.11** | Default Mode Isolation (Visual Diff Bug) | High | 🔮 Future | TODO: Investigate bug making visual diff default unexpectedly |
 | **R.12** | Live On-Wiki Visual Testbed (No Local Visual Test) | High | 🔮 Future | TODO: Retire local HTTP visual inspection in favor of live on-wiki testing |
+| **R.13** | Visual Inspection Across All Change Cases | High | 🔮 Future | TODO: Visual inspection matrix covering all change cases (pure adds, dels, inline mods, template refs) |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
 ##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
@@ -111,6 +112,30 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **TODO:** Retire local visual test server (`http://127.0.0.1:8000/refdiff.js`) in favor of live on-wiki visual inspection.
   * Eliminate local HTTP server dependencies to avoid browser mixed-content restrictions on HTTPS Wikipedia diffs.
   * Establish a seamless live on-wiki testbed workflow (e.g. testing directly via `en:User:Powercycler/common.js` sandbox or authenticated user script test harness) so all visual reviews occur against authentic Wikipedia production CSS, gadgets, and ResourceLoader environments.
+- [ ] **Step R.13: Comprehensive Visual Inspection Across All Change Cases (Tier 2 — High)**
+  * **TODO:** Execute and codify systematic visual inspection across all four primary citation change cases and edge configurations:
+    1. **Pure Addition (`isAdd`):**
+       - Newly introduced citation definitions appear in the right column (`diff-addedline`) with empty cells on the left (`diff-empty`, `colspan=2`).
+       - Citation text body must be clean and unadorned (NO intra-line `<ins class="diffchange">` wrapping around citation text).
+       - Badge displays with addition indicator (`⟨+name+⟩` / green styling).
+       - Validated on [Bihar diff 1379207737](https://en.wikipedia.org/w/index.php?diff=1379207737&oldid=1379207045) and Section 3 of [Showcase diff 31142550](https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549).
+    2. **Pure Deletion (`isDel`):**
+       - Removed citation definitions appear in the left column (`diff-deletedline`) with empty cells on the right (`diff-empty`, `colspan=2`).
+       - Citation text body must be clean and unadorned (NO intra-line `<del class="diffchange">` wrapping around citation text).
+       - Badge displays with deletion indicator (`⟨-name-⟩` / red styling).
+       - Validated on deleted citation rows across showcase diffs.
+    3. **Intra-Line Modification (`isMod`):**
+       - Modified citations appear in both left (`diff-deletedline`) and right (`diff-addedline`) columns with modification badges (`⟨~name~⟩` / amber styling).
+       - Native MediaWiki intra-line diff highlighting (`<del class="diffchange">` / `<ins class="diffchange">`) must be strictly preserved on specific changed tokens (e.g. `pages=50–55` $\to$ `pages=80–88`), leaving unchanged tokens unhighlighted.
+       - Validated on [Odoacer diff 1379543160](https://en.wikipedia.org/w/index.php?diff=1379543160&oldid=1379308643) and Section 1 of [Showcase diff 31142550](https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549).
+    4. **Unchanged / Normalized Citations (`norm`):**
+       - Re-ordered or moved reference callouts without content changes must retain normal badge styling without false modification flags.
+    5. **Multi-Ref & Composite Rows:**
+       - Rows with multiple adjacent references having mixed change types (e.g., one added, one modified, one deleted) render distinct badge callouts in prose and corresponding split/paired citation rows.
+    6. **Footnote & Citation Templates:**
+       - Full coverage for `{{sfn}}`, `{{harv}}`, `{{efn}}`, and `<references>` block definitions.
+    7. **Theme & Skin Invariance:**
+       - High-contrast visual clarity across Vector 2022 Light and Dark modes.
 
 ##### Tier 3 Action Items: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
 - [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 50 Users)**
@@ -1415,6 +1440,27 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.12).
   * Maintained strict TODO encapsulation policy (no TODOs in `ROLLOUT_PLAN.md`, `TEST_PLAN.md`, or source code).
+
+---
+
+### 2026-10-14: Tracked TODO for Visual Inspection Matrix Across All Change Cases
+
+* **Context & Issue Description:**
+  * User conducted live visual inspection on English Wikipedia diffs and Meta-Wiki Showcase diff (`diff=31142550`), identifying a visual defect where pure additions wrapped entire citation strings in dark blue `<ins class="diffchange">` highlighting instead of reserving intra-line highlights solely for modified words in modified citations (`isMod`).
+  * While `refdiff.js` was updated to render added and deleted citations cleanly without `<ins>`/`<del>` wrappers, a formal TODO tracking item was established to enforce comprehensive visual inspection covering all change cases.
+* **Architectural Rationale & Coverage Matrix:**
+  * Visual inspection must explicitly verify every category of citation diff:
+    1. **Pure Addition (`isAdd`):** Clean text body, `+label+` badge, right-side placement with left-side `diff-empty` colspan=2. No `<ins class="diffchange">` wrapping.
+    2. **Pure Deletion (`isDel`):** Clean text body, `-label-` badge, left-side placement with right-side `diff-empty` colspan=2. No `<del class="diffchange">` wrapping.
+    3. **Intra-Line Modification (`isMod`):** Dual-sided row with `~label~` badge, retaining native MediaWiki intra-line diff highlights (`<del>` / `<ins>`) strictly on changed tokens.
+    4. **Normalization & Movement (`norm`):** Callout movement without spurious modification badges.
+    5. **High-Density & Multi-Ref Rows:** Mixed addition, modification, and deletion in adjacent callouts.
+    6. **Templates vs Tags:** Both `<ref>...</ref>` tags and `{{sfn}}` / footnote templates.
+    7. **Color Themes:** Vector 2022 Light and Dark mode readability.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.13).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
 
 
 
