@@ -85,5 +85,5 @@ npm run ci && node tests/test_deployment.js
 - [ ] **Publish Meta Stub:** Ensure `m:User:Powercycler/refdiff.js` has dummy loader forwarding to en.WP.
 - [ ] **Publish Lead Docs:** Update `en:User:Powercycler/RefDiff` & verify Meta doc soft redirect.
 - [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
-- [ ] **Live Smoke Check:** Test diff=1379409916 on en.WP; verify mode switcher, inline toggle, and dark mode.
+- [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; test diff=1379409916 on en.WP.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.

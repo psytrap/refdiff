@@ -21,7 +21,7 @@
   },
   "overrides": [
     {
-      "files": ["tests/**/*.js"],
+      "files": ["tests/**/*.js", "scripts/**/*.js"],
       "env": {
         "node": true
       }

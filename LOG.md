@@ -1071,3 +1071,22 @@ This register serves as the authoritative system of record for all real-world Wi
   * Test suite expanded from 114 to **115/115 passing tests** across 15 modular test files (0 ESLint warnings, ~250ms).
   * Synchronized [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2, §5), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`README.md`](README.md), [`refdiff.wiki`](refdiff.wiki), and [`LOG.md`](LOG.md).
 
+---
+
+### 2026-10-14: Automated Live On-Wiki Deployment Auditor (`npm run check:deploy`)
+
+* **Context & Motivation:**
+  * To verify whether RefDiff release code is actually deployed on-wiki in real-time, implemented an automated live on-wiki deployment auditor script (`scripts/check_live_deployment.js`) wired to `npm run check:deploy`.
+* **Automated Audit Functionality:**
+  * Directly queries Wikimedia REST/Action APIs on both English Wikipedia (`enwiki`) and Meta-Wiki (`metawiki`).
+  * Checks page existence, revision ID, timestamp, byte size, and calculates remote SHA-1 hash to compare byte-for-byte against local release files (`refdiff.js`, `refdiff.wiki`, `userbox_enwiki.wiki`).
+  * Validates whether `m:User:Powercycler/refdiff.js` is correctly configured as the 1-line dummy loader forwarding to en.WP.
+* **Initial Audit Findings & Live Status:**
+  * English Wikipedia (`en.wikipedia.org`): Canonical targets (`User:Powercycler/refdiff.js`, `refdiff-v1.3.0.js`, `RefDiff`, `Template:User RefDiff`) are currently missing (pending initial publish).
+  * Meta-Wiki (`meta.wikimedia.org`): Holds an older standalone build from 2026-10-11 (Rev 31149599, 78.4 KB); flagged for migration to the 1-line dummy loader stub.
+* **Artifacts Synchronized:**
+  * Created [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js) with strict ESLint compliance.
+  * Added `npm run check:deploy` script to [`package.json`](package.json).
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§5 Runbook Checklist) to require `npm run check:deploy`.
+
+
