@@ -117,6 +117,48 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
     });
   });
 
+  test('verifies diffchange highlight rules across all change cases in real DOM (pure adds, pure dels, mods)', () => {
+    withJsdom(compHtml, 'https://en.wikipedia.org/w/index.php?diff=1000', ({ document, RefDiff }) => {
+      const table = document.querySelector('table.diff');
+      RefDiff.applyDecoupling(table);
+
+      const citRows = Array.from(table.querySelectorAll('.refdiff-cit-row'));
+      assert.strictEqual(citRows.length, 5, 'Should find 5 citation rows');
+
+      // Partition citation rows by type:
+      // Added rows have diff-side-added and diff-empty on deleted side
+      const addedRows = citRows.filter(r => r.querySelector('.diff-empty.diff-side-deleted'));
+      // Deleted rows have diff-side-deleted and diff-empty on added side
+      const deletedRows = citRows.filter(r => r.querySelector('.diff-empty.diff-side-added'));
+      // Modified rows have both deleted and added line cells
+      const modRows = citRows.filter(r => r.querySelector('.refdiff-cit-deletedline') && r.querySelector('.refdiff-cit-addedline'));
+
+      assert.strictEqual(addedRows.length, 2, 'Should have 2 added citation rows (esa2022, esa-press)');
+      assert.strictEqual(deletedRows.length, 1, 'Should have 1 deleted citation row (venera1982)');
+      assert.strictEqual(modRows.length, 2, 'Should have 2 modified citation rows (Harris, schmidt2020)');
+
+      // Rule 1: Pure added citation rows must contain ZERO diffchange elements (no ins, no del)
+      for (const row of addedRows) {
+        assert.strictEqual(row.querySelectorAll('.diffchange').length, 0, `Added row ${row.id} must have 0 diffchange elements`);
+        assert.strictEqual(row.querySelectorAll('ins, del').length, 0, `Added row ${row.id} must have 0 ins/del elements`);
+      }
+
+      // Rule 2: Pure deleted citation rows must contain ZERO diffchange elements (no ins, no del)
+      for (const row of deletedRows) {
+        assert.strictEqual(row.querySelectorAll('.diffchange').length, 0, `Deleted row ${row.id} must have 0 diffchange elements`);
+        assert.strictEqual(row.querySelectorAll('ins, del').length, 0, `Deleted row ${row.id} must have 0 ins/del elements`);
+      }
+
+      // Rule 3: Modified citation rows MUST preserve native intra-line diff highlights on changed words
+      for (const row of modRows) {
+        const delLine = row.querySelector('.refdiff-cit-deletedline');
+        const addLine = row.querySelector('.refdiff-cit-addedline');
+        assert.strictEqual(delLine.querySelectorAll('del.diffchange').length >= 1, true, `Mod row ${row.id} deleted line must preserve del.diffchange`);
+        assert.strictEqual(addLine.querySelectorAll('ins.diffchange').length >= 1, true, `Mod row ${row.id} added line must preserve ins.diffchange`);
+      }
+    });
+  });
+
   test('verifies byte-for-byte in-place Memento restoration on comprehensive_test.html', () => {
     withJsdom(compHtml, 'https://en.wikipedia.org/w/index.php?diff=1000', ({ document, RefDiff }) => {
       const table = document.querySelector('table.diff');

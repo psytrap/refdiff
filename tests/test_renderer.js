@@ -164,6 +164,46 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
     });
   });
 
+  test('createCitRow preserves intra-line diffchange tags on modified citations (isMod) while pure additions/deletions have zero diffchange tags', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      // 1. Modified citation: intra-line diff highlights must be preserved on changed tokens
+      const modRow = createCitRow({
+        label: 'modRef',
+        oldRaw: '&lt;ref&gt;Page <del class="diffchange diffchange-inline">50–55</del>&lt;/ref&gt;',
+        newRaw: '&lt;ref&gt;Page <ins class="diffchange diffchange-inline">80–88</ins>&lt;/ref&gt;',
+        isAdd: false,
+        isDel: false,
+        rowId: 'refdiff-cit-modRef-1'
+      });
+      const delLine = modRow.querySelector('.refdiff-cit-deletedline');
+      const addLine = modRow.querySelector('.refdiff-cit-addedline');
+      assert.strictEqual(delLine.querySelectorAll('del.diffchange').length, 1, 'Deleted side must preserve intra-line del diffchange');
+      assert.strictEqual(delLine.querySelectorAll('ins').length, 0, 'Deleted side must not contain ins');
+      assert.strictEqual(addLine.querySelectorAll('ins.diffchange').length, 1, 'Added side must preserve intra-line ins diffchange');
+      assert.strictEqual(addLine.querySelectorAll('del').length, 0, 'Added side must not contain del');
+
+      // 2. Added citation: zero ins/del diffchange elements anywhere in the row
+      const addRow = createCitRow({
+        label: 'addRef',
+        oldRaw: '',
+        newRaw: '&lt;ref name="test"&gt;All new content&lt;/ref&gt;',
+        isAdd: true,
+        rowId: 'refdiff-cit-addRef-1'
+      });
+      assert.strictEqual(addRow.querySelectorAll('ins, del').length, 0, 'Added citation row must contain zero ins or del elements');
+
+      // 3. Deleted citation: zero ins/del diffchange elements anywhere in the row
+      const delRow = createCitRow({
+        label: 'delRef',
+        oldRaw: '&lt;ref name="old"&gt;All deleted content&lt;/ref&gt;',
+        newRaw: '',
+        isDel: true,
+        rowId: 'refdiff-cit-delRef-1'
+      });
+      assert.strictEqual(delRow.querySelectorAll('ins, del').length, 0, 'Deleted citation row must contain zero ins or del elements');
+    });
+  });
+
   test('createCitRow mirrors native MediaWiki diff structure with diff-empty on single-sided rows', () => {
     withMockEnvironment({ document: getDoc() }, () => {
       // 1. Added citation row: diff-empty on deleted side (left)

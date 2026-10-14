@@ -471,6 +471,41 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     assert.strictEqual(result.modifiedCits.length, 1, 'Only the valid added reference should produce a citation row');
     assert.strictEqual(result.modifiedCits[0].label, 'cite1');
   });
+
+  test('transformProseCells decouples all change cases (pure add, pure del, modified) with correct isAdd, isDel, and raw wikitext', () => {
+    // 1. Pure addition: new citation wrapped in ins in prose
+    const delHtml1 = '<div>Existing prose without citations.</div>';
+    const addHtml1 = '<div>Existing prose without citations.<ins class="diffchange diffchange-inline">&lt;ref name="newCite"&gt;Brand new cite&lt;/ref&gt;</ins></div>';
+    const pairs1 = pairReferences(parseRefs(delHtml1), parseRefs(addHtml1));
+    const result1 = transformProseCells(delHtml1, addHtml1, pairs1, 1);
+    assert.strictEqual(result1.modifiedCits.length, 1);
+    assert.strictEqual(Boolean(result1.modifiedCits[0].isAdd), true);
+    assert.strictEqual(Boolean(result1.modifiedCits[0].isDel), false);
+    assert.strictEqual(result1.modifiedCits[0].label, 'newCite');
+    assert.strictEqual(result1.modifiedCits[0].newRaw, '&lt;ref name="newCite"&gt;Brand new cite&lt;/ref&gt;');
+
+    // 2. Pure deletion: removed citation wrapped in del in prose
+    const delHtml2 = '<div>Existing prose.<del class="diffchange diffchange-inline">&lt;ref name="oldCite"&gt;Removed cite&lt;/ref&gt;</del></div>';
+    const addHtml2 = '<div>Existing prose.</div>';
+    const pairs2 = pairReferences(parseRefs(delHtml2), parseRefs(addHtml2));
+    const result2 = transformProseCells(delHtml2, addHtml2, pairs2, 1);
+    assert.strictEqual(result2.modifiedCits.length, 1);
+    assert.strictEqual(Boolean(result2.modifiedCits[0].isAdd), false);
+    assert.strictEqual(Boolean(result2.modifiedCits[0].isDel), true);
+    assert.strictEqual(result2.modifiedCits[0].label, 'oldCite');
+    assert.strictEqual(result2.modifiedCits[0].oldRaw, '&lt;ref name="oldCite"&gt;Removed cite&lt;/ref&gt;');
+
+    // 3. Intra-line modification: citation with word-level change
+    const delHtml3 = '<div>Data.&lt;ref name="mod"&gt;Page <del class="diffchange diffchange-inline">10</del>&lt;/ref&gt;</div>';
+    const addHtml3 = '<div>Data.&lt;ref name="mod"&gt;Page <ins class="diffchange diffchange-inline">20</ins>&lt;/ref&gt;</div>';
+    const pairs3 = pairReferences(parseRefs(delHtml3), parseRefs(addHtml3));
+    const result3 = transformProseCells(delHtml3, addHtml3, pairs3, 1);
+    assert.strictEqual(result3.modifiedCits.length, 1);
+    assert.strictEqual(Boolean(result3.modifiedCits[0].isAdd), false);
+    assert.strictEqual(Boolean(result3.modifiedCits[0].isDel), false);
+    assert.strictEqual(result3.modifiedCits[0].oldRaw.includes('<del class="diffchange'), true);
+    assert.strictEqual(result3.modifiedCits[0].newRaw.includes('<ins class="diffchange'), true);
+  });
 });
 
 if (require.main === module) {
