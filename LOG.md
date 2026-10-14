@@ -59,7 +59,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Step R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
 | **Step R.15** | Doc Lead Cleanup & Polish | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
 | **Step R.16** | Meta Documentation Sync / Soft Redirect | Normal | 🔮 Future | TODO: Update `m:User:Powercycler/RefDiff` (set soft redirect to en.WP lead docs or synchronize full content) |
-| **Step R.17** | Rollout CLI & Version Bump Automation | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump automation, and on-wiki publishing scripts (`npm run rollout`) |
+| **Step R.17** | Streamline Rollout & Version Bump Process | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump cadence, and deployment checklist (simplify, do not over-automate) |
 | **Step R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
@@ -119,14 +119,14 @@ This log records the rationale, architectural decisions, completed milestones, a
     1. **Soft Redirect vs Full Parity:** Either implement a clean soft redirect pointing to authoritative documentation on English Wikipedia (`en:User:Powercycler/RefDiff`) per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1, or mirror the updated v1.4.3 documentation lead.
     2. **Showcase Integration:** Ensure seamless cross-wiki navigation between the Meta-Wiki Showcase (`m:User:Powercycler/RefDiff/Show_case`), the canonical code lead (`m:User:Powercycler/refdiff.js`), and the English Wikipedia documentation lead.
     3. **Auditor Synchronization:** Verify that `npm run check:deploy` reports `m:User:Powercycler/RefDiff` in full sync with the designated cross-wiki redirect or mirrored lead.
-- [ ] **Step R.17: Streamline Rollout Protocol & Version Bump Automation (Tier 1 — Normal)**
-  * **Focus Area:** Rollout CLI & Version Automation
-  * **Proposed Optimization:** Create an integrated runner (`npm run rollout`) that sequences pre-flight checks, stages on-wiki clipboard payloads, manages git tags automatically, and prompts for post-shipment minor bumps.
-  * **TODO:** Streamline the release rollout workflow and version bump automation:
-    1. **Unified Rollout CLI (`npm run rollout`):** Create an interactive or guided CLI runner orchestrating pre-flight verification (`npm run lint`, `npm test`, `test_deployment.js`, `npm run capture`), git release tagging, and live deployment auditing.
-    2. **Version Bump Automation:** Streamline `scripts/bump_version.js` to cleanly support the two-phase cadence (pre-flight patch bump vs post-shipment minor bump), automatic git tag movement, and manifest synchronization without manual tag drift.
-    3. **Payload Generation & Staging:** Automate clipboard or staging file generation for on-wiki update targets (Meta script lead, en.WP SHA pointer snippet, doc lead wikitext, userbox wikitext), accounting for MediaWiki textarea newline-stripping behavior.
-    4. **Post-Shipment Finalization:** Provide a 1-step post-shipment command that runs `check_live_deployment.js`, verifies 100% sync, prompts for minor version bump, and prepares the next development iteration.
+- [ ] **Step R.17: Streamline Rollout Protocol & Version Bump Process (Tier 1 — Normal)**
+  * **Focus Area:** Streamline Rollout & Version Bump
+  * **Proposed Optimization:** Simplify and streamline the rollout runbook and version bump workflow—focusing on clarity, reduced friction, and painless manual execution without over-engineering complex runners or automation.
+  * **TODO:** Streamline the rollout and version bump process (not automate, just streamline):
+    1. **Frictionless Runbook Checklist:** Simplify the deployment steps in [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) so the operator has clear, direct, and concise instructions without ambiguous sub-steps or redundant manual calculations.
+    2. **Clean Version Bump Cadence:** Refine `scripts/bump_version.js` to handle manifest synchronization cleanly and intuitively for both pre-flight patch uprevs and post-shipment minor bumps without tag drift.
+    3. **Straightforward On-Wiki Copy Workflow:** Document exact copy-paste snippets and canonical URLs clearly so publishing to on-wiki targets (Meta script lead, en.WP pointer, docs lead) is fast and error-free without needing extra tooling.
+    4. **Clear Verification Sequence:** Streamline the order of manual checks and verification commands (`check_live_deployment.js`) to ensure a smooth, confident release sign-off.
 - [ ] **Step R.18: Automated Showcase Test in Rollout Protocol (Tier 1 — Normal)**
   * **Focus Area:** Automated Showcase Test
   * **Proposed Optimization:** Add `m:User:Powercycler/RefDiff/Show_case` as target #7 in `check_live_deployment.js` and include a live CDP smoke test verifying all 5 showcase change sections.
@@ -1615,12 +1615,12 @@ This register serves as the authoritative system of record for all real-world Wi
 ### 2026-10-14: Tracked TODO for Rollout Protocol & Version Bump Streamlining
 
 * **Context & Issue Description:**
-  * Recorded a formal tracking item and TODO (Step R.17) for streamlining the phased rollout protocol and version bump automation.
-  * During the v1.4.3 rollout, several multi-step manual procedures were identified that can be automated into a friction-free release pipeline:
-    1. **Version Bump Cadence:** Enhance `scripts/bump_version.js` to distinguish pre-flight candidate validation from post-shipment feature stamps, ensuring git tags remain synchronized without manual `git tag -f`.
-    2. **Unified Release Runner:** Create an integrated rollout script that guides the operator through CI pre-flight, visual capture inspection, on-wiki payload staging, and remote API verification.
-    3. **Automated Payload Staging:** Eliminate manual copy-paste errors across the 5 on-wiki targets (Meta script lead, en.WP SHA pointer, lead docs, Meta redirect, userbox) with dedicated payload export scripts.
-    4. **Runbook Ergonomics:** Keep operational runbooks concise while automating repetitive verification gates.
+  * Recorded a formal tracking item and TODO (Step R.17) for streamlining the phased rollout protocol and version bump workflow (focusing on manual process streamlining and reduced friction, rather than over-engineered automation).
+  * During the v1.4.3 rollout, several multi-step manual friction points were identified to streamline:
+    1. **Frictionless Runbook Checklist:** Simplify the deployment steps in [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) so the operator has clear, direct, and concise instructions without ambiguous sub-steps or redundant manual calculations.
+    2. **Clean Version Bump Cadence:** Refine `scripts/bump_version.js` to handle manifest synchronization cleanly and intuitively for both pre-flight patch uprevs and post-shipment minor bumps without tag drift.
+    3. **Straightforward On-Wiki Copy Workflow:** Document exact copy-paste snippets and canonical URLs clearly so publishing to on-wiki targets (Meta script lead, en.WP pointer, docs lead) is fast and error-free without needing extra tooling.
+    4. **Clear Verification Sequence:** Streamline the order of manual checks and verification commands (`check_live_deployment.js`) to ensure a smooth, confident release sign-off.
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.17).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
