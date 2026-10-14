@@ -55,7 +55,8 @@ This log records the rationale, architectural decisions, completed milestones, a
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
 | **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
-| **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `Template:User RefDiff` with 0 P0 defects |
+| **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
+| **R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -88,8 +89,14 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
   * Guarantee that unhandled runtime exceptions in RefDiff cleanly restore the native diff table and never bubble to `window.onerror` or abort subsequent scripts in `common.js` (e.g. Twinkle, HotCat).
 - [ ] **Step R.7: Pilot Cohort Validation & Stability (Tier 1 — Operational)**
-  * Track active pilot adoption via `Special:WhatLinksHere/Template:User_RefDiff` until reaching $\ge 10$ active patrollers on English Wikipedia.
+  * Track active pilot adoption via `Special:WhatLinksHere/User:Powercycler/Userbox_RefDiff` until reaching $\ge 10$ active patrollers on English Wikipedia.
   * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
+- [ ] **Step R.14: Better Userbox Design & Usability (Tier 1 — Normal)**
+  * **TODO:** Design and deploy an improved, polished userbox for RefDiff adopters:
+    1. **Visual Aesthetics:** Refine badge styling (e.g. high-resolution vector/SVG badge, dark mode compatibility matching Vector 2022 color tokens).
+    2. **Customization & Simplicity:** Offer optional customizable parameters (custom badge, colors, custom text) while preserving a clean, zero-friction default invocation without redlink categories.
+    3. **Category Infrastructure:** Optionally establish an official tracking category (e.g. `Category:Wikipedians who use RefDiff`) once adoption warrants it, or maintain category-free operation to prevent redlink clutter on user pages.
+    4. **Stack & Babel Compatibility:** Verify clean alignment inside userbox stacks (`{{Userboxtop}}`), Babel boxes, and mobile user page layouts.
 
 ##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
@@ -1519,6 +1526,22 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.8).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Tracked TODO for Better Userbox Design & Usability
+
+* **Context & Issue Description:**
+  * Recorded a formal tracking item and TODO for improving the RefDiff userbox (`User:Powercycler/Userbox RefDiff`).
+  * While the initial rollout deployed a minimal, robust default userbox in user space with zero redlink categories, future iterations will refine:
+    1. **Aesthetics & Skin Invariance:** High-DPI icon/badge styling with automatic Vector 2022 light/dark theme adaptation.
+    2. **Customization vs Simplicity:** Sensible optional parameters without cluttering default usage.
+    3. **Category Governance:** Setting up proper tracking categories or maintaining clean category-free transclusion.
+    4. **Stack & Babel Integration:** Seamless layout in `{{Userboxtop}}` and multi-userbox columns.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.14).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
 
 
 
