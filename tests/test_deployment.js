@@ -279,10 +279,10 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.strictEqual(rolloutPlanContent.includes(metaDocTarget), true, `ROLLOUT_PLAN.md must list Meta soft redirect doc target ${metaDocTarget}`);
     assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox_enwiki.wiki must link to canonical doc target');
 
-    // 5. Userbox template destination consistency
-    assert.strictEqual(rolloutPlanContent.includes('en:Template:User RefDiff'), true, 'ROLLOUT_PLAN.md must list en:Template:User RefDiff');
-    assert.strictEqual(userboxContent.includes('Template:User RefDiff'), true, 'userbox_enwiki.wiki doc must reference Template:User RefDiff');
-    assert.strictEqual(userboxContent.includes('{{User RefDiff}}'), true, 'userbox_enwiki.wiki doc must reference {{User RefDiff}}');
+    // 5. Userbox template destination consistency (User space)
+    assert.strictEqual(rolloutPlanContent.includes('en:User:Powercycler/User RefDiff'), true, 'ROLLOUT_PLAN.md must list en:User:Powercycler/User RefDiff');
+    assert.strictEqual(userboxContent.includes('User:Powercycler/User RefDiff'), true, 'userbox_enwiki.wiki must reference User:Powercycler/User RefDiff');
+    assert.strictEqual(userboxContent.includes('{{User:Powercycler/User RefDiff}}'), true, 'userbox_enwiki.wiki doc must reference {{User:Powercycler/User RefDiff}}');
 
     // 6. Outreach discussion destination consistency
     const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';

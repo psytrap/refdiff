@@ -1,12 +1,7 @@
 <!-- ===========================================================================
-  English Wikipedia Userbox Template for RefDiff
-  Target On-Wiki Page: Template:User RefDiff
-  Subpage: Template:User RefDiff/doc
+  English Wikipedia Userbox Template for RefDiff (User Space)
+  Target On-Wiki Page: User:Powercycler/User RefDiff
 =========================================================================== -->
-
-<!-- --------------------------------------------------------------------------
-  SECTION 1: Template Code (Page: Template:User RefDiff)
---------------------------------------------------------------------------- -->
 <includeonly>{{Userbox
 | border-c = {{{border-c|#d4a017}}}
 | border-s = {{{border-s|1}}}
@@ -22,18 +17,8 @@
 | usercategory = Wikipedians who use RefDiff
 | nocat    = {{{nocat|}}}
 }}</includeonly><noinclude>
-{{Documentation}}
-<!-- Please add categories to the /doc subpage, not here! -->
-</noinclude>
-
-<!-- --------------------------------------------------------------------------
-  SECTION 2: Documentation Subpage (Page: Template:User RefDiff/doc)
---------------------------------------------------------------------------- -->
-<!--
-<noinclude>{{Documentation subpage}}</noinclude>
-{{tsh|User RefDiff}}
-
-This [[Wikipedia:Userboxes|userbox]] template identifies users who patrol diffs and review citations using the [[User:Powercycler/RefDiff|RefDiff]] user script, which decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate [[Wikipedia:Template camouflage|template camouflage]].
+<!-- Template Documentation -->
+This [[Wikipedia:Userboxes|userbox]] identifies users who patrol diffs and review citations using the [[User:Powercycler/RefDiff|RefDiff]] user script, which decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate [[Wikipedia:Template camouflage|template camouflage]].
 
 == Usage ==
 
@@ -41,7 +26,7 @@ This [[Wikipedia:Userboxes|userbox]] template identifies users who patrol diffs 
 Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} stack):
 
 <syntaxhighlight lang="wikitext">
-{{User RefDiff}}
+{{User:Powercycler/User RefDiff}}
 </syntaxhighlight>
 
 === Live preview ===
@@ -65,7 +50,7 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 {| class="wikitable"
 ! Wikitext !! Rendered Userbox !! Description
 |-
-| {{tlx|User RefDiff}}
+| {{mono|<nowiki>{{User:Powercycler/User RefDiff}}</nowiki>}}
 | {{Userbox
 | border-c = #d4a017
 | id       = <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
@@ -75,7 +60,7 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 }}
 | '''Default:''' Signature amber modified badge ({{mono|⟨~ref~⟩}}) representing citation decoupling in diffs.
 |-
-| {{tlx|User RefDiff|badge&#61;⟨ref⟩|border-c&#61;#3366cc|id-c&#61;#f0f4fc|id-fc&#61;#3366cc}}
+| {{mono|<nowiki>{{User:Powercycler/User RefDiff|badge=⟨ref⟩|border-c=#3366cc|id-c=#f0f4fc|id-fc=#3366cc}}</nowiki>}}
 | {{Userbox
 | border-c = #3366cc
 | id       = <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
@@ -85,7 +70,7 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 }}
 | '''Minimalist Prose Badge:''' Neutral blue angle bracket badge.
 |-
-| {{tlx|User RefDiff|badge&#61;⧉ RefDiff|border-c&#61;#3366cc|id-c&#61;#eaf3ff|id-fc&#61;#3366cc}}
+| {{mono|<nowiki>{{User:Powercycler/User RefDiff|badge=⧉ RefDiff|border-c=#3366cc|id-c=#eaf3ff|id-fc=#3366cc}}</nowiki>}}
 | {{Userbox
 | border-c = #3366cc
 | id       = <span style="font-size: 1.05em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>
@@ -182,8 +167,6 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 * [[Wikipedia:Userboxes]]
 * [[Wikipedia:Template camouflage]]
 
-<includeonly>{{sandbox other||
 [[Category:Wikipedia user scripts user templates]]
 [[Category:Wikipedians who use RefDiff| ]]
-}}</includeonly>
--->
+</noinclude>

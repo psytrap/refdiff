@@ -112,7 +112,9 @@ async function auditDeployment() {
     const enRes = await fetchApi('https://en.wikipedia.org/w/api.php', [
       'User:Powercycler/refdiff.js',
       'User:Powercycler/RefDiff',
-      'Template:User RefDiff',
+      'User:Powercycler/Userbox RefDiff',
+      'User:Powercycler/Userbox/RefDiff',
+      'User:Powercycler/User RefDiff',
       'User:Powercycler/common.js'
     ]);
     if (enRes.query && enRes.query.pages) {
@@ -292,21 +294,23 @@ async function auditDeployment() {
     });
   }
 
-  // 6. English Wikipedia - Userbox Template
-  const enUserbox = enwikiPages['Template:User RefDiff'];
+  // 6. English Wikipedia - Userbox Template (User Space)
+  const enUserbox = enwikiPages['User:Powercycler/Userbox RefDiff'] ||
+                    enwikiPages['User:Powercycler/Userbox/RefDiff'] ||
+                    enwikiPages['User:Powercycler/User RefDiff'];
   if (!enUserbox || enUserbox.missing !== undefined) {
     reports.push({
-      target: 'en:Template:User RefDiff (Userbox)',
+      target: 'en:User:Powercycler/Userbox RefDiff (Userbox)',
       status: 'NOT DEPLOYED (Missing)',
-      details: 'Page does not exist on en.wikipedia.org yet. Action: Publish userbox_enwiki.wiki.',
+      details: 'Page does not exist on en.wikipedia.org yet. Action: Publish userbox_enwiki.wiki to user space (e.g. User:Powercycler/Userbox RefDiff).',
       ok: false
     });
   } else {
     const rev = enUserbox.revisions && enUserbox.revisions[0];
     reports.push({
-      target: 'en:Template:User RefDiff (Userbox)',
-      status: 'DEPLOYED',
-      details: `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB`,
+      target: `en:${enUserbox.title} (Userbox)`,
+      status: 'DEPLOYED & SYNCHRONIZED',
+      details: `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB in user space.`,
       ok: true
     });
   }
