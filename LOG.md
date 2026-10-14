@@ -447,6 +447,24 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Documentation Updates:**
   * Updated `README.md` (§2), `REFDIFF.md` (§4.4), `refdiff.wiki` (Complementary Tools wikitable & See Also), `ARCHITECTURE.md` (§7.5), and `proposal/CONCEPT.md` (§8.3).
 
+---
+
+### 2026-10-14: Audit & Review Strategy — Two-Pillar Framework, JSDOM Harness & `<nowiki>` Protection
+
+* **Context & Motivation:**
+  * Synthesized findings from comparative audit against [Ultraviolet](poc/ultraviolet/COMPARISON.md) and established a formal two-pillar **Audit and Review Strategy** ([`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md)).
+* **Pillar 1: Codebase & Security Audit (Engineering Integrity):**
+  * **Taxonomy & Findings Registry:** Formalized severity classes (K1/M1/M6) tracking real DOM mock blind spots, HTML generation via template strings, unpinned CDN dependencies, and on-wiki `<nowiki>` transclusion.
+  * **Real DOM Integration Suite (`tests/test_jsdom.js`):** Implemented 10 automated headless integration tests on real MediaWiki diff fixtures (`comprehensive_test.html` and `stress_test_1379409916.html`), validating byte-for-byte in-place Memento restoration, OOUI button injection, and mouse delegation. Expanded suite to **97/97 passing tests** in <250ms.
+  * **Defensive Guards:** Added feature checks for `scrollIntoView` and `MutationObserver` to ensure zero-crash resilience across non-standard environments.
+  * **On-Wiki `<nowiki>` Protection:** Enclosed `refdiff.js` inside `/* <nowiki> */` comments to neutralize template parsing of the 20 internal `{{...}}` sequences on MediaWiki JS pages.
+* **Pillar 2: Editorial Review & Source Auditing Playbook:**
+  * Codified the **Anti-Template-Camouflage** workflow (isolating prose changes concealed behind giant citation templates).
+  * Codified the **Anti-AI-Slop** fact-checking playbook (source decoupling, prose coherence verification, one-click Reference Previews via `Extension:Popups`).
+  * Structured the **Tri-Mode Review Triage** guide (Visual vs. Wikitext vs. RefDiff vs. Inline modified refs) and ecosystem interoperability (`diffedit.js`, `CNfirmed.js`, `HarvErrors.js`, `ProveIt`).
+* **Documentation Updates:**
+  * Created [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md); updated [`README.md`](README.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), and [`TEST_PLAN.md`](TEST_PLAN.md).
+
 
 
 

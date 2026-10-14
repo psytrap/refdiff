@@ -404,7 +404,7 @@ While RefDiff addresses citation camouflage during **revision diff review** (`Sp
 
 ## 8. Verification & Test Architecture
 
-RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification):
+RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification and [**AUDIT_STRATEGY.md**](AUDIT_STRATEGY.md) for the quality taxonomy and editorial audit strategy):
 
 1. **Modular Unit, Component & Real DOM Testing (`tests/test_*.js` & `tests/runner.js`):**
    * **97 tests** (100% headless function & DOM integration coverage) across **14 modular test files** covering virtual modules and real DOM integration.
