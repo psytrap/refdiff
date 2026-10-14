@@ -75,6 +75,7 @@
   const STORAGE_KEY = 'refdiff-active';
   const STORAGE_KEY_SEPARATE = 'refdiff-separate-changed';
   const STORAGE_KEY_INLINE = 'refdiff-inline-modified';
+  const MAX_LABEL_LEN = 25;
 
   /** Centralized CSS selector registry for MediaWiki diff DOM queries. */
   const SELECTORS = {
@@ -118,6 +119,7 @@
     DIFF_CONTEXT: 'diff-context',
     DELETED_LINE: 'diff-deletedline',
     ADDED_LINE: 'diff-addedline',
+    DIFF_EMPTY: 'diff-empty',
     CIT_ADDED_LINE: 'refdiff-cit-addedline',
     CIT_DELETED_LINE: 'refdiff-cit-deletedline',
     CIT_CONTEXT: 'refdiff-cit-context',
@@ -149,6 +151,7 @@
       font-size: 0.9em;
       vertical-align: baseline;
       line-height: inherit;
+      max-width: 100%;
     }
     .refdiff-ref a {
       text-decoration: none;
@@ -164,6 +167,18 @@
       color: var(--color-subtle, #72777d);
       cursor: pointer;
       text-decoration: none;
+    }
+    .ref-badge,
+    .ref-badge-mod,
+    .ref-badge-add,
+    .ref-badge-del {
+      display: inline-block;
+      max-width: min(28em, 100%);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: baseline;
+      box-sizing: border-box;
+      white-space: nowrap;
     }
     .ref-badge-mod {
       font-weight: bold;
@@ -315,21 +330,63 @@
         color: var(--color-subtle, #a2a9b1);
       }
     }
-    /* Citation row cell styling mirroring MediaWiki diff colors */
-    .refdiff-cit-row td.refdiff-cit-addedline {
-      background-color: #d5fdf4;
-      background-color: var(--background-color-success-subtle, #d5fdf4);
+    /* Citation row cell styling mirroring MediaWiki diff lines */
+    .refdiff-cit-row td.refdiff-cit-addedline,
+    .refdiff-cit-row td.refdiff-cit-deletedline,
+    .refdiff-cit-row td.refdiff-cit-context {
+      vertical-align: top;
+      border-style: solid;
+      border-width: 1px 1px 1px 4px;
+      border-radius: 0.33em;
+      padding: 0.33em 0.5em;
+      font-size: 0.8125rem;
+      font-family: monospace, monospace;
+      tab-size: 4;
+      line-height: 1.6;
+      white-space: break-spaces;
+      word-break: break-word;
+      background-color: transparent;
       color: var(--color-base, #202122);
+    }
+    .refdiff-cit-row td.refdiff-cit-addedline {
+      border-color: #a3d3ff;
+      border-color: var(--background-color-content-added, #a3d3ff);
     }
     .refdiff-cit-row td.refdiff-cit-deletedline {
-      background-color: #fee7e6;
-      background-color: var(--background-color-error-subtle, #fee7e6);
-      color: var(--color-base, #202122);
+      border-color: #ffe49c;
+      border-color: var(--background-color-content-removed, #ffe49c);
     }
     .refdiff-cit-row td.refdiff-cit-context {
-      background-color: #f8f9fa;
-      background-color: var(--background-color-interactive-subtle, #f8f9fa);
-      color: var(--color-base, #202122);
+      border-color: #dadde3;
+      border-color: var(--border-color-muted, #dadde3);
+    }
+    .refdiff-cit-row td.diff-empty {
+      border: 0 none;
+      background-color: transparent;
+    }
+    .refdiff-cit-row td.refdiff-cit-addedline .diffchange {
+      border-radius: 0.33em;
+      padding: 0.25em 0;
+      background-color: #a3d3ff;
+      background-color: var(--background-color-content-added, #a3d3ff);
+      text-decoration: none;
+    }
+    .refdiff-cit-row td.refdiff-cit-deletedline .diffchange {
+      border-radius: 0.33em;
+      padding: 0.25em 0;
+      background-color: #ffe49c;
+      background-color: var(--background-color-content-removed, #ffe49c);
+      text-decoration: none;
+    }
+    .diff-editfont-sans-serif .refdiff-cit-row td.refdiff-cit-addedline,
+    .diff-editfont-sans-serif .refdiff-cit-row td.refdiff-cit-deletedline,
+    .diff-editfont-sans-serif .refdiff-cit-row td.refdiff-cit-context {
+      font-family: sans-serif;
+    }
+    .diff-editfont-serif .refdiff-cit-row td.refdiff-cit-addedline,
+    .diff-editfont-serif .refdiff-cit-row td.refdiff-cit-deletedline,
+    .diff-editfont-serif .refdiff-cit-row td.refdiff-cit-context {
+      font-family: serif;
     }
     /* Ensure citation diff rows and hidden rows are never visible when Visual diff or diffedit inline edit is active */
     .ve-init-mw-diffPage-diff ~ table.diff .refdiff-cit-row,
@@ -383,6 +440,20 @@
    * @returns {string}
    */
   const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  /**
+   * Formats a reference label for concise visual badge presentation.
+   * Truncates excessively long labels (e.g. pasted article titles or long URLs)
+   * while the complete un-truncated label is preserved for tooltips and anchors.
+   * @param {string} label
+   * @param {number} [maxLen=MAX_LABEL_LEN]
+   * @returns {string}
+   */
+  function formatBadgeDisplayLabel(label, maxLen = MAX_LABEL_LEN) {
+    if (!label || typeof label !== 'string') return '';
+    if (label.length <= maxLen) return label;
+    return `${label.slice(0, maxLen - 1).trimEnd()}…`;
+  }
 
   /**
    * Extracts the reference name attribute from a tag attributes string.
@@ -990,24 +1061,25 @@
    */
   function createProseBadgeElement(type, label, href) {
     let badgeClass = CLASSES.BADGE;
+    const displayLabel = formatBadgeDisplayLabel(label);
     let title = `Citation: ⟨${label}⟩`;
-    let inner = `⟨${label}⟩`;
+    let inner = `⟨${displayLabel}⟩`;
 
     switch (type) {
       case 'mod':
         badgeClass = CLASSES.BADGE_MOD;
         title = `Citation metadata modified: ⟨~${label}~⟩`;
-        inner = `⟨~${label}~⟩`;
+        inner = `⟨~${displayLabel}~⟩`;
         break;
       case 'add':
         badgeClass = CLASSES.BADGE_ADD;
         title = `Added citation: ⟨+${label}+⟩`;
-        inner = `⟨+${label}+⟩`;
+        inner = `⟨+${displayLabel}+⟩`;
         break;
       case 'del':
         badgeClass = CLASSES.BADGE_DEL;
         title = `Removed citation: ⟨-${label}-⟩`;
-        inner = `⟨-${label}-⟩`;
+        inner = `⟨-${displayLabel}-⟩`;
         break;
     }
 
@@ -1041,24 +1113,25 @@
     }
 
     let badgeClass = CLASSES.BADGE;
+    const displayLabel = formatBadgeDisplayLabel(label);
     let title = `Citation: ⟨${label}⟩`;
-    let inner = `⟨${label}⟩`;
+    let inner = `⟨${displayLabel}⟩`;
 
     switch (type) {
       case 'mod':
         badgeClass = CLASSES.BADGE_MOD;
         title = `Citation metadata modified: ⟨~${label}~⟩`;
-        inner = `⟨~${label}~⟩`;
+        inner = `⟨~${displayLabel}~⟩`;
         break;
       case 'add':
         badgeClass = CLASSES.BADGE_ADD;
         title = `Added citation: ⟨+${label}+⟩`;
-        inner = `⟨+${label}+⟩`;
+        inner = `⟨+${displayLabel}+⟩`;
         break;
       case 'del':
         badgeClass = CLASSES.BADGE_DEL;
         title = `Removed citation: ⟨-${label}-⟩`;
-        inner = `⟨-${label}-⟩`;
+        inner = `⟨-${displayLabel}-⟩`;
         break;
     }
 
@@ -1096,7 +1169,6 @@
     let addDiv;
 
     if (mc.isAdd) {
-      delDiv = el('div');
       const badgeNode = createProseBadgeElement('add', mc.label, badgeHref);
       let insNode = null;
       const cleanContent = mc.newRaw ? mc.newRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
@@ -1105,6 +1177,18 @@
         appendHtmlChildren(insNode, cleanContent);
       }
       addDiv = el('div', null, badgeNode, ' ', insNode);
+
+      const tdEmpty = el('td', { class: `${CLASSES.DIFF_EMPTY} ${CLASSES.DIFF_SIDE_DELETED}`, colspan: '2' });
+      const tdMarkerAdd = el('td', { class: 'diff-marker', 'data-marker': '+' });
+      const tdAdd = el('td', {
+        class: `${CLASSES.CIT_ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`
+      }, addDiv);
+
+      if (typeof citRow.appendChild === 'function') {
+        if (tdEmpty) citRow.appendChild(tdEmpty);
+        if (tdMarkerAdd) citRow.appendChild(tdMarkerAdd);
+        if (tdAdd) citRow.appendChild(tdAdd);
+      }
     } else if (mc.isDel) {
       const badgeNode = createProseBadgeElement('del', mc.label, null);
       let delNode = null;
@@ -1114,7 +1198,18 @@
         appendHtmlChildren(delNode, cleanContent);
       }
       delDiv = el('div', null, badgeNode, ' ', delNode);
-      addDiv = el('div');
+
+      const tdMarkerDel = el('td', { class: 'diff-marker', 'data-marker': '−' });
+      const tdDel = el('td', {
+        class: `${CLASSES.CIT_DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`
+      }, delDiv);
+      const tdEmpty = el('td', { class: `${CLASSES.DIFF_EMPTY} ${CLASSES.DIFF_SIDE_ADDED}`, colspan: '2' });
+
+      if (typeof citRow.appendChild === 'function') {
+        if (tdMarkerDel) citRow.appendChild(tdMarkerDel);
+        if (tdDel) citRow.appendChild(tdDel);
+        if (tdEmpty) citRow.appendChild(tdEmpty);
+      }
     } else {
       const delBadge = createProseBadgeElement('mod', mc.label, badgeHref);
       const addBadge = createProseBadgeElement('mod', mc.label, badgeHref);
@@ -1123,23 +1218,22 @@
 
       addDiv = el('div', null, addBadge, ' ');
       appendHtmlChildren(addDiv, mc.newRaw);
-    }
 
-    const tdMarkerDel = el('td', { class: 'diff-marker', 'data-marker': mc.isAdd ? '' : '−' });
-    const tdDel = el('td', {
-      class: mc.isAdd ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`
-    }, delDiv);
+      const tdMarkerDel = el('td', { class: 'diff-marker', 'data-marker': '−' });
+      const tdDel = el('td', {
+        class: `${CLASSES.CIT_DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`
+      }, delDiv);
+      const tdMarkerAdd = el('td', { class: 'diff-marker', 'data-marker': '+' });
+      const tdAdd = el('td', {
+        class: `${CLASSES.CIT_ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`
+      }, addDiv);
 
-    const tdMarkerAdd = el('td', { class: 'diff-marker', 'data-marker': mc.isDel ? '' : '+' });
-    const tdAdd = el('td', {
-      class: mc.isDel ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`
-    }, addDiv);
-
-    if (typeof citRow.appendChild === 'function') {
-      if (tdMarkerDel) citRow.appendChild(tdMarkerDel);
-      if (tdDel) citRow.appendChild(tdDel);
-      if (tdMarkerAdd) citRow.appendChild(tdMarkerAdd);
-      if (tdAdd) citRow.appendChild(tdAdd);
+      if (typeof citRow.appendChild === 'function') {
+        if (tdMarkerDel) citRow.appendChild(tdMarkerDel);
+        if (tdDel) citRow.appendChild(tdDel);
+        if (tdMarkerAdd) citRow.appendChild(tdMarkerAdd);
+        if (tdAdd) citRow.appendChild(tdAdd);
+      }
     }
 
     return citRow;
@@ -2239,6 +2333,7 @@
     STORAGE_KEY,
     STORAGE_KEY_SEPARATE,
     STORAGE_KEY_INLINE,
+    MAX_LABEL_LEN,
     SELECTORS,
     CLASSES,
     HOOKS,
@@ -2253,6 +2348,7 @@
     TEMPLATE_REF_REGEX,
     stripHtml,
     escapeRegex,
+    formatBadgeDisplayLabel,
     extractName,
     extractSfnInfo,
     normalizeDiffTags,

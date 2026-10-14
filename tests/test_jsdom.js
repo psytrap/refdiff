@@ -309,13 +309,13 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
 
       RefDiff.applyDecoupling(table);
 
-      // Verify badge text contains full title without truncation at "Speaker"
+      // Verify badge text is cleanly truncated for visual presentation with ellipsis
       const badge = table.querySelector('.ref-badge-add');
       assert.strictEqual(!!badge, true, 'Added reference badge should be rendered');
       assert.strictEqual(
         badge.textContent,
-        "⟨+From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey+⟩",
-        'Badge text must preserve embedded apostrophe and full name'
+        '⟨+From teen in RSS shakha…+⟩',
+        'Badge display text must be cleanly truncated with ellipsis'
       );
 
       // Verify anchor discovery points to the underscore-converted cite_note ID

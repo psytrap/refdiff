@@ -32,7 +32,7 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
 
   test('createProseBadgeElement constructs native DOM tree with XSS immunity (M1)', () => {
     withMockEnvironment({ document: getDoc() }, () => {
-      const malicious = '"><script>alert(1)</script>';
+      const malicious = '"><script>x</script>';
       const badge = createProseBadgeElement('mod', malicious, '#refdiff-cit-1');
       assert.strictEqual(badge.tagName, 'SUP');
       assert.strictEqual(badge.className, 'reference refdiff-ref');
@@ -41,6 +41,18 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
       assert.strictEqual(a.className, 'ref-badge-mod');
       assert.strictEqual(a.textContent, `⟨~${malicious}~⟩`);
       assert.strictEqual(badge.querySelectorAll('script').length, 0, 'No script tags should be injected');
+    });
+  });
+
+  test('createProseBadgeElement truncates long display labels while preserving full label in title attribute', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      const longLabel = "From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey";
+      const badge = createProseBadgeElement('add', longLabel, '#refdiff-cit-1');
+      assert.strictEqual(badge.tagName, 'SUP');
+      const a = badge.querySelector('a');
+      assert.strictEqual(a.className, 'ref-badge-add');
+      assert.strictEqual(a.textContent, '⟨+From teen in RSS shakha…+⟩');
+      assert.strictEqual(a.getAttribute('title'), `Added citation: ⟨+${longLabel}+⟩`);
     });
   });
 
@@ -146,6 +158,57 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
         rowId: 'refdiff-cit-oldRef-1'
       });
       assert.strictEqual(row.innerHTML.includes('<del class="diffchange diffchange-inline">&lt;ref name="oldRef" /&gt;</del>'), true, 'Entire deleted ref should be wrapped in del');
+    });
+  });
+
+  test('createCitRow mirrors native MediaWiki diff structure with diff-empty on single-sided rows', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      // 1. Added citation row: diff-empty on deleted side (left)
+      const addRow = createCitRow({
+        label: 'newRef',
+        oldRaw: '',
+        newRaw: '<ref name="newRef">content</ref>',
+        isAdd: true,
+        rowId: 'refdiff-cit-newRef-1'
+      });
+      const addCells = Array.from(addRow.children);
+      assert.strictEqual(addCells.length, 3, 'Added citation row should have 3 cells (empty colspan=2, marker, addedline)');
+      assert.strictEqual(addCells[0].className, 'diff-empty diff-side-deleted');
+      assert.strictEqual(addCells[0].getAttribute('colspan'), '2');
+      assert.strictEqual(addCells[1].className, 'diff-marker');
+      assert.strictEqual(addCells[1].getAttribute('data-marker'), '+');
+      assert.strictEqual(addCells[2].className, 'refdiff-cit-addedline diff-side-added');
+
+      // 2. Deleted citation row: diff-empty on added side (right)
+      const delRow = createCitRow({
+        label: 'oldRef',
+        oldRaw: '<ref name="oldRef">content</ref>',
+        newRaw: '',
+        isDel: true,
+        rowId: 'refdiff-cit-oldRef-1'
+      });
+      const delCells = Array.from(delRow.children);
+      assert.strictEqual(delCells.length, 3, 'Deleted citation row should have 3 cells (marker, deletedline, empty colspan=2)');
+      assert.strictEqual(delCells[0].className, 'diff-marker');
+      assert.strictEqual(delCells[0].getAttribute('data-marker'), '−');
+      assert.strictEqual(delCells[1].className, 'refdiff-cit-deletedline diff-side-deleted');
+      assert.strictEqual(delCells[2].className, 'diff-empty diff-side-added');
+      assert.strictEqual(delCells[2].getAttribute('colspan'), '2');
+
+      // 3. Modified citation row: both sides populated (4 cells)
+      const modRow = createCitRow({
+        label: 'modRef',
+        oldRaw: '<ref name="modRef">old</ref>',
+        newRaw: '<ref name="modRef">new</ref>',
+        rowId: 'refdiff-cit-modRef-1'
+      });
+      const modCells = Array.from(modRow.children);
+      assert.strictEqual(modCells.length, 4, 'Modified citation row should have 4 cells');
+      assert.strictEqual(modCells[0].getAttribute('data-marker'), '−');
+      assert.strictEqual(modCells[1].className, 'refdiff-cit-deletedline diff-side-deleted');
+      assert.strictEqual(modCells[2].getAttribute('data-marker'), '+');
+      assert.strictEqual(modCells[2].className, 'diff-marker');
+      assert.strictEqual(modCells[3].className, 'refdiff-cit-addedline diff-side-added');
     });
   });
 });

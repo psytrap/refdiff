@@ -5,7 +5,7 @@
  */
 
 const { assert, suite, test, finishStandalone } = require('./harness.js');
-const { stripHtml, normalizeDiffTags, hasBalancedDiffTags, sanitizeAnchor, escapeRegex } = require('../refdiff.js');
+const { stripHtml, normalizeDiffTags, hasBalancedDiffTags, sanitizeAnchor, escapeRegex, formatBadgeDisplayLabel } = require('../refdiff.js');
 
 suite('src/utils.js - Text Utilities & Normalization', () => {
   test('stripHtml removes all HTML tags and leaves text intact', () => {
@@ -64,6 +64,16 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
 
   test('escapeRegex escapes special regex characters', () => {
     assert.strictEqual(escapeRegex('a.b*c?d+e[f]g(h)i{j}k|l\\m^n$'), 'a\\.b\\*c\\?d\\+e\\[f\\]g\\(h\\)i\\{j\\}k\\|l\\\\m\\^n\\$', 'Special regex characters should be backslash-escaped');
+  });
+
+  test('formatBadgeDisplayLabel preserves concise labels and truncates long labels with ellipsis', () => {
+    assert.strictEqual(formatBadgeDisplayLabel('ref1'), 'ref1');
+    assert.strictEqual(formatBadgeDisplayLabel('smith2020'), 'smith2020');
+    assert.strictEqual(formatBadgeDisplayLabel('1234567890123456789012345'), '1234567890123456789012345');
+    assert.strictEqual(
+      formatBadgeDisplayLabel("From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey"),
+      'From teen in RSS shakha…'
+    );
   });
 });
 
