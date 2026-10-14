@@ -52,15 +52,15 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
-| Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
+| Step | Focus Area (Milestone) | Priority | Status | Proposed Optimization (Deliverable) |
 | :---: | :--- | :---: | :---: | :--- |
-| **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
-| **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
-| **R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
-| **R.15** | On-Wiki Tool Documentation Cleanup | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
-| **R.16** | Meta Documentation Sync / Soft Redirect | Normal | 🔮 Future | TODO: Update `m:User:Powercycler/RefDiff` (set soft redirect to en.WP lead docs or synchronize full content) |
-| **R.17** | Streamline Rollout & Version Bump Automation | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump automation, and on-wiki publishing scripts |
-| **R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
+| **Step R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
+| **Step R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
+| **Step R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
+| **Step R.15** | Doc Lead Cleanup & Polish | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
+| **Step R.16** | Meta Documentation Sync / Soft Redirect | Normal | 🔮 Future | TODO: Update `m:User:Powercycler/RefDiff` (set soft redirect to en.WP lead docs or synchronize full content) |
+| **Step R.17** | Rollout CLI & Version Bump Automation | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump automation, and on-wiki publishing scripts (`npm run rollout`) |
+| **Step R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -96,12 +96,16 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Track active pilot adoption via `Special:WhatLinksHere/User:Powercycler/Userbox_RefDiff` until reaching $\ge 10$ active patrollers on English Wikipedia.
   * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
 - [ ] **Step R.14: Better Userbox Design & Usability (Tier 1 — Normal)**
+  * **Focus Area:** Better Userbox Design
+  * **Proposed Optimization:** Refine badge styling for Vector 2022 light/dark tokens, add subtle customization parameters, and preserve zero-redlink operation.
   * **TODO:** Design and deploy an improved, polished userbox for RefDiff adopters:
     1. **Visual Aesthetics:** Refine badge styling (e.g. high-resolution vector/SVG badge, dark mode compatibility matching Vector 2022 color tokens).
     2. **Customization & Simplicity:** Offer optional customizable parameters (custom badge, colors, custom text) while preserving a clean, zero-friction default invocation without redlink categories.
     3. **Category Infrastructure:** Optionally establish an official tracking category (e.g. `Category:Wikipedians who use RefDiff`) once adoption warrants it, or maintain category-free operation to prevent redlink clutter on user pages.
     4. **Stack & Babel Compatibility:** Verify clean alignment inside userbox stacks (`{{Userboxtop}}`), Babel boxes, and mobile user page layouts.
 - [ ] **Step R.15: On-Wiki Tool Documentation Cleanup & Polish (Tier 1 — Normal)**
+  * **Focus Area:** Doc Lead Cleanup
+  * **Proposed Optimization:** Update `refdiff.wiki` / `en:User:Powercycler/RefDiff` to reference `{{User:Powercycler/Userbox RefDiff}}`, eliminate redlinks, and update test coverage to 121 tests.
   * **TODO:** Audit and clean up on-wiki documentation lead (`refdiff.wiki` and deployed `en:User:Powercycler/RefDiff`):
     1. **Userbox Transclusion Parity:** Update transclusion examples and documentation links from legacy `User:Powercycler/User RefDiff` to canonical `{{User:Powercycler/Userbox RefDiff}}`. Align the documented parameters with the deployed user space template.
     2. **Redlink & Link Pruning:** Prune non-existent tracking categories or redlinks across documentation sections, ensuring all showcased links and subpage pointers resolve cleanly on English Wikipedia and Meta-Wiki.
@@ -109,17 +113,23 @@ This log records the rationale, architectural decisions, completed milestones, a
     4. **Feature & Troubleshooting Guidance:** Review visual diff activation troubleshooting, keyboard shortcuts, and configuration options (`window.refdiffConfig`) to ensure clear, friction-free onboarding for early adopters.
     5. **On-Wiki Parity:** Re-sync local `refdiff.wiki` and remote `en:User:Powercycler/RefDiff` to maintain 100% byte-for-byte deployment parity.
 - [ ] **Step R.16: Meta-Wiki Documentation Soft Redirect & Cross-Wiki Parity (Tier 1 — Normal)**
+  * **Focus Area:** Meta Documentation Sync
+  * **Proposed Optimization:** Replace outdated wikitext on `m:User:Powercycler/RefDiff` with a clean cross-wiki soft redirect pointing to `en:User:Powercycler/RefDiff`.
   * **TODO:** Resolve missing/outdated documentation lead on Meta-Wiki (`m:User:Powercycler/RefDiff`):
     1. **Soft Redirect vs Full Parity:** Either implement a clean soft redirect pointing to authoritative documentation on English Wikipedia (`en:User:Powercycler/RefDiff`) per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1, or mirror the updated v1.4.3 documentation lead.
     2. **Showcase Integration:** Ensure seamless cross-wiki navigation between the Meta-Wiki Showcase (`m:User:Powercycler/RefDiff/Show_case`), the canonical code lead (`m:User:Powercycler/refdiff.js`), and the English Wikipedia documentation lead.
     3. **Auditor Synchronization:** Verify that `npm run check:deploy` reports `m:User:Powercycler/RefDiff` in full sync with the designated cross-wiki redirect or mirrored lead.
 - [ ] **Step R.17: Streamline Rollout Protocol & Version Bump Automation (Tier 1 — Normal)**
+  * **Focus Area:** Rollout CLI & Version Automation
+  * **Proposed Optimization:** Create an integrated runner (`npm run rollout`) that sequences pre-flight checks, stages on-wiki clipboard payloads, manages git tags automatically, and prompts for post-shipment minor bumps.
   * **TODO:** Streamline the release rollout workflow and version bump automation:
     1. **Unified Rollout CLI (`npm run rollout`):** Create an interactive or guided CLI runner orchestrating pre-flight verification (`npm run lint`, `npm test`, `test_deployment.js`, `npm run capture`), git release tagging, and live deployment auditing.
     2. **Version Bump Automation:** Streamline `scripts/bump_version.js` to cleanly support the two-phase cadence (pre-flight patch bump vs post-shipment minor bump), automatic git tag movement, and manifest synchronization without manual tag drift.
     3. **Payload Generation & Staging:** Automate clipboard or staging file generation for on-wiki update targets (Meta script lead, en.WP SHA pointer snippet, doc lead wikitext, userbox wikitext), accounting for MediaWiki textarea newline-stripping behavior.
     4. **Post-Shipment Finalization:** Provide a 1-step post-shipment command that runs `check_live_deployment.js`, verifies 100% sync, prompts for minor version bump, and prepares the next development iteration.
 - [ ] **Step R.18: Automated Showcase Test in Rollout Protocol (Tier 1 — Normal)**
+  * **Focus Area:** Automated Showcase Test
+  * **Proposed Optimization:** Add `m:User:Powercycler/RefDiff/Show_case` as target #7 in `check_live_deployment.js` and include a live CDP smoke test verifying all 5 showcase change sections.
   * **TODO:** Integrate formal showcase diff verification into the rollout protocol and deployment auditor:
     1. **Leverage Canonical Test Fixtures:** Reconcile on-wiki showcase diff `m:User:Powercycler/RefDiff/Show_case` (`diff=31142550&oldid=31142549`) with its canonical local wikitext sources in [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki).
     2. **Auditor Target Integration (`scripts/check_live_deployment.js`):** Add the Showcase diff page to `check_live_deployment.js` to automatically verify remote page availability, revision IDs (`31142550` vs `31142549`), and diff API health during post-shipment verification.
