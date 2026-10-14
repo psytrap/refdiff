@@ -116,12 +116,23 @@ To ensure tests remain resilient, diagnostic, and maintainable, RefDiff enforces
 
 ---
 
-### 2.7 10-User Adoption & Stability Policy
+### 2.7 Adoption & Scaling Policy: 10-User Gate to 100-User Gadget Scale
 
-To govern the transition from local canary release to gadget proposal:
-1. **Adoption Threshold:** Active transclusions monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching $\ge 10$ active patrollers.
+To govern the transition from canary release to broad community gadget candidacy, RefDiff enforces a phased two-tier stability model:
+
+#### Tier 1: 10-User Early Adopter Gate (Immediate Post-v1.3.0 Release)
+1. **Adoption Threshold:** Active transclusions monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching $\ge 10$ active patrollers on English Wikipedia.
 2. **Defect Threshold:** Zero uncaught runtime errors (P0) and zero unhandled table corruptions across real Wikipedia diff reviews.
 3. **Fail-Open Invariant:** Uncaught exceptions in any auxiliary component must cleanly restore the native diff view without impacting reviewer workflows or common.js tools (Twinkle, HotCat).
+4. **Direct Qualitative Feedback:** Operational feedback and edge-case diff submissions triaged directly on `en:User talk:Powercycler/RefDiff`.
+
+#### Tier 2: 100-User Community Gadget Scale (Gadget Proposal Prerequisite)
+1. **Critical Mass Threshold:** ~50–100+ active NPP/RC reviewers sustained over $\ge 60$ days with 0 critical regressions.
+2. **Ecosystem Non-Interference:** Formal automated test assertions verifying zero disruption to diff headers, revision metadata, and third-party buttons (Twinkle, HotCat, diffedit).
+3. **Dynamic SPA Re-Entrancy:** Safe re-initialization on sequential `wikipage.diff` Ajax table swaps without Memento memory leaks.
+4. **Accessibility Compliance:** WCAG 2.1 AA keyboard focusability, screen reader semantics (`aria-label`), and contrast validation.
+5. **Multi-Skin Fallback:** Verified support across Vector 2022, Vector 2010, Monobook, and graceful auto-disablement on single-column mobile viewports (`MinervaNeue`).
+6. **Community Consensus:** Formal RFC proposal on `Wikipedia:Village pump (technical)` and definition in `MediaWiki:Gadgets-definition`.
 
 ---
 

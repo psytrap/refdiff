@@ -26,7 +26,21 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ### 2.1 RefDiff Tool Roadmap (Active In-Browser Gadget)
 
-*Focus: Immediate client-side diff enhancement on `Special:Diff`, 10-user adoption goal, patrol tool non-interference, and on-wiki rollout.*
+*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from 10-user early adoption to 100-user gadget candidacy, patrol tool non-interference, and on-wiki rollout.*
+
+#### Scaling Progression Overview: 10-User Goal vs. 100-User Scale
+
+| Dimension | Tier 1: 10-User Adoption Goal (Early Adopter Gate) | Tier 2: 100-User Scale (Community Gadget Candidacy) |
+| :--- | :--- | :--- |
+| **Objective** | Validate real-world value with early adopters on en.WP | Qualify for official English Wikipedia Gadget status |
+| **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | ~50–100+ active NPP/RC reviewers over 60 days |
+| **Distribution** | Personal user script in `common.js` / `global.js` | Built-in MediaWiki Gadget in `Special:Preferences` |
+| **Crash Blast Radius** | Fail-open `try...catch` boundary (reverts to native diff) | Zero blast radius across diverse multi-script ecosystems |
+| **Tool Compatibility** | Non-interference verified on standard diff headers | Formal automated contract tests (Twinkle, HotCat, etc.) |
+| **DOM Lifecycle** | Synchronous diff rendering via `wikipage.diff` hook | Full AJAX/SPA re-entrancy without Memento leaks |
+| **Skins & Viewports** | Primary focus on Vector 2022 desktop | Vector 2022, Vector 2010, Monobook, Minerva auto-disable |
+| **Accessibility** | Semantic HTML, high-contrast angle-bracket badges | Full WCAG 2.1 AA, keyboard focusability, ARIA labels |
+| **Feedback Channel** | Scoped strictly to `en:User talk:Powercycler/RefDiff` | Community RFC on `Wikipedia:Village pump (technical)` |
 
 #### RefDiff Checklist & Status Dashboard
 
@@ -36,17 +50,22 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Canary next) |
 
-##### Optional / Future Enhancements (Post-v1.3.0 / 10-User Goal)
+##### Tier 1: 10-User Adoption & Early Stability (Post-v1.3.0)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
-| **R.1** | Fail-Open Crash Boundary | Optional | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
-| **R.2** | Dynamic AJAX / SPA Re-entrancy | Optional | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
-| **R.3** | Patrol Tool Non-Interference Contract | Optional | 🔮 Future | Byte-for-byte protection of diff headers & Twinkle/HotCat nodes |
-| **R.4** | Client-Side Observability Mode | Optional | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
-| **R.5** | Accessibility (WCAG 2.1 AA) | Optional | 🔮 Future | Semantic `aria-label`, keyboard focus navigation, contrast ratio validation |
-| **R.6** | Legacy Skins & Mobile Guard | Optional | 🔮 Future | Vector 2010 fallback bar & graceful Minerva mobile auto-disable |
-| **R.7** | Production Governance Policy | Optional | 🔮 Future | Formalize 10-user adoption & stability policy in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7 |
+| **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
+| **R.7** | 10-User Governance & Stability Check | Normal | 🔮 Future | Track $\ge 10$ transclusions via `Template:User RefDiff` & 0 P0 defects |
+
+##### Tier 2: 100-User Production Hardening & Gadget Candidacy (Post-10-User Validation)
+
+| Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
+| :---: | :--- | :---: | :---: | :--- |
+| **R.2** | Dynamic AJAX / SPA Re-entrancy | High | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
+| **R.3** | Patrol Tool Non-Interference Contract | High | 🔮 Future | Byte-for-byte protection of diff headers & Twinkle/HotCat nodes |
+| **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
+| **R.5** | Accessibility (WCAG 2.1 AA) | High | 🔮 Future | Semantic `aria-label`, keyboard focus navigation, contrast ratio validation |
+| **R.6** | Legacy Skins & Mobile Guard | Normal | 🔮 Future | Vector 2010 fallback bar & graceful Minerva mobile auto-disable |
 
 #### RefDiff Action Items (Detail)
 
@@ -54,28 +73,31 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
   * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Pinned Canary `refdiff-v1.3.0.js` on en.WP), Ring 2 (Production publish to `en:User:Powercycler/refdiff.js`), and Ring 3 (Community feedback).
 
-##### Optional / Future Action Items (Post-v1.3.0 / 10-User Goal)
-- [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Optional / Future)**
+##### Tier 1 Action Items: 10-User Early Adopter Goal
+- [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
   * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
   * Guarantee that unhandled runtime exceptions in RefDiff cleanly restore the native diff table and never bubble to `window.onerror` or abort subsequent scripts in `common.js` (e.g. Twinkle, HotCat).
-- [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Optional / Future)**
+- [ ] **Step R.7: 10-User Governance & Stability Check (Tier 1 — Operational)**
+  * Monitor adoption via `Special:WhatLinksHere/Template:User_RefDiff` until reaching $\ge 10$ active patrollers.
+  * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
+
+##### Tier 2 Action Items: 100-User Production Hardening & Gadget Scale
+- [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
   * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
   * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
-- [ ] **Step R.3: Core Patrol Tool Non-Interference Contract (Optional / Future)**
+- [ ] **Step R.3: Core Patrol Tool Non-Interference Contract (Tier 2 — High)**
   * Add automated assertions verifying that RefDiff mutations are strictly confined to `tbody > tr.diff-deletedline`, `tr.diff-addedline`, and `tr.refdiff-cit-row`.
   * Guarantee that header nodes (`tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, `.diff-notice`, `.diff-multi`) and third-party buttons (Twinkle rollback/vandalism links) remain 100% byte-for-byte untouched.
-- [ ] **Step R.4: Client-Side Observability & Diagnostic Troubleshooting Mode (Optional / Future)**
+- [ ] **Step R.4: Client-Side Observability & Diagnostic Troubleshooting Mode (Tier 2 — Normal)**
   * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
   * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
-- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Optional / Future)**
+- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 2 — High)**
   * Add semantic `aria-label` attributes to inline badges (e.g. `aria-label="Citation 1"`, `aria-label="Modified citation: name"`).
   * Ensure keyboard focusability (`tabindex="0"`) and <kbd>Enter</kbd>/<kbd>Space</kbd> keydown navigation from prose badge to citation diff row.
   * Verify color contrast ratios for amber (`#9a6700`) and green (`#14866d`) badges satisfy WCAG 2.1 AA (4.5:1) in Vector 2022 Light and Dark themes.
-- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (Optional / Future)**
+- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (Tier 2 — Normal)**
   * Add automated JSDOM test for legacy skins lacking OOUI button containers, verifying fallback mode bar (`#refdiff-mode-bar`) mounting.
   * Add graceful self-disablement invariant for single-column mobile viewports (`MinervaNeue`).
-- [ ] **Step R.7: Governance Policy in AUDIT_STRATEGY.md (Optional / Future)**
-  * Formalize these requirements in `AUDIT_STRATEGY.md` under §2.7 ("10-User Adoption & Stability Policy").
 
 ---
 
