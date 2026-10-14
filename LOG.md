@@ -1226,7 +1226,7 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Context & Architectural Decisions:**
   * Re-architected on-wiki cross-project distribution pipeline based on clear role separation across Wikimedia projects:
     1. **Script Lead (`m:User:Powercycler/refdiff.js`):** Meta-Wiki hosts the authoritative, unminified UserScript codebase (`refdiff.js`) to provide cross-wiki availability across all Wikimedia wikis.
-    2. **SHA Pointer (`en:User:Powercycler/refdiff.js`):** English Wikipedia hosts the immutable, release-pinned loader forwarding to Meta-Wiki with target release SHA-1 metadata (`597d52d9...`).
+    2. **SHA Pointer (`en:User:Powercycler/refdiff.js`):** English Wikipedia hosts the immutable, release-pinned loader forwarding to Meta-Wiki with target release SHA-1 metadata (`c47b31ff...`).
     3. **Documentation Lead (`en:User:Powercycler/RefDiff`):** English Wikipedia leads the authoritative project documentation (published from `refdiff.wiki`), while Meta-Wiki (`m:User:Powercycler/RefDiff`) is maintained as a soft redirect.
     4. **Early Testing Harness (`en:User:Powercycler/common.js`):** During deployment stages, maintainers smoke-test newly published Meta builds in personal `common.js` before upreving the en.WP SHA pointer. No separate canary page is needed.
 * **Streamlined Rollout Deployment Sequence:**

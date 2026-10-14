@@ -56,7 +56,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 ### Ring 2: Early Testing on en.WP & SHA Pointer Uprev (No Canary Needed)
 During deployment stages, no canary needed: we early test via `en:User:Powercycler/common.js` and only uprev the SHA pointer in `en:User:Powercycler/refdiff.js` once verified:
 1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify 5 live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
-2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA-1 pointer (`597d52d9...`).
+2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA-1 pointer (`c47b31ff...`).
 3. **Lead Docs (en.WP):** Publish [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (lead documentation).
 4. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
 5. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
