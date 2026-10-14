@@ -44,7 +44,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 #### RefDiff Checklist & Status Dashboard
 
-##### Active Release (v1.4.3)
+##### Shipped Release: v1.4.3 | Active Development: v1.5.0
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
@@ -1627,16 +1627,22 @@ This register serves as the authoritative system of record for all real-world Wi
     3. **Cross-Wiki Link Integrity:** Ensure showcase diff links in documentation leads (`en:User:Powercycler/RefDiff`) resolve seamlessly.
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.18).
+
+---
+
+### 2026-10-14: Executed Post-Shipment Feature Bump to v1.5.0
+
+* **Context & Execution:**
+  * Following successful live deployment and 100% synchronization of release `v1.4.3` across all Wikimedia endpoints (Meta script lead, en.WP SHA pointer, lead documentation, userbox), executed the post-shipment feature uprev per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§3 Ring 3 & §5 Deployment Runbook Checklist).
+  * Ran `node scripts/bump_version.js minor` to advance version from `1.4.3` to `1.5.0`.
+  * Synchronized manifests and headers across repository artifacts:
+    1. [`package.json`](package.json): version bumped to `1.5.0`.
+    2. [`package-lock.json`](package-lock.json): root and lockfile versions bumped to `1.5.0`.
+    3. [`refdiff.js`](refdiff.js): UserScript metadata header updated to `@version 1.5.0`.
+    4. [`refdiff.wiki`](refdiff.wiki): Infobox metadata updated to `| version = 1.5.0` and `| status = Stable (v1.5.0)`.
+* **Verification & Quality Gates:**
+  * Ran full automated test suite (`npm test && node tests/test_deployment.js`): 121/121 unit, integration, benchmark, and JSDOM DOM tests passed.
+  * Verified all 10 release deployment pre-flight checks passed (version synchronization, packaging, zero console pollution, bundle size budget).
+  * Code hygiene check: `npm run lint` passed with 0 ESLint errors and 0 warnings.
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
-
-
-
-
-
-
-
-
-
-
-
 

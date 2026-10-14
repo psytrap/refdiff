@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         RefDiff
 // @namespace    https://github.com/m-k/einzelnachweise
-// @version      1.4.3
+// @version      1.5.0
 // @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
 // @author       RefDiff Contributors
 // @match        https://*.wikipedia.org/*diff=*

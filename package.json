@@ -1,6 +1,6 @@
 {
   "name": "refdiff",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "description": "Zero-loss citation decoupling gadget and diff driver for Wikipedia / MediaWiki Special:Diff",
   "main": "refdiff.js",
   "scripts": {

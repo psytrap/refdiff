@@ -2,8 +2,8 @@
 | name        = RefDiff
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
 | author      = [[User:Powercycler|Powercycler]]
-| status      = Stable (v1.4.3) &bull; [[#Quality Assurance & Automated Testing|115/115 passing (100% coverage)]]
-| version     = 1.4.3
+| status      = Stable (v1.5.0) &bull; [[#Quality Assurance & Automated Testing|115/115 passing (100% coverage)]]
+| version     = 1.5.0
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
 | browsers    = Chromium, Firefox, Safari, Edge
