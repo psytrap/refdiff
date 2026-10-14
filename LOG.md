@@ -50,15 +50,18 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **R.8** | On-Wiki Phased Rollout (Rings 0–3) | **P0** | ✅ **Completed** | Rollout verified 100% synchronized across Meta-Wiki and en.WP (`npm run check:deploy`) |
 
+##### Immediate Pre-Pilot Priority (P0 — Higher than Tier 1)
+
+| Step | Focus Area (Milestone) | Priority | Status | Proposed Optimization (Deliverable) |
+| :---: | :--- | :---: | :---: | :--- |
+| **Step R.15** | On-Wiki Documentation, Meta Redirect & Userbox Polish | **P0** | 🔮 Future | TODO: Polish on-wiki documentation (en.WP doc lead `refdiff.wiki` & `en:User:Powercycler/RefDiff`, Meta soft redirect `m:User:Powercycler/RefDiff`, and userbox `User:Powercycler/Userbox RefDiff`): add beta notice banner (`{{Caution}}`), set infobox `status = Beta`, fix userbox transclusion syntax, prune redlinks, sync 121 tests, and refine userbox design |
+
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
 | Step | Focus Area (Milestone) | Priority | Status | Proposed Optimization (Deliverable) |
 | :---: | :--- | :---: | :---: | :--- |
 | **Step R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
 | **Step R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
-| **Step R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
-| **Step R.15** | Doc Lead Cleanup & Polish | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
-| **Step R.16** | Meta Documentation Sync / Soft Redirect | Normal | 🔮 Future | TODO: Update `m:User:Powercycler/RefDiff` (set soft redirect to en.WP lead docs or synchronize full content) |
 | **Step R.17** | Streamline Rollout & Version Bump Process | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump cadence, and deployment checklist (simplify, do not over-automate) |
 | **Step R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
 
@@ -88,6 +91,17 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [x] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
   * Executed [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) through Ring 0 (cleared), Ring 1 (Meta script lead updated), Ring 2 (Early testing verified on en.WP, SHA pointer published, lead docs published, user space userbox published), and verified 100% synchronized via `npm run check:deploy`.
 
+##### Immediate Pre-Pilot Action Item (P0 — Higher than Tier 1)
+- [ ] **Step R.15: On-Wiki Documentation, Meta Soft Redirect & Userbox Polish (P0 — Immediate Pre-Pilot)**
+  * **Focus Area:** Comprehensive On-Wiki Documentation Polish
+  * **Proposed Optimization:** Polish live on-wiki documentation lead (`refdiff.wiki` & `en:User:Powercycler/RefDiff`), Meta-Wiki documentation redirect (`m:User:Powercycler/RefDiff`), and userbox template (`userbox_enwiki.wiki` & `en:User:Powercycler/Userbox RefDiff`) as an immediate P0 pre-condition before expanding the pilot: add beta notice banner (`{{Caution}}`), set infobox `status = Beta`, fix userbox transclusion syntax, prune redlinks, sync test coverage metrics to 121, configure Meta soft redirect, and refine dark-mode userbox styling.
+  * **TODO:** Audit, clean up, and polish all on-wiki documentation, redirects, and userbox:
+    1. **Beta Notice Banner & Status:** Add standard Wikipedia beta notice (`{{Caution}}` banner at top of doc page) and set `| status = Beta` in `{{Infobox user script}}` to clearly alert reviewers that RefDiff is undergoing active pilot testing.
+    2. **English Wikipedia Documentation Lead Polish (`refdiff.wiki` & `en:User:Powercycler/RefDiff`):** Prune non-existent tracking categories or redlinks across documentation sections, update userbox transclusion examples to canonical `{{User:Powercycler/Userbox RefDiff}}`, and update test suite figures (121 tests passing across 15 modular suites).
+    3. **Meta-Wiki Documentation Soft Redirect (`m:User:Powercycler/RefDiff`):** Replace outdated standalone wikitext with a clean cross-wiki soft redirect pointing to `en:User:Powercycler/RefDiff` per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1, aligning showcase diff links (`m:User:Powercycler/RefDiff/Show_case`) and script lead pointers (`m:User:Powercycler/refdiff.js`).
+    4. **Userbox Design & Usability (formerly Step R.14):** Refine badge styling for Vector 2022 light/dark theme tokens, offer clean customization parameters, ensure category-free zero-redlink operation, and verify alignment inside `{{Userboxtop}}` stacks.
+    5. **On-Wiki Parity & Auditor Sync:** Re-sync local files (`refdiff.wiki`, `userbox_enwiki.wiki`) with on-wiki pages and verify `node scripts/check_live_deployment.js` reports 100% synchronization across all endpoints.
+
 ##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
   * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
@@ -95,30 +109,6 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.7: Pilot Cohort Validation & Stability (Tier 1 — Operational)**
   * Track active pilot adoption via `Special:WhatLinksHere/User:Powercycler/Userbox_RefDiff` until reaching $\ge 10$ active patrollers on English Wikipedia.
   * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
-- [ ] **Step R.14: Better Userbox Design & Usability (Tier 1 — Normal)**
-  * **Focus Area:** Better Userbox Design
-  * **Proposed Optimization:** Refine badge styling for Vector 2022 light/dark tokens, add subtle customization parameters, and preserve zero-redlink operation.
-  * **TODO:** Design and deploy an improved, polished userbox for RefDiff adopters:
-    1. **Visual Aesthetics:** Refine badge styling (e.g. high-resolution vector/SVG badge, dark mode compatibility matching Vector 2022 color tokens).
-    2. **Customization & Simplicity:** Offer optional customizable parameters (custom badge, colors, custom text) while preserving a clean, zero-friction default invocation without redlink categories.
-    3. **Category Infrastructure:** Optionally establish an official tracking category (e.g. `Category:Wikipedians who use RefDiff`) once adoption warrants it, or maintain category-free operation to prevent redlink clutter on user pages.
-    4. **Stack & Babel Compatibility:** Verify clean alignment inside userbox stacks (`{{Userboxtop}}`), Babel boxes, and mobile user page layouts.
-- [ ] **Step R.15: On-Wiki Tool Documentation Cleanup & Polish (Tier 1 — Normal)**
-  * **Focus Area:** Doc Lead Cleanup
-  * **Proposed Optimization:** Update `refdiff.wiki` / `en:User:Powercycler/RefDiff` to reference `{{User:Powercycler/Userbox RefDiff}}`, eliminate redlinks, and update test coverage to 121 tests.
-  * **TODO:** Audit and clean up on-wiki documentation lead (`refdiff.wiki` and deployed `en:User:Powercycler/RefDiff`):
-    1. **Userbox Transclusion Parity:** Update transclusion examples and documentation links from legacy `User:Powercycler/User RefDiff` to canonical `{{User:Powercycler/Userbox RefDiff}}`. Align the documented parameters with the deployed user space template.
-    2. **Redlink & Link Pruning:** Prune non-existent tracking categories or redlinks across documentation sections, ensuring all showcased links and subpage pointers resolve cleanly on English Wikipedia and Meta-Wiki.
-    3. **Metrics & Test Coverage Synchronization:** Update test counts and coverage statistics in the infobox and QA section to reflect the current test suite (121 tests passing across 15 modular suites).
-    4. **Feature & Troubleshooting Guidance:** Review visual diff activation troubleshooting, keyboard shortcuts, and configuration options (`window.refdiffConfig`) to ensure clear, friction-free onboarding for early adopters.
-    5. **On-Wiki Parity:** Re-sync local `refdiff.wiki` and remote `en:User:Powercycler/RefDiff` to maintain 100% byte-for-byte deployment parity.
-- [ ] **Step R.16: Meta-Wiki Documentation Soft Redirect & Cross-Wiki Parity (Tier 1 — Normal)**
-  * **Focus Area:** Meta Documentation Sync
-  * **Proposed Optimization:** Replace outdated wikitext on `m:User:Powercycler/RefDiff` with a clean cross-wiki soft redirect pointing to `en:User:Powercycler/RefDiff`.
-  * **TODO:** Resolve missing/outdated documentation lead on Meta-Wiki (`m:User:Powercycler/RefDiff`):
-    1. **Soft Redirect vs Full Parity:** Either implement a clean soft redirect pointing to authoritative documentation on English Wikipedia (`en:User:Powercycler/RefDiff`) per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1, or mirror the updated v1.4.3 documentation lead.
-    2. **Showcase Integration:** Ensure seamless cross-wiki navigation between the Meta-Wiki Showcase (`m:User:Powercycler/RefDiff/Show_case`), the canonical code lead (`m:User:Powercycler/refdiff.js`), and the English Wikipedia documentation lead.
-    3. **Auditor Synchronization:** Verify that `npm run check:deploy` reports `m:User:Powercycler/RefDiff` in full sync with the designated cross-wiki redirect or mirrored lead.
 - [ ] **Step R.17: Streamline Rollout Protocol & Version Bump Process (Tier 1 — Normal)**
   * **Focus Area:** Streamline Rollout & Version Bump
   * **Proposed Optimization:** Simplify and streamline the rollout runbook and version bump workflow—focusing on clarity, reduced friction, and painless manual execution without over-engineering complex runners or automation.
@@ -1567,7 +1557,7 @@ This register serves as the authoritative system of record for all real-world Wi
 
 ---
 
-### 2026-10-14: Tracked TODO for Better Userbox Design & Usability
+### 2026-10-14: Tracked TODO for Better Userbox Design & Usability (Consolidated into Step R.15)
 
 * **Context & Issue Description:**
   * Recorded a formal tracking item and TODO for improving the RefDiff userbox (`User:Powercycler/Userbox RefDiff`).
@@ -1577,37 +1567,37 @@ This register serves as the authoritative system of record for all real-world Wi
     3. **Category Governance:** Setting up proper tracking categories or maintaining clean category-free transclusion.
     4. **Stack & Babel Integration:** Seamless layout in `{{Userboxtop}}` and multi-userbox columns.
 * **Artifacts Synchronized:**
-  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.14).
+  * Consolidated into [`LOG.md`](LOG.md) Immediate P0 Action Item Step R.15 (part of doc cleanup).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
 
 ---
 
-### 2026-10-14: Tracked TODO for On-Wiki Tool Documentation Cleanup & Polish
+### 2026-10-14: Tracked TODO for On-Wiki Tool Documentation, Meta Redirect & Userbox Polish (Step R.15 — P0)
 
 * **Context & Issue Description:**
-  * Recorded a formal tracking item and TODO (Step R.15) for auditing, polishing, and synchronizing on-wiki tool documentation (`refdiff.wiki` and `en:User:Powercycler/RefDiff`).
-  * Following the v1.4.3 release and userbox relocation to user space (`User:Powercycler/Userbox RefDiff`), the documentation lead requires maintenance:
-    1. **Userbox Transclusion & Parameter Parity:** Align references from legacy `User:Powercycler/User RefDiff` to canonical `User:Powercycler/Userbox RefDiff`, removing obsolete parameter documentation that no longer matches the simplified user space template.
-    2. **Link Verification & Redlink Elimination:** Ensure all wiki links, category references, and showcase anchors resolve cleanly without dead links or red categories.
-    3. **Test Metrics & QA Synchronization:** Update test suite figures (121 tests passing across 15 test suites) in the infobox and QA sections.
-    4. **On-Wiki Parity:** Re-sync local `refdiff.wiki` with `en:User:Powercycler/RefDiff` via deployment audit tools.
+  * Recorded a formal tracking item and TODO (Step R.15) elevated to **P0 (Immediate Pre-Pilot Priority — higher than Tier 1)** for comprehensive on-wiki documentation polish across English Wikipedia and Meta-Wiki:
+    1. **Beta Notice Banner & Status:** Add standard Wikipedia beta notice (`{{Caution}}` banner at top of doc page) and set `| status = Beta` in `{{Infobox user script}}` to clearly alert reviewers that RefDiff is undergoing active pilot testing.
+    2. **Userbox Transclusion & Parameter Parity:** Align references from legacy `User:Powercycler/User RefDiff` to canonical `User:Powercycler/Userbox RefDiff`, removing obsolete parameter documentation that no longer matches the simplified user space template.
+    3. **Link Verification & Redlink Elimination:** Ensure all wiki links, category references, and showcase anchors resolve cleanly without dead links or red categories.
+    4. **Test Metrics & QA Synchronization:** Update test suite figures (121 tests passing across 15 test suites) in the infobox and QA sections.
+    5. **On-Wiki Parity:** Re-sync local `refdiff.wiki` with `en:User:Powercycler/RefDiff` via deployment audit tools.
 * **Artifacts Synchronized:**
-  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.15).
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.15 as Immediate P0).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
 
 ---
 
-### 2026-10-14: Tracked TODO for Meta-Wiki Documentation Soft Redirect & Cross-Wiki Parity
+### 2026-10-14: Tracked TODO for Meta-Wiki Documentation Soft Redirect (Consolidated into Step R.15)
 
 * **Context & Issue Description:**
-  * Recorded a formal tracking item and TODO (Step R.16) for resolving outdated/missing documentation on Meta-Wiki (`m:User:Powercycler/RefDiff`).
+  * Recorded a formal tracking item and TODO for resolving outdated/missing documentation on Meta-Wiki (`m:User:Powercycler/RefDiff`).
   * While English Wikipedia hosts the authoritative, publication-ready documentation lead (`en:User:Powercycler/RefDiff`, 29.2 KB), `m:User:Powercycler/RefDiff` currently retains legacy standalone wikitext from earlier development (Rev 31144013, 14.1 KB).
-  * Action items to address:
+  * Action items to address (as part of the P0 doc update Step R.15):
     1. **Establish Canonical Soft Redirect or Synchronized Mirror:** Deploy a clean cross-wiki soft redirect template (e.g. `{{Soft redirect|en:User:Powercycler/RefDiff}}` or prominent banner) directing Meta-Wiki visitors to the authoritative English Wikipedia documentation lead, or mirror the complete v1.4.3 documentation.
     2. **Interwiki Link Alignment:** Harmonize cross-wiki links between `m:User:Powercycler/RefDiff/Show_case`, `m:User:Powercycler/refdiff.js`, and `en:User:Powercycler/RefDiff`.
     3. **Auditor Target Verification:** Confirm `scripts/check_live_deployment.js` recognizes the updated redirect or mirrored page state cleanly.
 * **Artifacts Synchronized:**
-  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.16).
+  * Consolidated into [`LOG.md`](LOG.md) Immediate P0 Action Item Step R.15 (part of doc update).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
 
 ---
