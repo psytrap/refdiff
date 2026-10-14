@@ -25,10 +25,12 @@
 
 All checks must pass before release:
 ```bash
+git diff --stat && git diff                   # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
 npm run ci && node tests/test_deployment.js  # Headless unit, real DOM & pre-flight (115 tests, 10 gates)
 npm run test:live                           # Level 4: Live browser CDP integration (port 9222)
 npm run check:deploy                        # Live on-wiki deployment audit across Wikimedia APIs
 ```
+- **Diff Review Hygiene:** Zero debris, no uncommitted changes, concise hunks (`git diff --stat && git diff`).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
 - **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
 - **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync (`1.3.0`), size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
@@ -42,12 +44,12 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 ## 3. Rollout Rings
 
 ### Ring 0: Local Verification (Cleared)
-- Clean working tree, version `1.3.0` synchronized, all pre-flight gates passing.
+- Clean working tree, version `1.3.0` synchronized, `git diff` quick review cleared (zero debris).
 - Level 2–4 verified: JSDOM fixtures, sub-50ms benchmarks, and live Chromium CDP suite.
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
 ### Ring 1: Pinned Commit Canary
-- Publish `refdiff.js` to `en:User:Powercycler/refdiff-v1.3.0.js` and verify with `npm run check:deploy`.
+- Publish `refdiff.js` to `en:User:Powercycler/refdiff-v1.3.0.js` (review on-wiki diff preview) and verify with `npm run check:deploy`.
 - Test on 5 live benchmark diffs:
   1. `Bihar Legislative Assembly` (diff=1379207737) — apostrophe in attrs, underscore footnote anchors.
   2. `Odoacer` (diff=1379486498) — shortened footnotes (`{{sfn}}`) author-year badges, Popups preview.
@@ -56,7 +58,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
   5. `Donnie Brasco` (diff=1380017400) — unclosed quote in attributes handled safely.
 
 ### Ring 2: Production Publishing
-1. **Lead Script (en.WP):** Copy [`refdiff.js`](refdiff.js) to `en:User:Powercycler/refdiff.js` (canonical production release).
+1. **Lead Script (en.WP):** Copy [`refdiff.js`](refdiff.js) to `en:User:Powercycler/refdiff.js` (review on-wiki diff preview before saving).
 2. **Meta Loader (Dummy):** Set `m:User:Powercycler/refdiff.js` to 1-line loader forwarding to en.WP (`mw.loader.load('//en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');`).
 3. **Lead Docs (en.WP):** Copy [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (primary documentation).
 4. **Meta Docs (Dummy):** Set `m:User:Powercycler/RefDiff` as a soft redirect pointing to `en:User:Powercycler/RefDiff`.
@@ -84,7 +86,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
+- [ ] **Pre-Flight:** Quick diff review (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
 - [ ] **Canary Verification:** Publish `refdiff-v1.3.0.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (canonical production release).
