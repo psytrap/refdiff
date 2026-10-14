@@ -1005,5 +1005,12 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Metrics & Ledger Synchronization:**
   * Pre-flight deployment gates expanded from 8 to **9 automated checks** (`node tests/test_deployment.js`).
   * Test suite expanded from 113 to **114/114 passing tests** across 15 modular test files (0 ESLint warnings, ~250ms).
-  * Synchronized [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2, §4, §5), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`README.md`](README.md), and [`refdiff.wiki`](refdiff.wiki).
+---
 
+### 2026-10-14: Deferred Meta Userbox Deployment (`DEPLOYMENT_PLAN.md`)
+
+* **Context & Decision:**
+  * In `DEPLOYMENT_PLAN.md`, deferred creation of `m:User:Powercycler/User RefDiff` (Meta Userbox from `userbox.wiki`) for the initial release.
+  * Streamlined deployment artifacts to focus userbox transclusion strictly on English Wikipedia (`en:Template:User RefDiff` via `userbox_enwiki.wiki`), reducing coordination overhead across wikis while keeping core global UserScript hosting on Meta (`m:User:Powercycler/refdiff.js`) intact.
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§1 Table 1, §3 Ring 2, §5 Runbook Checklist).

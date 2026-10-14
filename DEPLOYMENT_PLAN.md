@@ -13,8 +13,7 @@
 | **Pinned Canary** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff-v1.3.0.js` (Immutable canary) |
 | **Documentation** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` &bull; `m:User:Powercycler/RefDiff` |
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` |
-| **en.WP Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) (§1, §2) | `en:Template:User RefDiff` &bull; `en:Template:User RefDiff/doc` |
-| **Meta Userbox** | [`userbox.wiki`](userbox.wiki) | `m:User:Powercycler/User RefDiff` |
+| **Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) (§1, §2) | `en:Template:User RefDiff` &bull; `en:Template:User RefDiff/doc` (Meta userbox deferred) |
 | **Outreach** | [`proposal/POST.md`](proposal/POST.md) | `en:User talk:Powercycler/RefDiff` (Dedicated tool talk page) |
 
 ---
@@ -53,9 +52,7 @@ npm run ci && node tests/test_deployment.js
 1. **Scripts:** Copy [`refdiff.js`](refdiff.js) to `m:User:Powercycler/refdiff.js` and `en:User:Powercycler/refdiff.js`.
 2. **Docs:** Copy [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` and `m:User:Powercycler/RefDiff`.
 3. **Showcase:** Verify `m:User:Powercycler/RefDiff/Show_case`.
-4. **Userboxes:**
-   - Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
-   - Create `m:User:Powercycler/User RefDiff` from [`userbox.wiki`](userbox.wiki).
+4. **Userbox:** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki) (Meta userbox deferred).
 
 ### Ring 3: Community Feedback & Gadget Candidacy
 - Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
@@ -81,6 +78,6 @@ npm run ci && node tests/test_deployment.js
 - [ ] **Canary Verification:** Publish `refdiff-v1.3.0.js` and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Scripts:** Update `m:User:Powercycler/refdiff.js` and `en:User:Powercycler/refdiff.js`.
 - [ ] **Publish Docs:** Update `en:User:Powercycler/RefDiff` and `m:User:Powercycler/RefDiff`.
-- [ ] **Publish Userboxes:** Create `Template:User RefDiff` (+ `/doc`) on en.WP and `User:Powercycler/User RefDiff` on Meta.
+- [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
 - [ ] **Live Smoke Check:** Test diff=1379409916 and verify mode switcher, inline toggle, and dark mode.
 - [ ] **Outreach:** Post announcement and monitor feedback on `User talk:Powercycler/RefDiff`.
