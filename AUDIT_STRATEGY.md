@@ -40,20 +40,17 @@ Findings from internal code reviews and comparative audits (e.g. against [Ultrav
 | **M** (*Major* / Medium) | **P1** | Security hygiene issue (e.g. unescaped HTML injection, unpinned loader) or on-wiki compliance blocker. | Must be resolved before general on-wiki gadget promotion. |
 | **N** (*Minor* / Nit) | **P2** | Code style, documentation drift, or non-blocking micro-optimizations. | Addressed during regular refactoring sprints. |
 
-#### Audit Findings & Resolution Status
+> [!NOTE]
+> **Record Keeping in [`LOG.md`](LOG.md):** While this section defines the severity taxonomy and architectural requirements, all individual finding entries, chronological transitions, and detailed remediation logs are continuously recorded and tracked in the authoritative ledger: [**`LOG.md` (§3.2 Audit Findings Register)**](LOG.md#32-audit-findings-register-k1--m1--m6--m7-taxonomy).
 
-* **[K1] Real DOM Mock Weakness (Resolved):**
-  * *Finding:* Hand-written mock objects (`{ innerHTML: ... }`) in `tests/harness.js` did not test real DOM behaviors (`tr.cells`, live HTMLCollections, event bubbling, or browser quirks like missing `scrollIntoView`).
-  * *Remediation:* Integrated `jsdom` devDependency and implemented [`tests/test_jsdom.js`](tests/test_jsdom.js) running real MediaWiki HTML diff fixtures (`comprehensive_test.html` and `stress_test_1379409916.html`). Guarded `scrollIntoView` and `MutationObserver` defensively.
-* **[M1] HTML Generation via Template Strings (Resolved):**
-  * *Finding:* Dynamic markup built with template literals rather than `document.createElement` presents potential XSS vectors if attribute strings contain unescaped user content.
-  * *Remediation:* Implemented native safe DOM builder `el(tag, attrs, ...children)` and `createProseBadgeElement`. Refactored `createCitRow`, `createRefDiffButton`, `createInlineToggle`, and `createFallbackModeBar` to construct DOM nodes directly with native escaping and whitelisted attribute handling. 100% eliminated dynamic `.innerHTML` template string assignments for UI generation.
-* **[M6] Unpinned CDN Distribution (Resolved / Documented):**
-  * *Finding:* Loading from third-party CDN `@main` branch introduces supply-chain risk and breaches Wikimedia's privacy/security policy.
-  * *Remediation:* Standardized on-wiki distribution directly from Meta-Wiki (`m:User:Powercycler/refdiff.js`) with commit-pinned sha loaders (see [Section 2.4](#24-on-wiki-distribution--security-hygiene)).
-* **[M7] On-Wiki `<nowiki>` Template Transclusion (Resolved):**
-  * *Finding:* Code comments containing template examples (`{{sfn|...}}`, `{{efn|...}}`) were parsed as transclusions by MediaWiki on JS pages, polluting `templatelinks`.
-  * *Remediation:* Wrapped `refdiff.js` with `/* <nowiki> */` at top and `/* </nowiki> */` at bottom, backed by automated syntax regression test in `test_jsdom.js`.
+#### Audit Findings Summary & Status
+
+| ID | Finding Title | Severity | Status | Primary Remediation | Ledger Record |
+|:---:|:---|:---:|:---:|:---|:---:|
+| **[K1]** | Real DOM Mock Weakness | **P0** | ✅ Resolved | Integrated `jsdom` suite (`test_jsdom.js`) on real diff fixtures; guarded DOM APIs. | [`LOG.md#k1`](LOG.md#k1-real-dom-mock-weakness) |
+| **[M1]** | HTML via Template Strings | **P1** | ✅ Resolved | Built native DOM builder `el()` and `createProseBadgeElement()`; 0% `.innerHTML`. | [`LOG.md#m1`](LOG.md#m1-html-generation-via-template-strings) |
+| **[M6]** | Unpinned CDN Distribution | **P1** | ✅ Resolved | Standardized on-wiki distribution from Meta-Wiki with commit-pinned SHA loaders. | [`LOG.md#m6`](LOG.md#m6-unpinned-cdn-distribution) |
+| **[M7]** | On-Wiki `<nowiki>` Transclusion | **P1** | ✅ Resolved | Enclosed `refdiff.js` in `/* <nowiki> */` comments; added delimiter balance tests. | [`LOG.md#m7`](LOG.md#m7-on-wiki-nowiki-template-transclusion) |
 
 ---
 

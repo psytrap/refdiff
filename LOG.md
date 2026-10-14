@@ -12,6 +12,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 💡 **[PROPOSAL.md](proposal/PROPOSAL.md):** Concise proposal (pure feature focus).
   * 📄 **[CONCEPT.md](proposal/CONCEPT.md):** Comprehensive technical specification and architecture paper.
   * 📝 **[POST.md](proposal/POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
+  * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, real DOM test framework, and editorial review strategy.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -53,7 +54,9 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ---
 
-## 3. Architectural Decision Register (ADR)
+## 3. Architectural & Audit Registers
+
+### 3.1 Architectural Decision Register (ADR)
 
 | Decision | Choice | Rationale |
 | :--- | :--- | :--- |
@@ -65,6 +68,77 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Diff Tooling Scope** | Zero changes required (`wikidiff2` untouched) | Avoids scope creep and maintainer pushback. Decoupling of claim and source in diff hunks is documented as an acknowledged trade-off mitigated by section locality. |
 | **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp|45}}`). |
 | **Legacy & Third-Party Compatibility** | Dynamic LDR Hoisting (Pre-parse Hook & Export Transpiler) | Transpiles `<references hidden>` to standard List-Defined References (LDR) on-the-fly for unpatched/third-party wikis and database dumps (Kiwix). Completely eliminates in-situ `<ol>` rendering and stateful citation flush issues. |
+
+---
+
+### 3.2 Audit Findings Register (K1 / M1 / M6 / M7 Taxonomy)
+
+This register serves as the authoritative system of record for all security, architecture, and compliance findings uncovered during codebase audits, external reviews (e.g. against [Ultraviolet](poc/ultraviolet/COMPARISON.md)), and on-wiki gadget security checks. Severity and action thresholds follow the taxonomy defined in [**`AUDIT_STRATEGY.md` (§2.1)**](AUDIT_STRATEGY.md#21-quality-review-taxonomy--findings-registry).
+
+| Finding ID | Title | Class | Severity | Status | Discovery Date | Target Component | Resolved In |
+|:---:|:---|:---:|:---:|:---:|:---:|:---|:---:|
+| [**K1**](#k1-real-dom-mock-weakness) | Real DOM Mock Weakness | Critical | **P0** | ✅ Resolved | 2026-10-14 | `tests/harness.js`, `tests/test_jsdom.js` | [`b0b7dde`](https://github.com/psytrap/einzelnachweise/commit/b0b7dde) |
+| [**M1**](#m1-html-generation-via-template-strings) | HTML Generation via Template Strings | Major / Security | **P1** | ✅ Resolved | 2026-10-14 | `refdiff.js` (UI builders) | [`240d3bd`](https://github.com/psytrap/einzelnachweise/commit/240d3bd) |
+| [**M6**](#m6-unpinned-cdn-distribution) | Unpinned CDN Distribution | Major / Security | **P1** | ✅ Resolved | 2026-10-11 | Deployment & On-Wiki Loaders | [`ad6fe91`](https://github.com/psytrap/einzelnachweise/commit/ad6fe91) |
+| [**M7**](#m7-on-wiki-nowiki-template-transclusion) | On-Wiki `<nowiki>` Template Transclusion | Major / Syntax | **P1** | ✅ Resolved | 2026-10-14 | `refdiff.js` file wrapper | [`b0b7dde`](https://github.com/psytrap/einzelnachweise/commit/b0b7dde) |
+
+---
+
+#### K1: Real DOM Mock Weakness
+* **Finding ID:** `K1`
+* **Class & Severity:** Architectural / Test Integrity (**P0**)
+* **Discovery Date & Origin:** 2026-10-14 (Ultraviolet architectural benchmark review in [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md)).
+* **Root Cause & Description:** Unit test harnesses previously relied on hand-crafted JavaScript mock objects (`{ innerHTML: ... }`) in `tests/harness.js`. These mocks failed to emulate real browser DOM semantics—such as live `HTMLCollection` mutation, `tr.cells` indexing, event propagation/bubbling, and missing API quirks (`scrollIntoView` undefined in certain headless frames). As a result, critical DOM lifecycle regressions could pass unit tests undetected.
+* **Remediation & Implementation:**
+  1. Integrated `jsdom` into `package.json` devDependencies.
+  2. Implemented [`tests/test_jsdom.js`](tests/test_jsdom.js) executing against real MediaWiki HTML fixtures (`tests/comprehensive_test.html` and `tests/stress_test_1379409916.html`).
+  3. Added byte-for-byte in-place Memento invariance verification ($\text{table.innerHTML}_{\text{initial}} \equiv \text{table.innerHTML}_{\text{restored}}$).
+  4. Guarded `scrollIntoView` and `MutationObserver` defensively in `refdiff.js`.
+* **Resolution Commit:** [`b0b7dde`](https://github.com/psytrap/einzelnachweise/commit/b0b7dde)
+* **Verification Gate:** 10 headless JSDOM tests passing; 0 regressions across all 14 test suites.
+
+---
+
+#### M1: HTML Generation via Template Strings
+* **Finding ID:** `M1`
+* **Class & Severity:** Security Hygiene / XSS Mitigation (**P1**)
+* **Discovery Date & Origin:** 2026-10-14 (Comparative code review vs. Ultraviolet TSX/DOM generation).
+* **Root Cause & Description:** Dynamic UI elements (`createCitRow`, `createRefDiffButton`, `createInlineToggle`, `createFallbackModeBar`) assembled HTML via string interpolation and template literals assigned to `.innerHTML`. If attribute values or citation labels contained unescaped characters or malicious injections from untrusted wikitext diffs, this introduced potential Cross-Site Scripting (XSS) vectors and DOM parsing quirks.
+* **Remediation & Implementation:**
+  1. Created native safe DOM builder `el(tag, attrs, ...children)` with automatic attribute whitelisting, Boolean handling, and text escaping via `ownerDocument.createTextNode`.
+  2. Implemented `createProseBadgeElement` constructing native `<sup class="reference refdiff-ref">` DOM hierarchies with XSS immunity.
+  3. Completely refactored `createCitRow`, `createRefDiffButton`, `createInlineToggle`, and `createFallbackModeBar` to build elements exclusively via DOM constructors.
+  4. Maintained headless Node fallback for backward-compatible `createProseBadge` text serialization.
+  5. 100% eliminated dynamic `.innerHTML` assignments in all UI generation routines.
+* **Resolution Commit:** [`240d3bd`](https://github.com/psytrap/einzelnachweise/commit/240d3bd)
+* **Verification Gate:** 99/99 automated tests passing (~250ms, 0 ESLint warnings); dedicated DOM builder tests in `tests/test_renderer.js`.
+
+---
+
+#### M6: Unpinned CDN Distribution
+* **Finding ID:** `M6`
+* **Class & Severity:** Supply-Chain Security & Compliance (**P1**)
+* **Discovery Date & Origin:** 2026-10-11 (Wikimedia gadget compliance & privacy policy audit).
+* **Root Cause & Description:** Loading user scripts from third-party CDNs (e.g. unpinned `@main` branch on jsDelivr or GitHub raw) violates Wikimedia privacy and security policies, exposes editors to upstream supply-chain poisoning, and bypasses on-wiki revision tracking.
+* **Remediation & Implementation:**
+  1. Standardized primary distribution exclusively via Wikimedia infrastructure: Meta-Wiki [`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js).
+  2. Documented and tested commit-pinned SHA loaders using MediaWiki's `mw.loader.load()` targeting immutable revision IDs for tamper-proof installations (see `AUDIT_STRATEGY.md` §2.4).
+  3. Prohibited any external network calls or unpinned third-party asset loading in script code.
+* **Resolution Commit:** [`ad6fe91`](https://github.com/psytrap/einzelnachweise/commit/ad6fe91)
+* **Verification Gate:** On-wiki deployment verified live on Meta-Wiki and English Wikipedia; zero external runtime dependencies.
+
+---
+
+#### M7: On-Wiki `<nowiki>` Template Transclusion
+* **Finding ID:** `M7`
+* **Class & Severity:** On-Wiki Parser Compliance (**P1**)
+* **Discovery Date & Origin:** 2026-10-14 (On-wiki JavaScript page parsing audit).
+* **Root Cause & Description:** Code comments and strings inside `refdiff.js` contained template patterns like `{{sfn|...}}`, `{{efn|...}}`, and signature markers `~~~~`. When hosted on `.js` subpages within MediaWiki, the wikitext parser parsed these sequences as real template transclusions, polluting `templatelinks` tables and generating invalid tracking categories.
+* **Remediation & Implementation:**
+  1. Enclosed `refdiff.js` within `/* <nowiki> */` at line 1 and `/* </nowiki> */` at the end of the file.
+  2. Added automated regex regression assertion in `tests/test_jsdom.js` (Test 10) ensuring delimiters remain balanced and all internal template examples remain safely quarantined.
+* **Resolution Commit:** [`b0b7dde`](https://github.com/psytrap/einzelnachweise/commit/b0b7dde)
+* **Verification Gate:** Test 10 passing in `tests/test_jsdom.js`; zero templatelinks pollution on MediaWiki user script subpages.
 
 ---
 
@@ -480,6 +554,18 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **Exports & Testing:** Exported `el` and `createProseBadgeElement`; expanded test coverage in `tests/test_renderer.js` to verify attribute escaping, XSS immunity, and real DOM row construction. Suite expanded to **99/99 passing tests** in ~250ms with 0 ESLint warnings.
 * **Documentation Updates:**
   * Marked M1 as **Resolved** in `AUDIT_STRATEGY.md` and `poc/ultraviolet/COMPARISON.md`. Updated test counts in `README.md`, `ARCHITECTURE.md`, `TEST_PLAN.md`, and `refdiff.wiki`.
+
+---
+
+### 2026-10-14: Audit Findings Record Keeping Delegation to LOG.md
+
+* **Context & Motivation:**
+  * Aligned documentation architecture so that [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) defines the overarching policy, verification gates, and severity taxonomy (P0/P1/P2), while [`LOG.md`](LOG.md) serves as the persistent, chronological system of record for all audit findings.
+* **Architectural & Register Updates:**
+  * Established Section 3.2 in `LOG.md` as the **Audit Findings Register (K1 / M1 / M6 / M7 Taxonomy)**, cataloging findings K1, M1, M6, and M7 with complete root causes, remediations, commits, and verification gates.
+  * Refactored `AUDIT_STRATEGY.md` §2.1 to delegate record keeping directly to `LOG.md` with a clean summary matrix and cross-links.
+  * Added `AUDIT_STRATEGY.md` to `LOG.md` Section 1 Core Artifacts.
+
 
 
 
