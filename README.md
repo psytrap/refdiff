@@ -17,7 +17,8 @@ This project introduces a model that decouples **Source Organization** (section-
 * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md)** – Comprehensive two-pillar audit & review strategy: codebase/security audit (K1/M1/M6 taxonomy, clean code & anti-test-smell governance, JSDOM real DOM harness, ResourceLoader compliance) and editorial review playbook (anti-template-camouflage, anti-AI-slop fact-checking, 3-way triage).
 * 🧪 **[TEST_PLAN.md](TEST_PLAN.md)** – Comprehensive test plan, coverage evaluation (100% headless / 100% browser runtime), test pyramid, and modular test suite architecture.
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
-* 🗃️ **[userbox.wiki](userbox.wiki)** – Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Wikipedia user pages.
+* 🗃️ **[userbox.wiki](userbox.wiki)** – Generic / Meta-Wiki userbox template (`{{User:Powercycler/User RefDiff}}`).
+* 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki)** – English Wikipedia dedicated userbox template and documentation (`Template:User RefDiff`).
 * 📝 **[POST.md](proposal/POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
 
@@ -40,7 +41,7 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
   mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
   ```
 * Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
-* **Userbox:** Display your usage on your Wikipedia user page with `{{User:Powercycler/User RefDiff}}` (see [**userbox.wiki**](userbox.wiki)).
+* **Userbox:** Display your usage on English Wikipedia with `{{User RefDiff}}` (or cross-wiki with `{{User:Powercycler/User RefDiff}}`, see [**userbox_enwiki.wiki**](userbox_enwiki.wiki) and [**userbox.wiki**](userbox.wiki)).
 
 ### 2. Supplementing Tools & Ecosystem Compatibility
 
@@ -59,19 +60,20 @@ Together with RefDiff on `Special:Diff`, these scripts form a complete, non-dest
 
 ### 3. Automated Testing & Verification
 
-RefDiff enforces a 100% test pass rate across 14 modular unit, component, and real DOM test suites, benchmark stress tests, and live browser automation (see [**TEST_PLAN.md**](TEST_PLAN.md) and [**AUDIT_STRATEGY.md**](AUDIT_STRATEGY.md)):
+RefDiff enforces a 100% test pass rate across 15 modular unit, component, deployment, and real DOM test suites, benchmark stress tests, and live browser automation (see [**TEST_PLAN.md**](TEST_PLAN.md) and [**AUDIT_STRATEGY.md**](AUDIT_STRATEGY.md)):
 
 ```bash
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit, component & JSDOM test suite (103 tests in ~250ms)
+# 2. Run the fast headless unit, component, deployment & JSDOM test suite (111 tests in ~250ms)
 npm test
 
 # 3. Run combined CI checks
 npm run ci
 
-# 4. Run an individual test file in isolation (e.g. parser tests or real DOM tests)
+# 4. Run an individual test file in isolation (e.g. deployment checks, parser, or real DOM)
+node tests/test_deployment.js
 node tests/test_parser.js
 node tests/test_jsdom.js
 

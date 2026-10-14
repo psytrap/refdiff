@@ -250,10 +250,11 @@ To merge any code change or issue release tags:
 
 | Quality Gate | Requirement | Verification Command |
 |:---|:---:|:---|
-| **Test Suite Pass Rate** | **100% (103/103 passing)** | `npm test` |
+| **Test Suite Pass Rate** | **100% (111/111 passing)** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 warnings** | `npm run lint` |
 | **Clean Code & Test Smells** | **0 test smells; AAA pattern; descriptive assertions; 0 global leaks** | `npm test && npm run lint` |
-| **Execution Budget** | **< 250 ms across all 14 suites** | `npm run ci` |
+| **Deployment Pre-Flight** | **Zero BOM, nowiki wrapper, version sync, API contract & syntax safety** | `node tests/test_deployment.js` |
+| **Execution Budget** | **< 250 ms across all 15 suites** | `npm run ci` |
 | **Stress Benchmark** | **< 50 ms on 114-ref table** | `node tests/test_benchmarks.js` |
 | **Real DOM Invariance** | **Byte-for-byte Memento restoration** | `node tests/test_jsdom.js` |
 | **On-Wiki Syntax Safety** | **`<nowiki>` delimiters balanced** | `node tests/test_jsdom.js` |

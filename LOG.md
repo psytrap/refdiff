@@ -15,7 +15,8 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, clean-code & anti-test-smell governance, real DOM test framework, and editorial review strategy.
   * 🧪 **[TEST_PLAN.md](TEST_PLAN.md):** Test pyramid, 1-to-1 modular suite architecture, and quality assurance framework.
   * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
-  * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Wikipedia user pages.
+  * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Meta-Wiki and cross-wiki user pages.
+  * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki):** Dedicated English Wikipedia userbox template (`Template:User RefDiff`) with TemplateData documentation.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -766,6 +767,33 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Documentation & Ledger Updates:**
   * Updated [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md) (Overview table, item 5, and bottom line summary) to document the formal decision.
   * Codified the decision in the **Architectural Decision Register (ADR §3.1)** in `LOG.md`.
+
+---
+
+### 2026-10-14: English Wikipedia Userbox (`userbox_enwiki.wiki`) & Deployment Pre-Flight Suite (`tests/test_deployment.js`)
+
+* **Context & Motivation:**
+  * Provided a dedicated English Wikipedia userbox template (`Template:User RefDiff` / `userbox_enwiki.wiki`) formatted according to en.WP template standards with full TemplateData documentation, allowing editors to transclude `{{User RefDiff}}` directly on user pages.
+  * Created an automated pre-flight deployment check suite (`tests/test_deployment.js`) to systematically prevent release regressions, on-wiki syntax corruption, and packaging hazards.
+* **Architectural & Test Implementations:**
+  * **English Wikipedia Template (`userbox_enwiki.wiki`):**
+    * Created `Template:User RefDiff` supporting standard shortcut `{{User RefDiff}}` with automatic categorization into `[[:Category:Wikipedians who use RefDiff]]`.
+    * Included subpage documentation (`Template:User RefDiff/doc`) with live preview, parameters table, and machine-readable `TemplateData` JSON schema for the VisualEditor template dialog.
+    * Updated [`refdiff.wiki`](refdiff.wiki) to document both en.WP shortcut (`{{User RefDiff}}`) and cross-wiki global syntax (`{{User:Powercycler/User RefDiff}}`).
+  * **Automated Deployment & Release Quality Gate (`tests/test_deployment.js`):**
+    * *Packaging & Encoding:* Validates zero Byte Order Mark (BOM), strict `/* <nowiki> */` and `/* </nowiki> */` boundaries, and no internal unescaped nowiki tags.
+    * *On-Wiki Syntax Safety:* Prohibits 3–5 tildes (`~~~`, `~~~~`, `~~~~~`), template substitutions (`{{subst:`, `{{safesubst:`), and raw closing `</script>` tags.
+    * *Production Hygiene:* Asserts zero `console.log` statements in `refdiff.js` and no active debug flags.
+    * *Syntax & Strict Mode:* Compiles `refdiff.js` in Node VM under strict mode (`'use strict';`) with zero syntax errors.
+    * *Version Synchronization:* Asserts that `package.json` version matches `refdiff.js` UserScript `@version` and `refdiff.wiki` infobox version.
+    * *Distribution Budget:* Enforces unminified bundle size limits (< 120 KB, > 10 KB).
+    * *Public API Surface:* Verifies all 15 required core functions are exported on `RefDiff` and ensures zero global object pollution.
+    * *On-Wiki Template Balance:* Verifies balanced `<includeonly>`, `<noinclude>`, and `{{Userbox` invocations across both `userbox.wiki` and `userbox_enwiki.wiki`.
+  * **Suite & Metric Synchronization:**
+    * Integrated `test_deployment.js` into `tests/runner.js`.
+    * Test suite expanded from 103 to **111/111 passing tests** across **15 modular test files** (0 ESLint warnings, ~250ms).
+    * Synchronized metrics across `TEST_PLAN.md`, `AUDIT_STRATEGY.md`, `README.md`, `refdiff.wiki`, and `LOG.md`.
+
 
 
 

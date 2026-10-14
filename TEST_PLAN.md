@@ -7,7 +7,7 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
 ## 1. Executive Evaluation: "Is it Enough or Too Much?"
 
 ### Quantitative Metrics
-* **Unit, Component & Real DOM Tests (`npm test` / `npm run ci`):** **103 passing tests** across **14 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
+* **Unit, Component & Real DOM Tests (`npm test` / `npm run ci`):** **111 passing tests** across **15 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
 * **Execution Time:** **~20 ms** (unit suites) / **~250 ms** (combined with headless JSDOM suites via `npm run ci`).
 * **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`).
 * **Code Coverage (Headless Node.js):** **100.0% function coverage** (71 of 71 functions) measured via V8 coverage without browser shims.
@@ -72,7 +72,8 @@ While [`refdiff.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/ref
 | `src/utils.js` | [`tests/test_utils.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_utils.js) | `stripHtml`, `normalizeDiffTags`, `hasBalancedDiffTags`, `sanitizeAnchor`, `escapeRegex` | 8 |
 | *Fixtures & Perf* | [`tests/test_benchmarks.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_benchmarks.js) | Comprehensive fixture & 114-ref airport stress test | 5 |
 | *Real DOM / JSDOM* | [`tests/test_jsdom.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_jsdom.js) | Real MediaWiki DOM decoupling, Memento invariance, OOUI switcher, onTableClick & `<nowiki>` check | 11 |
-| **Total** | [`tests/runner.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/runner.js) | Master sequential test runner executing all suites | **103** |
+| *Deployment & Release* | [`tests/test_deployment.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_deployment.js) | Packaging, syntax safety, version synchronization, bundle budget, API contract, and template validation | 8 |
+| **Total** | [`tests/runner.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/runner.js) | Master sequential test runner executing all suites | **111** |
 
 ---
 
@@ -135,7 +136,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit, component & real DOM test suite (103 tests in ~250ms)
+# 2. Run the fast headless unit, component & real DOM test suite (111 tests in ~250ms)
 npm test
 
 # 3. Run combined CI verification
