@@ -1,8 +1,7 @@
 # RefDiff: Rollout and Deployment Plan
 
-> **Status:** Active Deployment Framework &bull; **Strategy:** Two-Phase Version Cadence (Patch Pre-Flight &bull; Minor Post-Shipment)  
-> **Script Lead:** Meta-Wiki (`m.WM`) &bull; **Doc Lead:** English Wikipedia (`en.WP`) &bull; **en.WP Script:** SHA Pointer  
-> **CI Status:** 115/115 passing, 0 lint warnings
+> **Scope:** Cross-Wiki Phased Rollout (Rings 0–3) &bull; **Cadence:** Two-Phase (Patch Pre-Flight &bull; Minor Post-Shipment)  
+> **Script Lead:** Meta-Wiki (`m.WM`) &bull; **Doc Lead:** English Wikipedia (`en.WP`) &bull; **en.WP Script:** SHA Pointer
 
 ---
 
