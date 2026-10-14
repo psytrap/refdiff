@@ -10,7 +10,7 @@ const { stripHtml, normalizeDiffTags, hasBalancedDiffTags, sanitizeAnchor, escap
 suite('src/utils.js - Text Utilities & Normalization', () => {
   test('stripHtml removes all HTML tags and leaves text intact', () => {
     const html = '<span class="diffchange">modified</span> <b>bold</b> text';
-    assert.strictEqual(stripHtml(html), 'modified bold text');
+    assert.strictEqual(stripHtml(html), 'modified bold text', 'HTML tags should be cleanly stripped while retaining text');
   });
 
   test('normalizeDiffTags repairs template delimiters split by diffchange spans', () => {
@@ -31,9 +31,9 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
   });
 
   test('hasBalancedDiffTags validates balanced vs unbalanced diffchange tags', () => {
-    assert.strictEqual(hasBalancedDiffTags('plain text'), true);
-    assert.strictEqual(hasBalancedDiffTags('<del class="diffchange">deleted</del>'), true);
-    assert.strictEqual(hasBalancedDiffTags('note <del>old</del><ins>new</ins> text'), true);
+    assert.strictEqual(hasBalancedDiffTags('plain text'), true, 'Plain text has balanced tags');
+    assert.strictEqual(hasBalancedDiffTags('<del class="diffchange">deleted</del>'), true, 'Closed del tag has balanced tags');
+    assert.strictEqual(hasBalancedDiffTags('note <del>old</del><ins>new</ins> text'), true, 'Paired del and ins tags are balanced');
     assert.strictEqual(hasBalancedDiffTags('{{efn|as</del> text <del>}}</del>'), false, 'Orphaned </del> must be invalid');
     assert.strictEqual(hasBalancedDiffTags('text <del class="diffchange">unclosed'), false, 'Unclosed <del> must be invalid');
     assert.strictEqual(hasBalancedDiffTags('text </ins>'), false, 'Orphaned </ins> must be invalid');
@@ -50,20 +50,20 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
   test('normalizeDiffTags merges adjacent diffchange spans separated only by whitespace', () => {
     const splitAddedTag = '<ins class="diffchange diffchange-inline">&lt;ref name="kami"</ins> <ins class="diffchange diffchange-inline">/&gt;</ins>';
     const normalized = normalizeDiffTags(splitAddedTag);
-    assert.strictEqual(normalized, '<ins class="diffchange diffchange-inline">&lt;ref name="kami" /&gt;</ins>');
+    assert.strictEqual(normalized, '<ins class="diffchange diffchange-inline">&lt;ref name="kami" /&gt;</ins>', 'Should reassemble adjacent split ins tags into single tag');
 
     const splitDelSpans = '<del class="diffchange">part1</del>   <del class="diffchange">part2</del>';
-    assert.strictEqual(normalizeDiffTags(splitDelSpans), '<del class="diffchange">part1   part2</del>');
+    assert.strictEqual(normalizeDiffTags(splitDelSpans), '<del class="diffchange">part1   part2</del>', 'Should merge adjacent del spans preserving whitespace');
   });
 
   test('sanitizeAnchor sanitizes strings into valid DOM ID tokens', () => {
-    assert.strictEqual(sanitizeAnchor('AlicanteRyanair'), 'AlicanteRyanair');
-    assert.strictEqual(sanitizeAnchor('exyu_240625'), 'exyu_240625');
-    assert.strictEqual(sanitizeAnchor('ref 12! & special'), 'ref_12_special');
+    assert.strictEqual(sanitizeAnchor('AlicanteRyanair'), 'AlicanteRyanair', 'Alphanumeric anchors remain untouched');
+    assert.strictEqual(sanitizeAnchor('exyu_240625'), 'exyu_240625', 'Underscore-separated alphanumeric tokens remain untouched');
+    assert.strictEqual(sanitizeAnchor('ref 12! & special'), 'ref_12_special', 'Spaces and punctuation convert into valid sanitized tokens');
   });
 
   test('escapeRegex escapes special regex characters', () => {
-    assert.strictEqual(escapeRegex('a.b*c?d+e[f]g(h)i{j}k|l\\m^n$'), 'a\\.b\\*c\\?d\\+e\\[f\\]g\\(h\\)i\\{j\\}k\\|l\\\\m\\^n\\$');
+    assert.strictEqual(escapeRegex('a.b*c?d+e[f]g(h)i{j}k|l\\m^n$'), 'a\\.b\\*c\\?d\\+e\\[f\\]g\\(h\\)i\\{j\\}k\\|l\\\\m\\^n\\$', 'Special regex characters should be backslash-escaped');
   });
 });
 

@@ -89,13 +89,13 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
 
   test('extractSfnInfo handles missing year or empty parameters gracefully', () => {
     const empty = extractSfnInfo('');
-    assert.strictEqual(empty.label, 'sfn');
-    assert.strictEqual(empty.anchorToken, null);
+    assert.strictEqual(empty.label, 'sfn', 'Empty sfn should default label to sfn');
+    assert.strictEqual(empty.anchorToken, null, 'Empty sfn should have null anchor token');
 
     const authorOnly = extractSfnInfo('|AuthorOnly');
-    assert.strictEqual(authorOnly.label, 'AuthorOnly');
-    assert.strictEqual(authorOnly.year, '');
-    assert.strictEqual(authorOnly.anchorToken, 'FOOTNOTEAuthorOnly');
+    assert.strictEqual(authorOnly.label, 'AuthorOnly', 'Author-only sfn should use author as label');
+    assert.strictEqual(authorOnly.year, '', 'Author-only sfn should have empty year');
+    assert.strictEqual(authorOnly.anchorToken, 'FOOTNOTEAuthorOnly', 'Author-only sfn should format anchor with FOOTNOTE prefix');
   });
 
   test('parseRefs parses both <ref> tags and {{sfn}} templates in sequential document order', () => {
@@ -105,25 +105,25 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     assert.strictEqual(refs.length, 4, 'Should parse all 4 mixed citations');
 
     // 1: <ref name="foo">
-    assert.strictEqual(refs[0].isTemplate, false);
-    assert.strictEqual(refs[0].name, 'foo');
-    assert.strictEqual(refs[0].label, 'foo');
+    assert.strictEqual(refs[0].isTemplate, false, 'Reference 0 should be a ref tag, not a template');
+    assert.strictEqual(refs[0].name, 'foo', 'Reference 0 should have name foo');
+    assert.strictEqual(refs[0].label, 'foo', 'Reference 0 should have label foo');
 
     // 2: {{sfn}}
-    assert.strictEqual(refs[1].isTemplate, true);
-    assert.strictEqual(refs[1].templateName, 'sfn');
-    assert.strictEqual(refs[1].label, 'Reichert & Wolfram 2010');
-    assert.strictEqual(refs[1].name, 'FOOTNOTEReichertWolfram2010');
+    assert.strictEqual(refs[1].isTemplate, true, 'Reference 1 should be a template');
+    assert.strictEqual(refs[1].templateName, 'sfn', 'Reference 1 template name should be sfn');
+    assert.strictEqual(refs[1].label, 'Reichert & Wolfram 2010', 'Reference 1 label should synthesize authors and year');
+    assert.strictEqual(refs[1].name, 'FOOTNOTEReichertWolfram2010', 'Reference 1 anchor should format FOOTNOTE token');
 
     // 3: <ref>Cite B</ref>
-    assert.strictEqual(refs[2].isTemplate, false);
-    assert.strictEqual(refs[2].name, null);
+    assert.strictEqual(refs[2].isTemplate, false, 'Reference 2 should be a ref tag, not a template');
+    assert.strictEqual(refs[2].name, null, 'Reference 2 should have null name for anonymous ref');
 
     // 4: {{r|bar}}
-    assert.strictEqual(refs[3].isTemplate, true);
-    assert.strictEqual(refs[3].templateName, 'r');
-    assert.strictEqual(refs[3].label, 'bar');
-    assert.strictEqual(refs[3].name, 'bar');
+    assert.strictEqual(refs[3].isTemplate, true, 'Reference 3 should be a template');
+    assert.strictEqual(refs[3].templateName, 'r', 'Reference 3 template name should be r');
+    assert.strictEqual(refs[3].label, 'bar', 'Reference 3 label should be bar');
+    assert.strictEqual(refs[3].name, 'bar', 'Reference 3 anchor name should be bar');
   });
 
   test('parseRefs filters out nested <ref> tags contained within {{efn}} footnote templates', () => {
@@ -131,12 +131,12 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     const refs = parseRefs(html);
 
     assert.strictEqual(refs.length, 2, 'Should only contain the outer efn and the outside ref');
-    assert.strictEqual(refs[0].isTemplate, true);
-    assert.strictEqual(refs[0].templateName, 'efn');
-    assert.strictEqual(refs[0].label, 'note');
+    assert.strictEqual(refs[0].isTemplate, true, 'First citation should be the efn template');
+    assert.strictEqual(refs[0].templateName, 'efn', 'First citation templateName should be efn');
+    assert.strictEqual(refs[0].label, 'note', 'First citation label should be note');
 
-    assert.strictEqual(refs[1].isTemplate, false);
-    assert.strictEqual(refs[1].name, 'outer');
+    assert.strictEqual(refs[1].isTemplate, false, 'Second citation should be the outside ref tag');
+    assert.strictEqual(refs[1].name, 'outer', 'Second citation name should be outer');
   });
 
   test('parseRefs ignores unwrapped template syntax crossing diffchange boundaries', () => {
@@ -144,8 +144,8 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     const refs = parseRefs(html);
 
     assert.strictEqual(refs.length, 1, 'Should only parse intact <ref name=zipf1949/>');
-    assert.strictEqual(refs[0].isTemplate, false);
-    assert.strictEqual(refs[0].name, 'zipf1949');
+    assert.strictEqual(refs[0].isTemplate, false, 'Parsed citation should be a ref tag');
+    assert.strictEqual(refs[0].name, 'zipf1949', 'Parsed citation should have name zipf1949');
   });
 
   test('parseRefs does not treat {{rp}} page suffix as an independent reference', () => {
@@ -153,7 +153,7 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     const refs = parseRefs(html);
 
     assert.strictEqual(refs.length, 1, 'Only <ref> should be parsed, not {{rp}}');
-    assert.strictEqual(refs[0].name, 'book');
+    assert.strictEqual(refs[0].name, 'book', 'Parsed citation name should be book');
   });
 });
 

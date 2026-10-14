@@ -10,20 +10,20 @@ const { isRefDiffPreferred, setRefDiffPreferred, STORAGE_KEY } = require('../ref
 suite('src/state.js - State Persistence & Storage', () => {
   test('defaults to true when window and storage are absent', () => {
     withMockEnvironment({ window: undefined }, () => {
-      assert.strictEqual(isRefDiffPreferred(), true);
+      assert.strictEqual(isRefDiffPreferred(), true, 'Should default to true when window is undefined');
     });
   });
 
   test('reads and persists preference using localStorage', () => {
     const { mockStore, mockWindow } = setupMockStorage('localStorage');
     withMockEnvironment({ window: mockWindow }, () => {
-      assert.strictEqual(isRefDiffPreferred(), true);
+      assert.strictEqual(isRefDiffPreferred(), true, 'Default preference should be true');
       setRefDiffPreferred(false);
-      assert.strictEqual(mockStore[STORAGE_KEY], 'false');
-      assert.strictEqual(isRefDiffPreferred(), false);
+      assert.strictEqual(mockStore[STORAGE_KEY], 'false', 'Storage value should be updated to false');
+      assert.strictEqual(isRefDiffPreferred(), false, 'Preference should report false after update');
       setRefDiffPreferred(true);
-      assert.strictEqual(mockStore[STORAGE_KEY], 'true');
-      assert.strictEqual(isRefDiffPreferred(), true);
+      assert.strictEqual(mockStore[STORAGE_KEY], 'true', 'Storage value should be updated to true');
+      assert.strictEqual(isRefDiffPreferred(), true, 'Preference should report true after update');
     });
   });
 
@@ -31,11 +31,11 @@ suite('src/state.js - State Persistence & Storage', () => {
     const { mockStore, mockWindow } = setupMockStorage('mw.storage');
     withMockEnvironment({ window: mockWindow }, () => {
       setRefDiffPreferred(false);
-      assert.strictEqual(mockStore[STORAGE_KEY], 'false');
-      assert.strictEqual(isRefDiffPreferred(), false);
+      assert.strictEqual(mockStore[STORAGE_KEY], 'false', 'mw.storage value should be updated to false');
+      assert.strictEqual(isRefDiffPreferred(), false, 'Preference should report false under mw.storage');
       setRefDiffPreferred(true);
-      assert.strictEqual(mockStore[STORAGE_KEY], 'true');
-      assert.strictEqual(isRefDiffPreferred(), true);
+      assert.strictEqual(mockStore[STORAGE_KEY], 'true', 'mw.storage value should be updated to true');
+      assert.strictEqual(isRefDiffPreferred(), true, 'Preference should report true under mw.storage');
     });
   });
 

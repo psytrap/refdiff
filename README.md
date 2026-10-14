@@ -14,7 +14,7 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📄 **[CONCEPT.md](proposal/CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
 * 🏛️ **[ARCHITECTURE.md](ARCHITECTURE.md)** – Technical architecture and design document (subsystems, state machine, Memento pattern, algorithms).
 * 🔍 **[REFDIFF.md](REFDIFF.md)** – Tool design specification for **RefDiff** (*The Ref-Differentiator*), the diff-decoupling engine for reviewers (`Special:Diff` gadget).
-* 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md)** – Comprehensive two-pillar audit & review strategy: codebase/security audit (K1/M1/M6 taxonomy, JSDOM real DOM harness, ResourceLoader compliance) and editorial review playbook (anti-template-camouflage, anti-AI-slop fact-checking, 3-way triage).
+* 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md)** – Comprehensive two-pillar audit & review strategy: codebase/security audit (K1/M1/M6 taxonomy, clean code & anti-test-smell governance, JSDOM real DOM harness, ResourceLoader compliance) and editorial review playbook (anti-template-camouflage, anti-AI-slop fact-checking, 3-way triage).
 * 🧪 **[TEST_PLAN.md](TEST_PLAN.md)** – Comprehensive test plan, coverage evaluation (100% headless / 100% browser runtime), test pyramid, and modular test suite architecture.
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
 * 🗃️ **[userbox.wiki](userbox.wiki)** – Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Wikipedia user pages.

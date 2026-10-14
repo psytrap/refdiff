@@ -12,7 +12,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 💡 **[PROPOSAL.md](proposal/PROPOSAL.md):** Concise proposal (pure feature focus).
   * 📄 **[CONCEPT.md](proposal/CONCEPT.md):** Comprehensive technical specification and architecture paper.
   * 📝 **[POST.md](proposal/POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
-  * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, real DOM test framework, and editorial review strategy.
+  * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, clean-code & anti-test-smell governance, real DOM test framework, and editorial review strategy.
   * 🧪 **[TEST_PLAN.md](TEST_PLAN.md):** Test pyramid, 1-to-1 modular suite architecture, and quality assurance framework.
   * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
   * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Wikipedia user pages.
@@ -725,6 +725,32 @@ This register serves as the authoritative system of record for all real-world Wi
     * Documented userbox installation and linked `userbox.wiki` in `README.md` and `LOG.md` Core Artifacts.
 * **Verification & Results:**
     * Ready for deployment on enwiki and Meta-Wiki. All 103 test cases pass with 0 ESLint warnings.
+
+---
+
+### 2026-10-14: Clean Code & Test Code Smell Audit Framework (`AUDIT_STRATEGY.md` §2.5)
+
+* **Context & Motivation:**
+  * Expanded the engineering audit strategy to systematically detect, prevent, and eliminate "code smells" and "test smells". High coverage can mask brittle, opaque, or false-positive tests if test code quality is neglected.
+* **Architectural & Audit Specifications Added:**
+  * **Test Smell Taxonomy (§2.5.1):** Codified 9 distinct test smells and mandatory RefDiff prevention rules:
+    1. *Assertion Roulette:* Prohibited unlabelled assertions; every assertion must declare an explanatory failure message string.
+    2. *The Mystery Guest / Obscure Test:* Mandated explicit Arrange-Act-Assert (AAA) pattern and named fixtures.
+    3. *Over-Mocking & The Mockery:* Enforced real DOM first (`withJsdom()`) over synthetic mock objects (K1).
+    4. *Polluted Global State & Resource Leaks:* Mandatory sandboxed teardown via `withMockEnvironment()` or `finally` blocks.
+    5. *Conditional Test Logic:* Enforced linear, unconditional test execution without branching or loops around assertions.
+    6. *The Eager Test:* Maintained 1-to-1 single behavioral contract per test case.
+    7. *Sleep-Based Timing & Async Flakiness:* Mandated deterministic hook/observer synchronization over wall-clock timeouts.
+    8. *Silent / Hollow Tests:* Prohibited silent catch blocks and hollow assertions.
+    9. *Duplicated Fixture Logic:* Centralized fixtures in `tests/` and shared harnesses.
+  * **Production Clean Code Standards (§2.5.2):** Documented single-responsibility decomposition, DAMP (Descriptive And Meaningful Phrases) over DRY in test code, pure functions with guard clauses, XSS-immune DOM construction, and ResourceLoader IIFE encapsulation.
+  * **Pre-Merge Review Checklist (§2.5.3):** Established an actionable 8-point checklist for contributors and reviewers.
+  * **Continuous Quality Gate (§5):** Added formal Clean Code & Anti-Test-Smell quality gate to CI requirements.
+* **Test Code Hygiene Refactoring:**
+  * Refactored unlabelled assertions across `tests/test_utils.js`, `tests/test_state.js`, `tests/test_benchmarks.js`, and `tests/test_parser.js` to eliminate Assertion Roulette and provide explicit diagnostic messages.
+* **Verification & Results:**
+  * All 103/103 tests pass with 0 ESLint warnings in ~250ms.
+
 
 
 

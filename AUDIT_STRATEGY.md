@@ -10,7 +10,7 @@
 
 The **Audit and Review Strategy** defines the end-to-end framework for ensuring quality, security, and editorial integrity across RefDiff. It bridges two critical domains:
 
-1. **Codebase & Security Audit (Engineering Integrity):** A systematic verification pipeline ensuring that `refdiff.js` complies with Wikimedia's gadget and security guidelines, eliminates mock blind spots through real DOM testing, and maintains zero regressions across real-world Wikipedia diffs.
+1. **Codebase & Security Audit (Engineering Integrity):** A systematic verification pipeline ensuring that `refdiff.js` complies with Wikimedia's gadget and security guidelines, enforces clean-code standards and anti-test-smell hygiene, eliminates mock blind spots through real DOM testing, and maintains zero regressions across real-world Wikipedia diffs.
 2. **Editorial Source Audit (Editorial Integrity):** An operational playbook providing Wikipedia patrollers, fact-checkers, and reviewers with structured workflows to detect vandalism, "template camouflage", and "AI slop" without cognitive overload.
 
 ```
@@ -21,8 +21,9 @@ The **Audit and Review Strategy** defines the end-to-end framework for ensuring 
 ├───────────────────────────────────────────┼────────────────────────────────────────────┤
 │ • Security & XSS Audit Protocols          │ • Anti-Template-Camouflage Workflow        │
 │ • Severity Taxonomy (K1/M1/M6 Framework)  │ • Anti-AI-Slop Fact-Checking Playbook      │
-│ • Real DOM (JSDOM) Regression Harness     │ • 3-Way Mode Triage (Visual/Wikitext/Dec.) │
-│ • On-Wiki ResourceLoader Compliance       │ • Ecosystem Synergies (diffedit, CNfirmed) │
+│ • Clean Code & Anti-Test-Smell Governance │ • 3-Way Mode Triage (Visual/Wikitext/Dec.) │
+│ • Real DOM (JSDOM) Regression Harness     │ • Ecosystem Synergies (diffedit, CNfirmed) │
+│ • On-Wiki ResourceLoader Compliance       │ • Real-World Diff Lifecycle (6 Stages)     │
 └───────────────────────────────────────────┴────────────────────────────────────────────┘
 ```
 
@@ -106,6 +107,54 @@ To meet Wikimedia security policies for user scripts and gadgets:
    // </nowiki>
    ```
 3. **Wikitext Protection:** The script begins with `/* <nowiki> */` and ends with `/* </nowiki> */` to prevent template parsing and signature expansion.
+
+---
+
+### 2.5 Clean Code & Test Code Smell Audit Protocols
+
+High automated test coverage can create a false sense of security if the underlying test suite suffers from **test smells**—anti-patterns that make tests brittle, opaque, slow, or prone to false positives. Similarly, user script production code must remain modular, readable, and defensive against MediaWiki's dynamic DOM lifecycle.
+
+RefDiff enforces rigorous **Clean Code** standards and an active **Test Smell Audit Taxonomy** inspired by Gerard Meszaros' *xUnit Test Patterns* and modern clean-code engineering:
+
+#### 2.5.1 Test Code Smell Taxonomy & Prevention Rules
+
+| Test Smell | Anti-Pattern Description | Hazard / Failure Mode | Mandatory Prevention Rule in RefDiff |
+|:---|:---|:---|:---|
+| **Assertion Roulette** | Multiple unlabelled assertions in a single test case without failure explanations. | When a test fails in headless CI, reviewers cannot determine which invariant broke without line-number tracing. | **Descriptive Assertion Messages:** Every `assert.strictEqual()`, `assert.ok()`, or `assert.deepStrictEqual()` must supply an explanatory message string detailing the expected behavior. |
+| **The Mystery Guest** /<br/>**Obscure Test** | Tests relying on implicit global state, obscure fixtures, or hidden magic literals whose origin is not visible in the test body. | Reviewers cannot understand why the test expects a specific output or what input conditions caused it. | **Explicit Arrange-Act-Assert (AAA):** Tests must explicitly declare inputs or use named fixtures (e.g. `comprehensive_test.html`). No anonymous magic strings. |
+| **Over-Mocking &**<br/>**The Mockery** | Synthesizing elaborate fake DOM/window objects instead of testing real MediaWiki DOM structures. | Tests pass against artificial mocks but break on real Wikipedia diff tables (Finding **[K1]**). | **Real DOM First:** UI and table transformations must be tested in real JSDOM DOM trees (`withJsdom()`) using authentic MediaWiki HTML fixtures rather than synthetic mock trees. |
+| **Polluted Global State &**<br/>**Resource Leaks** | Mutating `global.window`, `global.document`, `global.mw`, or storage engines without guaranteed teardown. | Inter-test interference, flaky test runs, and order-dependent execution failures in the runner. | **Guaranteed Sandbox Teardown:** All global mutations must execute inside `withMockEnvironment()` or `try / finally` blocks with unconditional global cleanup. |
+| **Conditional Test Logic** | Using `if`, `else`, `switch`, or `for` loops wrapped around assertions inside a test case. | Assertions may be skipped silently when conditional branches are not reached, producing false green passes. | **Linear, Unconditional Tests:** Test cases must execute deterministically without branching logic. Parameterized cases must use declarative arrays (`[...].forEach()`) with separate test invocations. |
+| **The Eager Test** /<br/>**Split Responsibility** | A single test case testing multiple unrelated subsystems or multiple edge cases at once. | Difficult to pinpoint regressions; failure in step 1 masks regressions in steps 2–5. | **Single Behavioral Contract:** 1 test = 1 behavioral guarantee or 1 specific bug reproduction (e.g. Donnie Brasco unclosed quotes vs. Bihar embedded apostrophes). |
+| **Sleep-Based Timing &**<br/>**Async Flakiness** | Using arbitrary `setTimeout()` or `sleep()` to wait for asynchronous UI mutations. | Flaky tests in resource-constrained CI; false alarms or sluggish test runs. | **Deterministic Synchronization:** Wait for deterministic events, mutation observers, or hooks (`mw.hook`) rather than wall-clock delays. |
+| **Silent / Hollow Tests** | Empty catch blocks (`try { ... } catch (e) {}`), or asserting `assert.ok(true)` without validating resulting DOM state. | Tests appear green in reporting but fail to exercise or verify any actual code paths. | **Zero Silent Catches:** Never catch assertion errors silently. Tests must assert resulting DOM mutations or return values directly. |
+| **Duplicated Fixture Logic** | Copy-pasting 50-line diff table mock strings across multiple test files. | Maintenance burden; changes to DOM schema require updating dozens of disconnected strings. | **Shared Modular Fixtures:** Centralize diff HTML fixtures in `tests/fixtures/` and shared helpers in `tests/harness.js`. |
+
+#### 2.5.2 Production Code Cleanliness Standards
+
+1. **Single Responsibility per Subsystem:**
+   - Parsing (`src/parser.js`), pairing (`src/pairing.js`), DOM restoration (`src/memento.js`), UI widgets (`src/init.js`), and storage (`src/state.js`) are decoupled with zero circular dependencies.
+2. **DAMP over DRY in Test Code:**
+   - While production code strictly enforces **DRY** (Don't Repeat Yourself), test code favors **DAMP** (Descriptive And Meaningful Phrases). Test cases should read like executive specifications where inputs, actions, and expectations are immediately legible without excessive indirection.
+3. **Pure Functions & Guard Clauses:**
+   - String parsers (`extractName`, `extractSfnInfo`, `normalizeDiffTags`) are pure functions with early return guard clauses. Deeply nested `if` pyramids are prohibited.
+4. **XSS-Immune DOM Construction:**
+   - Dynamic elements are constructed via native `el()` with `ownerDocument.createTextNode()` escaping (Finding **[M1]**). Zero dynamic `.innerHTML` string interpolation.
+5. **ResourceLoader Encapsulation:**
+   - No variable leaks into the global `window` scope. All internal states are encapsulated inside an IIFE closure with explicit `window.RefDiff` exports only when running under Node.js test harnesses.
+
+#### 2.5.3 Clean Code & Anti-Test-Smell Review Checklist
+
+Reviewers and contributors must verify the following checklist before merging:
+
+* [ ] **[AAA Compliance]** Does every test follow a clear Arrange, Act, Assert structure?
+* [ ] **[Descriptive Assertions]** Does every assertion provide an explanatory error message string?
+* [ ] **[No Global Leakage]** Are all mocked globals restored via `finally` or `withMockEnvironment()`?
+* [ ] **[No Assertion Roulette]** Can a failure immediately identify the exact broken invariant from the error message?
+* [ ] **[No Conditional Logic]** Is the test execution path completely linear and free of `if`/`switch` skips?
+* [ ] **[Real DOM Validation]** Do DOM-mutating tests run against genuine MediaWiki diff HTML rather than synthetic objects?
+* [ ] **[Deterministic Timing]** Are all tests free of arbitrary `sleep()` or timeout delays?
+* [ ] **[Lint Hygiene]** Does the test file pass `npm run lint` with 0 warnings and 0 errors?
 
 ---
 
@@ -203,6 +252,7 @@ To merge any code change or issue release tags:
 |:---|:---:|:---|
 | **Test Suite Pass Rate** | **100% (103/103 passing)** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 warnings** | `npm run lint` |
+| **Clean Code & Test Smells** | **0 test smells; AAA pattern; descriptive assertions; 0 global leaks** | `npm test && npm run lint` |
 | **Execution Budget** | **< 250 ms across all 14 suites** | `npm run ci` |
 | **Stress Benchmark** | **< 50 ms on 114-ref table** | `node tests/test_benchmarks.js` |
 | **Real DOM Invariance** | **Byte-for-byte Memento restoration** | `node tests/test_jsdom.js` |

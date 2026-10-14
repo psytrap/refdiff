@@ -40,25 +40,25 @@ suite('Benchmarks & Integration Fixtures', () => {
     assert.strictEqual(totalDecoupledPairs, 7, 'Total decoupled citation pairs should equal 7');
 
     // Section 1: 3 pairs, sequential
-    assert.strictEqual(sectionPairs[0].length, 3);
-    assert.strictEqual(sectionPairs[0][0].d.content.includes('Venus Orbital Data'), true);
-    assert.strictEqual(sectionPairs[0][1].d.content.includes('50–55'), true);
-    assert.strictEqual(sectionPairs[0][1].a.content.includes('80–88'), true);
+    assert.strictEqual(sectionPairs[0].length, 3, 'Section 1 should contain 3 decoupled pairs');
+    assert.strictEqual(sectionPairs[0][0].d.content.includes('Venus Orbital Data'), true, 'Pair 1 deleted reference should contain Venus Orbital Data');
+    assert.strictEqual(sectionPairs[0][1].d.content.includes('50–55'), true, 'Pair 2 deleted reference should contain old page range 50-55');
+    assert.strictEqual(sectionPairs[0][1].a.content.includes('80–88'), true, 'Pair 2 added reference should contain updated page range 80-88');
 
     // Section 2: Named citation modification
-    assert.strictEqual(sectionPairs[1][0].name, 'schmidt2020');
+    assert.strictEqual(sectionPairs[1][0].name, 'schmidt2020', 'Section 2 should match modified named citation schmidt2020');
 
     // Section 3: Added citation with text
-    assert.strictEqual(sectionPairs[2][0].name, 'esa2022');
-    assert.strictEqual(sectionPairs[2][0].d, null);
+    assert.strictEqual(sectionPairs[2][0].name, 'esa2022', 'Section 3 should match added citation esa2022');
+    assert.strictEqual(sectionPairs[2][0].d, null, 'Section 3 added citation should have null deleted side');
 
     // Section 4: Added citation to existing text
-    assert.strictEqual(sectionPairs[3][0].name, 'esa-press');
-    assert.strictEqual(sectionPairs[3][0].d, null);
+    assert.strictEqual(sectionPairs[3][0].name, 'esa-press', 'Section 4 should match added citation esa-press');
+    assert.strictEqual(sectionPairs[3][0].d, null, 'Section 4 added citation should have null deleted side');
 
     // Section 5: Removed citation
-    assert.strictEqual(sectionPairs[4][0].name, 'venera1982');
-    assert.strictEqual(sectionPairs[4][0].a, null);
+    assert.strictEqual(sectionPairs[4][0].name, 'venera1982', 'Section 5 should match deleted citation venera1982');
+    assert.strictEqual(sectionPairs[4][0].a, null, 'Section 5 deleted citation should have null added side');
   });
 
   test('normalizes diffchange boundaries splitting <ref> tag markers', () => {
