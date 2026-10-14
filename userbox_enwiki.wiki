@@ -1,6 +1,6 @@
 <!-- ===========================================================================
   English Wikipedia Userbox Template for RefDiff (User Space)
-  Target On-Wiki Page: User:Powercycler/User RefDiff
+  Target On-Wiki Page: User:Powercycler/Userbox RefDiff
 =========================================================================== -->
 <includeonly>{{Userbox
 | border-c = {{{border-c|#d4a017}}}
@@ -26,7 +26,7 @@ This [[Wikipedia:Userboxes|userbox]] identifies users who patrol diffs and revie
 Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} stack):
 
 <syntaxhighlight lang="wikitext">
-{{User:Powercycler/User RefDiff}}
+{{User:Powercycler/Userbox RefDiff}}
 </syntaxhighlight>
 
 === Live preview ===
@@ -50,7 +50,7 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 {| class="wikitable"
 ! Wikitext !! Rendered Userbox !! Description
 |-
-| {{mono|<nowiki>{{User:Powercycler/User RefDiff}}</nowiki>}}
+| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff}}</nowiki>}}
 | {{Userbox
 | border-c = #d4a017
 | id       = <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
@@ -60,7 +60,7 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 }}
 | '''Default:''' Signature amber modified badge ({{mono|⟨~ref~⟩}}) representing citation decoupling in diffs.
 |-
-| {{mono|<nowiki>{{User:Powercycler/User RefDiff|badge=⟨ref⟩|border-c=#3366cc|id-c=#f0f4fc|id-fc=#3366cc}}</nowiki>}}
+| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⟨ref⟩|border-c=#3366cc|id-c=#f0f4fc|id-fc=#3366cc}}</nowiki>}}
 | {{Userbox
 | border-c = #3366cc
 | id       = <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
@@ -70,7 +70,7 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 }}
 | '''Minimalist Prose Badge:''' Neutral blue angle bracket badge.
 |-
-| {{mono|<nowiki>{{User:Powercycler/User RefDiff|badge=⧉ RefDiff|border-c=#3366cc|id-c=#eaf3ff|id-fc=#3366cc}}</nowiki>}}
+| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⧉ RefDiff|border-c=#3366cc|id-c=#eaf3ff|id-fc=#3366cc}}</nowiki>}}
 | {{Userbox
 | border-c = #3366cc
 | id       = <span style="font-size: 1.05em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>

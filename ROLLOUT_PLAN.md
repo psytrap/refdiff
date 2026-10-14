@@ -15,7 +15,7 @@
 | **Meta Docs (Soft Redirect)** | Soft redirect | `m:User:Powercycler/RefDiff` (Soft redirect pointing to en.WP documentation) |
 | **Early Testing Harness** | `common.js` snippet | `en:User:Powercycler/common.js` (Early live testing before SHA pointer uprev) |
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` (Reference test diff) |
-| **Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) | `en:User:Powercycler/User RefDiff` (User space userbox on en.WP) |
+| **Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) | `en:User:Powercycler/Userbox RefDiff` (User space userbox on en.WP) |
 | **Outreach** | [`proposal/POST.md`](proposal/POST.md) | `en:User talk:Powercycler/RefDiff` (Dedicated feedback talk page) |
 
 ---
@@ -61,7 +61,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
 2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA pointer (`// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: <sha1>)`).
 3. **Lead Docs (en.WP):** Publish [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (lead documentation).
-4. **Userbox (en.WP):** Create `en:User:Powercycler/User RefDiff` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
+4. **Userbox (en.WP):** Create `en:User:Powercycler/Userbox RefDiff` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
 5. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
 
 ### Ring 3: Community Feedback, Gadget Candidacy & Post-Shipment Feature Uprev
@@ -91,7 +91,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify canonical live benchmark diffs.
 - [ ] **Update en.WP SHA Pointer:** Update `en:User:Powercycler/refdiff.js` with new SHA pointer.
 - [ ] **Publish Lead Docs (en.WP):** Update `en:User:Powercycler/RefDiff` (en.WP leads docs) & Meta redirect.
-- [ ] **Publish Userbox:** Create `en:User:Powercycler/User RefDiff` on en.WP.
+- [ ] **Publish Userbox:** Create `en:User:Powercycler/Userbox RefDiff` on en.WP.
 - [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; verify diffs on en.WP.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.
 - [ ] **Post-Shipment Feature Uprev (Final Step):** Execute feature uprev bump (`node scripts/bump_version.js minor` or `major`) as the final step only when pre-flight was completed, shipment is verified live (`npm run check:deploy`), and feature work is completed with user review.

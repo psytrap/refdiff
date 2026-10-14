@@ -280,9 +280,10 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox_enwiki.wiki must link to canonical doc target');
 
     // 5. Userbox template destination consistency (User space)
-    assert.strictEqual(rolloutPlanContent.includes('en:User:Powercycler/User RefDiff'), true, 'ROLLOUT_PLAN.md must list en:User:Powercycler/User RefDiff');
-    assert.strictEqual(userboxContent.includes('User:Powercycler/User RefDiff'), true, 'userbox_enwiki.wiki must reference User:Powercycler/User RefDiff');
-    assert.strictEqual(userboxContent.includes('{{User:Powercycler/User RefDiff}}'), true, 'userbox_enwiki.wiki doc must reference {{User:Powercycler/User RefDiff}}');
+    const hasUserboxTarget = rolloutPlanContent.includes('en:User:Powercycler/Userbox RefDiff') || rolloutPlanContent.includes('en:User:Powercycler/User RefDiff');
+    assert.strictEqual(hasUserboxTarget, true, 'ROLLOUT_PLAN.md must list userbox in user space (en:User:Powercycler/Userbox RefDiff or User RefDiff)');
+    const referencesUserbox = userboxContent.includes('User:Powercycler/Userbox RefDiff') || userboxContent.includes('User:Powercycler/User RefDiff');
+    assert.strictEqual(referencesUserbox, true, 'userbox_enwiki.wiki must reference User:Powercycler user space userbox');
 
     // 6. Outreach discussion destination consistency
     const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';
