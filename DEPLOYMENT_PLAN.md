@@ -68,7 +68,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 ### Ring 3: Community Feedback & Gadget Candidacy
 - Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
-- Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-gate-100-user-gadget-scale--beyond): Tier 1 pilot (10 users) followed by Tier 2 gadget candidacy (50–100+ active reviewers over 60 days).
+- Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-pilot-50-user-gadget-milestone--beyond): Tier 1 pilot (10-user milestone) followed by Tier 2 gadget candidacy (50-user reviewer milestone over 60 days).
 
 ---
 

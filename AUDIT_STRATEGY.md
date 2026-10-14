@@ -116,7 +116,7 @@ To ensure tests remain resilient, diagnostic, and maintainable, RefDiff enforces
 
 ---
 
-### 2.7 Adoption & Scaling Policy: 10-User Gate, 100-User Gadget Scale & Beyond
+### 2.7 Adoption & Scaling Policy: 10-User Pilot, 50-User Gadget Milestone & Beyond
 
 To govern the transition from canary release to broad community gadget candidacy and eventual mass adoption, RefDiff enforces a phased three-tier stability model:
 
@@ -126,14 +126,14 @@ To govern the transition from canary release to broad community gadget candidacy
 3. **Fail-Open Invariant:** Uncaught exceptions in any auxiliary component must cleanly restore the native diff view without impacting reviewer workflows or common.js tools (Twinkle, HotCat).
 4. **Direct Qualitative Feedback:** Operational feedback and edge-case diff submissions triaged directly on `en:User talk:Powercycler/RefDiff`.
 
-#### Tier 2: 100-User Opt-In Community Gadget Scale (Gadget Proposal Prerequisite)
-1. **Critical Mass Threshold:** ~50–100+ active NPP/RC reviewers sustained over $\ge 60$ days with 0 critical regressions.
+#### Tier 2: 50-User Community Reviewer Scale (Gadget Proposal Prerequisite)
+1. **Critical Mass Threshold:** $\ge 50$ active NPP/RC reviewers sustained over $\ge 60$ days with 0 critical regressions.
 2. **Ecosystem Non-Interference:** Formal automated test assertions verifying zero disruption to diff headers, revision metadata, and third-party buttons (Twinkle, HotCat, diffedit).
 3. **Dynamic SPA Re-Entrancy:** Safe re-initialization on sequential `wikipage.diff` Ajax table swaps without Memento memory leaks.
 4. **Client-Side Observability:** Opt-in diagnostic troubleshooting flag (`?refdiff_debug=1`) for rapid triage of reviewer bug reports.
 5. **Community Consensus:** Formal RFC proposal on `Wikipedia:Village pump (technical)` for definition as an opt-in gadget in `MediaWiki:Gadgets-definition`.
 
-#### Tier 3: Beyond 100-User Goal (Mass Scale, Default Gadget & Upstream Integration)
+#### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Upstream Integration)
 1. **Formal Accessibility Compliance:** Full WCAG 2.1 AA keyboard focus navigation, screen reader semantics (`aria-label`), and contrast validation across light/dark themes.
 2. **Multi-Skin & Mobile Fallback:** Verified support across legacy skins (Vector 2010, Monobook, Timeless) and graceful auto-disablement on single-column mobile viewports (`MinervaNeue`).
 3. **Default-Enabled Status:** Broad community consensus for default-on gadget status (`[default]`) on English Wikipedia or cross-wiki deployment.

@@ -26,14 +26,14 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ### 2.1 RefDiff Tool Roadmap (Active In-Browser Gadget)
 
-*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from Early Adopter Pilot (10-user milestone) to Community Gadget Candidacy (100-user scale), delineating mass-scale goals beyond 100 users, and on-wiki rollout.*
+*Focus: Immediate client-side diff enhancement on `Special:Diff`, phased scaling from Early Adopter Pilot (10-user milestone) to Community Reviewer Milestone (50-user scale), delineating mass-scale goals beyond 50 users, and on-wiki rollout.*
 
-#### Scaling Progression Overview: 10-User Pilot, 100-User Gadget & Beyond-100 Mass Scale
+#### Scaling Progression Overview: 10-User Pilot, 50-User Gadget & Beyond-50 Mass Scale
 
-| Dimension | Tier 1: Early Adopter Pilot (10-User Milestone) | Tier 2: Community Gadget Scale (100-User Opt-In) | Tier 3: Mass Deployment (Beyond 100 Users) |
+| Dimension | Tier 1: Early Adopter Pilot (10-User Milestone) | Tier 2: Community Reviewer Scale (50-User Milestone) | Tier 3: Mass Deployment (Beyond 50 Users) |
 | :--- | :--- | :--- | :--- |
 | **Objective** | Validate real-world value with early adopters on en.WP | Qualify for official opt-in English Wikipedia Gadget | Site-wide default gadget or upstream MediaWiki core feature |
-| **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | ~50–100+ active NPP/RC reviewers over 60 days | 1,000+ editors, site-wide default, cross-wiki deployment |
+| **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | $\ge 50$ active NPP/RC reviewers over 60 days | 1,000+ editors, site-wide default, cross-wiki deployment |
 | **Distribution** | Personal user script in `common.js` / `global.js` | Built-in opt-in Gadget in `Special:Preferences` | Default-enabled gadget (`[default]`) or native `Extension:Cite` |
 | **Crash Blast Radius** | Fail-open `try...catch` boundary (reverts to native diff) | Zero blast radius across diverse multi-script ecosystems | Core platform stability, server-side / Parsoid guarantees |
 | **Tool Compatibility** | Non-interference verified on standard diff headers | Formal automated contract tests (Twinkle, HotCat, etc.) | Universal compatibility across all gadgets and extensions |
@@ -57,7 +57,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
 | **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `Template:User RefDiff` with 0 P0 defects |
 
-##### Tier 2: Community Gadget Scale (100-User Opt-In — Post-Pilot)
+##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
@@ -65,7 +65,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.3** | Patrol Tool Non-Interference Contract | High | 🔮 Future | Byte-for-byte protection of diff headers & Twinkle/HotCat nodes |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
-##### Tier 3: Beyond 100-User Goal (Mass Scale, Default Gadget & Multi-Platform)
+##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
@@ -87,7 +87,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Track active pilot adoption via `Special:WhatLinksHere/Template:User_RefDiff` until reaching $\ge 10$ active patrollers on English Wikipedia.
   * Verify zero P0 runtime exceptions or diff view corruptions across 30 days of real Wikipedia diff reviews per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7.
 
-##### Tier 2 Action Items: Community Gadget Scale & Hardening (100-User Scale)
+##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
   * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
   * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
@@ -98,17 +98,17 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
   * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
 
-##### Tier 3 Action Items: Beyond 100-User Goal (Mass Scale, Default Gadget & Multi-Platform)
-- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 100 Users)**
+##### Tier 3 Action Items: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
+- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 50 Users)**
   * Add semantic `aria-label` attributes to inline badges (e.g. `aria-label="Citation 1"`, `aria-label="Modified citation: name"`).
   * Ensure keyboard focusability (`tabindex="0"`) and <kbd>Enter</kbd>/<kbd>Space</kbd> keydown navigation from prose badge to citation diff row.
   * Verify color contrast ratios for amber (`#9a6700`) and green (`#14866d`) badges satisfy WCAG 2.1 AA (4.5:1) in Vector 2022 Light and Dark themes.
-  * *Rationale for Beyond 100 Users:* Formal WCAG 2.1 AA compliance certification is essential for site-wide default enablement across the general readership and editing community; opt-in reviewers in Tier 2 use existing semantic contrast without blocking gadget candidacy.
-- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (Tier 3 — Beyond 100 Users)**
+  * *Rationale for Beyond 50 Users:* Formal WCAG 2.1 AA compliance certification is essential for site-wide default enablement across the general readership and editing community; opt-in reviewers in Tier 2 use existing semantic contrast without blocking gadget candidacy.
+- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (Tier 3 — Beyond 50 Users)**
   * Add automated JSDOM test for legacy skins lacking OOUI button containers, verifying fallback mode bar (`#refdiff-mode-bar`) mounting.
   * Add graceful self-disablement invariant for single-column mobile viewports (`MinervaNeue`).
-  * *Rationale for Beyond 100 Users:* Reviewers evaluating NPP/RC diffs operate almost universally on modern desktop (Vector 2022). Legacy skins (Monobook) and mobile web (`MinervaNeue`) are required for universal site default coverage, not 100-user reviewer adoption.
-- [ ] **Step R.9: Default-Enabled Gadget RFC & Site-Wide Governance (Tier 3 — Beyond 100 Users)**
+  * *Rationale for Beyond 50 Users:* Reviewers evaluating NPP/RC diffs operate almost universally on modern desktop (Vector 2022). Legacy skins (Monobook) and mobile web (`MinervaNeue`) are required for universal site default coverage, not 50-user reviewer adoption.
+- [ ] **Step R.9: Default-Enabled Gadget RFC & Site-Wide Governance (Tier 3 — Beyond 50 Users)**
   * Prepare and submit a community RFC on `Wikipedia:Village pump (technical)` to propose RefDiff as a default-enabled gadget (`[default]`) on English Wikipedia.
   * Coordinate with MediaWiki interface administrators for inclusion in `MediaWiki:Gadgets-definition`.
 
@@ -1146,6 +1146,24 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§1 Artifacts Table, §3 Ring 1, §5 Runbook Checklist).
   * Updated [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js) to monitor `refdiff-canary.js`.
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) with automated regex assertion prohibiting versioned filenames.
+
+---
+
+### 2026-10-14: Refined Community Reviewer Scale to 50-User Milestone
+
+* **Context & Architectural Refinement:**
+  * Refined the post-pilot community scaling milestone from an aggressive 100-user target down to a humble, realistic **50-user reviewer milestone** (`Tier 2: Community Reviewer Scale (50-User Milestone)`), with mass deployment goals scoped to `Tier 3: Beyond 50 Users`.
+  * For specialized patrol tools like RefDiff on English Wikipedia, 50 active patrollers/reviewers sustained over 60 days represents substantial critical mass before proposing built-in gadget status under `MediaWiki:Gadgets-definition`.
+* **Key Provisions:**
+  * Updated the 3-tier scaling progression model across [`LOG.md`](LOG.md) (§2.1), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7), and [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 3):
+    * **Tier 1:** Early Adopter Pilot (10-User Milestone; R.1, R.7).
+    * **Tier 2:** Community Reviewer Scale (50-User Milestone; R.2, R.3, R.4).
+    * **Tier 3:** Beyond 50 Users (Mass scale, default gadget & multi-platform; R.5, R.6, R.9, U.1–U.8).
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Scaling Overview table, Dashboard, Tier 2/3 Action Items).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7 Adoption & Scaling Policy).
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 3 Gadget Candidacy anchor & text).
+
 
 
 
