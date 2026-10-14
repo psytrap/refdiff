@@ -66,7 +66,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.10** | Regex Reevaluation & Parser Architecture | High | 🔮 Future | TODO: Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth and token scanner alternatives |
 | **R.11** | Default Mode Isolation (Visual Diff Bug) | High | 🔮 Future | TODO: Investigate bug making visual diff default unexpectedly |
 | **R.12** | Live On-Wiki Visual Testbed (No Local Visual Test) | High | 🔮 Future | TODO: Retire local HTTP visual inspection in favor of live on-wiki testing |
-| **R.13** | Visual Inspection Across All Change Cases | High | 🔮 Future | TODO: Visual inspection matrix covering all change cases (pure adds, dels, inline mods, template refs) |
+| **R.13** | Visual Inspection Across All Change Cases | High | ✅ Completed | Comprehensive visual inspection matrix verified & signed off across all change cases |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
 ##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
@@ -112,8 +112,8 @@ This log records the rationale, architectural decisions, completed milestones, a
   * **TODO:** Retire local visual test server (`http://127.0.0.1:8000/refdiff.js`) in favor of live on-wiki visual inspection.
   * Eliminate local HTTP server dependencies to avoid browser mixed-content restrictions on HTTPS Wikipedia diffs.
   * Establish a seamless live on-wiki testbed workflow (e.g. testing directly via `en:User:Powercycler/common.js` sandbox or authenticated user script test harness) so all visual reviews occur against authentic Wikipedia production CSS, gadgets, and ResourceLoader environments.
-- [ ] **Step R.13: Comprehensive Visual Inspection Across All Change Cases (Tier 2 — High)**
-  * **TODO:** Execute and codify systematic visual inspection across all four primary citation change cases and edge configurations:
+- [x] **Step R.13: Comprehensive Visual Inspection Across All Change Cases (Tier 2 — High)**
+  * Executed, captured, and codified systematic visual inspection across all four primary citation change cases and edge configurations (verified and signed off by user):
     1. **Pure Addition (`isAdd`):**
        - Newly introduced citation definitions appear in the right column (`diff-addedline`) with empty cells on the left (`diff-empty`, `colspan=2`).
        - Citation text body must be clean and unadorned (NO intra-line `<ins class="diffchange">` wrapping around citation text).
@@ -1460,6 +1460,28 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.13).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Comprehensive Visual Inspection Across All Change Cases Verified & Signed Off
+
+* **Context & Audit Execution:**
+  * Executed comprehensive visual inspection protocol across all citation change cases using [`scripts/capture_full_audit.py`](scripts/capture_full_audit.py) in Chromium via CDP on port 9222.
+  * Generated high-resolution visual evidence across all 5 sections of Meta Showcase diff (`diff=31142550`) and Bihar diff (`diff=1379207737`) in both Vector 2022 Light and Dark modes:
+    1. **Pure Addition (`isAdd`):** Clean wikitext body, zero intra-line `<ins class="diffchange">` tags, `+label+` badge on right (`diff-addedline`), `diff-empty` on left.
+    2. **Pure Deletion (`isDel`):** Clean wikitext body, zero intra-line `<del class="diffchange">` tags, `-label-` badge on left (`diff-deletedline`), `diff-empty` on right.
+    3. **Intra-Line Modification (`isMod`):** Dual-sided row with `~label~` badge, retaining native MediaWiki intra-line diff highlights (`<del>` / `<ins>`) strictly on modified words (e.g. `pages=50–55` $\to$ `pages=80–88`).
+    4. **Theme Consistency:** Light and Dark mode contrast and token rendering verified.
+  * Human reviewer inspected all visual audit captures and formally confirmed: **"looks good"**.
+* **Lower-Level Test Pyramid Expansion:**
+  * Unit/Renderer ([`tests/test_renderer.js`](tests/test_renderer.js)): Asserted clean addition/deletion vs intra-line diffchange on modifications.
+  * Pipeline ([`tests/test_pipeline.js`](tests/test_pipeline.js)): Asserted `transformProseCells` strips outer ins/del wrappers for `isAdd`/`isDel` while preserving inner tokens for `isMod`.
+  * Real MediaWiki DOM / JSDOM ([`tests/test_jsdom.js`](tests/test_jsdom.js)): Asserted diffchange highlight rules across all 5 sections of `comprehensive_test.html`.
+  * All 121 tests passed across 15 modular suites (`TEST_PLAN.md` synchronized).
+* **Rollout Status:**
+  * Step R.13 marked completed.
+  * Pre-flight gates cleared; ready for on-wiki deployment execution per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
+
 
 
 
