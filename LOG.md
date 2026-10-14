@@ -941,6 +941,22 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated `DEPLOYMENT_PLAN.md` (§1 Table 1, §3 Ring 3, §5 Runbook Checklist).
 
+---
+
+### 2026-10-14: Streamlined Rollout Strategy (Removed Beta Channel in Favor of Pinned Canary)
+
+* **Context & Architectural Decision:**
+  * Evaluated whether an opt-in beta release channel (`refdiff-beta.js`) is necessary given immutable pinned commit releases (`refdiff-v1.3.0.js`).
+  * Concluded that for a ~100-user patrol tool, a separate beta channel creates redundant coordination overhead without additional safety.
+  * Verified that pinned releases benefit from aggressive Varnish/CDN caching (`Cache-Control: public, s-maxage=...` for immutable revisions), instantaneous page-history rollback (< 30s), and deterministic pre-flight testing on 5 benchmark diffs (Ring 1).
+* **Rollout Streamlining:**
+  * Removed Ring 1.5 (`refdiff-beta.js`) from `DEPLOYMENT_PLAN.md`.
+  * Rollout protocol streamlined to:
+    * **Ring 0:** Local CI & pre-flight gates (`npm run ci && node tests/test_deployment.js`).
+    * **Ring 1:** Pinned commit canary (`refdiff-v1.3.0.js` on 5 benchmark diffs).
+    * **Ring 2:** Production publishing (`refdiff.js` on Meta & en.WP).
+    * **Ring 3:** Community feedback & gadget candidacy (`en:User talk:Powercycler/RefDiff`).
+
 
 
 
