@@ -1,6 +1,0 @@
-# Third-party material fetched by ./fetch.sh (Apache-2.0, 10nm). Not vendored:
-# regenerate with `./fetch.sh` and `node extract_sources.js`.
-dist/
-repo/
-deployed/
-sourcemap-src/

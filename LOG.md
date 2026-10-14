@@ -73,13 +73,13 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Diff Tooling Scope** | Zero changes required (`wikidiff2` untouched) | Avoids scope creep and maintainer pushback. Decoupling of claim and source in diff hunks is documented as an acknowledged trade-off mitigated by section locality. |
 | **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp|45}}`). |
 | **Legacy & Third-Party Compatibility** | Dynamic LDR Hoisting (Pre-parse Hook & Export Transpiler) | Transpiles `<references hidden>` to standard List-Defined References (LDR) on-the-fly for unpatched/third-party wikis and database dumps (Kiwix). Completely eliminates in-situ `<ol>` rendering and stateful citation flush issues. |
-| **RefDiff Internationalization (i18n)** | Deliberate Omission (Language-Agnostic Design) | RefDiff deliberately does not implement an i18n framework (`mw.messages`/`i18next`). The gadget UI has a negligible string footprint (~3 static strings: proper name `RefDiff`, `Inline modified refs`, `Diff view:`). Decoupled badges rely on universal mathematical notation (`⟨...⟩`, `~`, `+`, `-`) and verbatim citation metadata. Omitting i18n preserves the zero-dependency, single-file footprint (~40 KB) required for instant cross-wiki deployment via `m:Special:MyPage/global.js` without network overhead or translation bundle latency (see [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md)). |
+| **RefDiff Internationalization (i18n)** | Deliberate Omission (Language-Agnostic Design) | RefDiff deliberately does not implement an i18n framework (`mw.messages`/`i18next`). The gadget UI has a negligible string footprint (~3 static strings: proper name `RefDiff`, `Inline modified refs`, `Diff view:`). Decoupled badges rely on universal mathematical notation (`⟨...⟩`, `~`, `+`, `-`) and verbatim citation metadata. Omitting i18n preserves the zero-dependency, single-file footprint (~40 KB) required for instant cross-wiki deployment via `m:Special:MyPage/global.js` without network overhead or translation bundle latency (see ADR §3.1). |
 
 ---
 
 ### 3.2 Audit Findings Register (K1 / M1 / M6 / M7 Taxonomy)
 
-This register serves as the authoritative system of record for all security, architecture, and compliance findings uncovered during codebase audits, external reviews (e.g. against [Ultraviolet](poc/ultraviolet/COMPARISON.md)), and on-wiki gadget security checks. Severity and action thresholds follow the taxonomy defined in [**`AUDIT_STRATEGY.md` (§2.1)**](AUDIT_STRATEGY.md#21-quality-review-taxonomy--findings-registry).
+This register serves as the authoritative system of record for all security, architecture, and compliance findings uncovered during codebase audits, external reviews (e.g. against [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet)), and on-wiki gadget security checks. Severity and action thresholds follow the taxonomy defined in [**`AUDIT_STRATEGY.md` (§2.1)**](AUDIT_STRATEGY.md#21-quality-review-taxonomy--findings-registry).
 
 | Finding ID | Title | Class | Severity | Status | Discovery Date | Target Component | Resolved In |
 |:---:|:---|:---:|:---:|:---:|:---:|:---|:---:|
@@ -93,7 +93,7 @@ This register serves as the authoritative system of record for all security, arc
 #### K1: Real DOM Mock Weakness
 * **Finding ID:** `K1`
 * **Class & Severity:** Architectural / Test Integrity (**P0**)
-* **Discovery Date & Origin:** 2026-10-14 (Ultraviolet architectural benchmark review in [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md)).
+* **Discovery Date & Origin:** 2026-10-14 (Ultraviolet architectural benchmark review).
 * **Root Cause & Description:** Unit test harnesses previously relied on hand-crafted JavaScript mock objects (`{ innerHTML: ... }`) in `tests/harness.js`. These mocks failed to emulate real browser DOM semantics—such as live `HTMLCollection` mutation, `tr.cells` indexing, event propagation/bubbling, and missing API quirks (`scrollIntoView` undefined in certain headless frames). As a result, critical DOM lifecycle regressions could pass unit tests undetected.
 * **Remediation & Implementation:**
   1. Integrated `jsdom` into `package.json` devDependencies.
@@ -495,7 +495,7 @@ This register serves as the authoritative system of record for all real-world Wi
 ### 2026-10-14: Real DOM Testing in JSDOM & On-Wiki <nowiki> Protection (Ultraviolet Benchmarks)
 
 * **Motivation & Architectural Context:**
-  * Comparative review against Wikipedia's [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) userscript (`poc/ultraviolet/COMPARISON.md`) identified key areas for hardening:
+  * Comparative review against Wikipedia's [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) userscript identified key areas for hardening:
     1. **Mock Weakness Elimination:** Testing RefDiff against a real headless DOM environment (`jsdom`) using real MediaWiki `table.diff` fixtures (`tests/comprehensive_test.html`, `tests/stress_test_1379409916.html`).
     2. **On-Wiki Template Protection:** Protecting the script against on-wiki wikitext template expansion (`{{sfn}}`, `{{efn}}`) and parameter substitution (`~~~~`) by wrapping the deployment in `/* <nowiki> */` and `/* </nowiki> */`.
 * **Implementation Details:**
@@ -640,7 +640,7 @@ This register serves as the authoritative system of record for all real-world Wi
 ### 2026-10-14: Audit & Review Strategy — Two-Pillar Framework, JSDOM Harness & `<nowiki>` Protection
 
 * **Context & Motivation:**
-  * Synthesized findings from comparative audit against [Ultraviolet](poc/ultraviolet/COMPARISON.md) and established a formal two-pillar **Audit and Review Strategy** ([`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md)).
+  * Synthesized findings from comparative audit against [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) and established a formal two-pillar **Audit and Review Strategy** ([`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md)).
 * **Pillar 1: Codebase & Security Audit (Engineering Integrity):**
   * **Taxonomy & Findings Registry:** Formalized severity classes (K1/M1/M6) tracking real DOM mock blind spots, HTML generation via template strings, unpinned CDN dependencies, and on-wiki `<nowiki>` transclusion.
   * **Real DOM Integration Suite (`tests/test_jsdom.js`):** Implemented 10 automated headless integration tests on real MediaWiki diff fixtures (`comprehensive_test.html` and `stress_test_1379409916.html`), validating byte-for-byte in-place Memento restoration, OOUI button injection, and mouse delegation. Expanded suite to **97/97 passing tests** in <250ms.
@@ -658,7 +658,7 @@ This register serves as the authoritative system of record for all real-world Wi
 ### 2026-10-14: Security Hardening — Safe DOM Builder `el()` & Elimination of Template Strings (M1)
 
 * **Context & Motivation:**
-  * Addressed quality audit finding **[M1]** identified in the comparative review against [Ultraviolet](poc/ultraviolet/COMPARISON.md#L44) and documented in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#L48).
+  * Addressed quality audit finding **[M1]** identified in the comparative review against [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) and documented in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md).
   * Replaced dynamic HTML generation via string concatenation / `.innerHTML` with a safe, native DOM element builder to eliminate XSS injection risks and tag boundary corruption.
 * **Architectural & Code Changes:**
   * **Native DOM Builder Helper (`el`):** Implemented `el(tag, attrs, ...children)` with native attribute sanitization and `ownerDocument.createTextNode` escaping for all user-supplied text values.
@@ -667,7 +667,7 @@ This register serves as the authoritative system of record for all real-world Wi
   * **Safe UI Component Builders:** Refactored `createInlineToggle`, `createRefDiffButton`, and `createFallbackModeBar` to construct elements natively without `.innerHTML`.
   * **Exports & Testing:** Exported `el` and `createProseBadgeElement`; expanded test coverage in `tests/test_renderer.js` to verify attribute escaping, XSS immunity, and real DOM row construction. Suite expanded to **99/99 passing tests** in ~250ms with 0 ESLint warnings.
 * **Documentation Updates:**
-  * Marked M1 as **Resolved** in `AUDIT_STRATEGY.md` and `poc/ultraviolet/COMPARISON.md`. Updated test counts in `README.md`, `ARCHITECTURE.md`, `TEST_PLAN.md`, and `refdiff.wiki`.
+  * Marked M1 as **Resolved** in `AUDIT_STRATEGY.md`. Updated test counts in `README.md`, `ARCHITECTURE.md`, `TEST_PLAN.md`, and `refdiff.wiki`.
 
 ---
 
@@ -756,17 +756,16 @@ This register serves as the authoritative system of record for all real-world Wi
 
 ---
 
-### 2026-10-14: Architectural Decision: Deliberate Omission of i18n Framework (`poc/ultraviolet/COMPARISON.md`)
+### 2026-10-14: Architectural Decision: Deliberate Omission of i18n Framework
 
 * **Context & Motivation:**
-  * Following the comparative review against [Ultraviolet](poc/ultraviolet/COMPARISON.md) and evaluation of item 5 ("i18n through `mw.messages.set` plus `mw.msg`"), a formal architectural decision was made to **omit internationalization (i18n)** from RefDiff.
+  * Following the comparative review against [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) and evaluation of item 5 ("i18n through `mw.messages.set` plus `mw.msg`"), a formal architectural decision was made to **omit internationalization (i18n)** from RefDiff.
 * **Architectural Rationale & Trade-off Analysis:**
   1. *Negligible String Footprint:* Unlike Ultraviolet (which contains hundreds of user-facing templates, warning forms, and report dialogs), RefDiff's user interface contains only three static tokens: `"RefDiff"` (proper tool name, which is universal and unlocalized on Wikimedia), `"Inline modified refs"` (toolbar checkbox), and `"Diff view:"` (fallback bar).
   2. *Language-Agnostic Mathematical Notation:* RefDiff's primary visual output consists of mathematical angle-bracket badges (`⟨ref1⟩`, `⟨~ref2~⟩`, `⟨+ref3+⟩`, `⟨-ref4-⟩`) and diff markers (`+`, `-`, `~`). Shortened footnote badges synthesize author-year metadata (`⟨Castritius 2005⟩`) verbatim from the wikitext source. This mathematical and bibliographic representation is universally language-neutral.
   3. *Zero-Dependency & Sub-50ms Execution Budget:* Introducing an i18n subsystem (message tables, loader hooks, translation packs) would add significant bundle weight, network latency, and memory footprint without meaningful utility, violating RefDiff's core budget of sub-50ms execution.
   4. *Seamless Cross-Wiki Portability:* RefDiff is designed for central loading across all 300+ Wikimedia language editions via `m:Special:MyPage/global.js`. A language-agnostic design ensures immediate out-of-the-box functionality everywhere without requiring translation campaigns or language pack updates.
 * **Documentation & Ledger Updates:**
-  * Updated [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md) (Overview table, item 5, and bottom line summary) to document the formal decision.
   * Codified the decision in the **Architectural Decision Register (ADR §3.1)** in `LOG.md`.
 
 ---
@@ -826,6 +825,21 @@ This register serves as the authoritative system of record for all real-world Wi
   * *Pillar 2 (Editorial Integrity):* Condensed Template Camouflage and AI Slop threat/audit workflows, tri-mode triage matrix, and ecosystem synergies (`diffedit`, `CNfirmed`, `HarvErrors`, Popups).
   * *Lifecycle & Quality Gates:* Maintained the 6-stage diff verification lifecycle diagram and unified continuous quality gate criteria table.
   * *Document Footprint:* Reduced document from 296 lines (~25.6 KB) to ~175 lines (~14.5 KB), enhancing scannability and legibility.
+
+---
+
+### 2026-10-14: Completed and Removed Ultraviolet PoC (`poc/ultraviolet`)
+
+* **Context & Motivation:**
+  * The proof-of-concept comparative benchmark against Wikipedia's [Ultraviolet](https://en.wikipedia.org/wiki/Wikipedia:Ultraviolet) userscript has been completed.
+  * All actionable engineering and security findings have been fully implemented and codified in the core repository:
+    1. **[K1] Real DOM Mock Weakness:** Implemented `tests/test_jsdom.js` against authentic MediaWiki diff fixtures.
+    2. **[M1] HTML via Template Strings:** Replaced `.innerHTML` string interpolation with native DOM builder `el()` and text nodes.
+    3. **[M6] Unpinned CDN Distribution:** Standardized on-wiki distribution from Meta-Wiki with commit-pinned SHA loader patterns.
+    4. **[M7] On-Wiki `<nowiki>` Protection:** Wrapped production code in `/* <nowiki> */` comments with automated balance checks.
+    5. **Architectural Decision on i18n:** Formalized deliberate omission of internationalization in favor of a language-agnostic, zero-overhead mathematical notation design (ADR §3.1).
+  * With all insights incorporated into [`ARCHITECTURE.md`](ARCHITECTURE.md), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`TEST_PLAN.md`](TEST_PLAN.md), and [`LOG.md`](LOG.md), the temporary `poc/ultraviolet/` directory (9.4 MB) has been decommissioned and removed.
+
 
 
 
