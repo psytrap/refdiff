@@ -179,12 +179,14 @@ git status --short
 > [!TIP]
 > **Case Study in Incomplete Cleanups:** During the v1.3.0 audit, a quick `git diff` review revealed that while the `archive/` prototype directory was deleted, four documentation files still referenced dead `archive/python-prototype/` links, and two tables listed 113 instead of 115 tests. Running the `git diff` quick review protocol eliminated these discrepancies before release tagging.
 
-#### Mandatory Pre-Deployment Uprev & Diff Audit Trigger
+#### Two-Phase Version Strategy: Minor Pre-Flight & Major Post-Deployment
 
-To ensure diff reviews remain fast, high-confidence, and zero-defect, all releases enforce core uprev policies:
-1. **Mandatory Uprev Before Deployment:** Maintainers and release automation must assure a formal version uprev is executed across all repository manifests (`package.json`, `refdiff.js`, `refdiff.wiki`, `ROLLOUT_PLAN.md`) before initiating on-wiki deployment. Deploying against unbumped version numbers is prohibited.
-2. **Smaller Changes Between Uprevs:** Version bumps (patch, minor) must be scoped to small, single-focus increments rather than massive, monolithic changesets. Small batches prevent reviewer fatigue, keep hunks immediately comprehensible, and make regressions straightforward to isolate.
-3. **Uprev Triggers Diff Audit:** Every version bump strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
+To ensure diff reviews remain fast, high-confidence, and zero-defect, all releases enforce RefDiff's two-phase version strategy:
+1. **Pre-Flight Pass & Feature Completion (Minor Uprev):** When a scoped feature increment or architectural improvement is completed and passes all pre-flight quality gates (CI, DOM fixtures, live browser CDP, and live benchmark monkey patching), execute a **minor uprev bump** (`node scripts/bump_version.js minor`).
+2. **Post-Deployment Milestone (Major Uprev):** Once an on-wiki rollout is fully deployed and verified across all Wikimedia targets (`m:User:Powercycler/refdiff.js`, `en:User:Powercycler/refdiff.js`, docs, userbox; `npm run check:deploy` passes), execute a **major uprev bump** (`node scripts/bump_version.js major`) to stamp the deployed milestone and transition into the next development era.
+3. **Mandatory Uprev Before Deployment:** Maintainers and release automation must assure a formal version uprev is executed across all repository manifests (`package.json`, `refdiff.js`, `refdiff.wiki`, `ROLLOUT_PLAN.md`) before initiating on-wiki deployment. Deploying against unbumped version numbers is prohibited.
+4. **Smaller Changes Between Uprevs:** Increments between uprevs must be scoped to small, single-focus batches rather than monolithic changesets to prevent reviewer fatigue, keep hunks immediately comprehensible, and make regressions straightforward to isolate.
+5. **Uprev Triggers Diff Audit:** Every version bump strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
 
 ---
 
