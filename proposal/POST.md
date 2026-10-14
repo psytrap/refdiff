@@ -5,7 +5,7 @@ A ready-to-use template for starting discussions and RFCs on Wikimedia discussio
 ---
 
 * **Target Venue:** English Wikipedia ([en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources))
-* **Section Title / Subject:** `Proposal: Section-scoped reference blocks (<references hidden>) for cleaner wikitext and better diffs`
+* **Section Title / Subject:** `Proposal: Section-scoped reference definitions (<ref def name="...">) for cleaner wikitext and better diffs`
 
 ---
 
@@ -13,7 +13,7 @@ A ready-to-use template for starting discussions and RFCs on Wikimedia discussio
 
 Hi all,
 
-I would like to propose a feature idea to improve reference management in wikitext: introducing a section-scoped definition block (working title: `<references hidden>`) that keeps citations near the text without breaking prose flow.
+I would like to propose a feature idea to improve reference management in wikitext: introducing a tag-level definition attribute (working title: `<ref def name="...">`) that keeps citations near the text without breaking prose flow.
 
 ### What it looks like
 
@@ -22,10 +22,16 @@ I would like to propose a feature idea to improve reference management in wikite
 The surface of Venus is dominated by intense volcanism.<ref name="schmidt2020" />
 Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
-<references hidden>
-<ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=45–48}}</ref>
-<ref name="nasa-radar">{{Cite web |author=NASA JPL |url=https://example.org/venus-radar |title=Venus Radar Mapping Project |access-date=2026-10-08}}</ref>
+<!-- Standalone definitions (no container required) -->
+<ref def name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=45–48}}</ref>
+<ref def name="nasa-radar">{{Cite web |author=NASA JPL |url=https://example.org/venus-radar |title=Venus Radar Mapping Project |access-date=2026-10-08}}</ref>
+
+<!-- Optional container wrapper (e.g. for sections with many citations):
+<references def>
+  <ref name="schmidt2020">...</ref>
+  <ref name="nasa-radar">...</ref>
 </references>
+-->
 
 == References ==
 <references />
@@ -74,7 +80,7 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 </table>
 </div>
 
-#### Proposed (`<references hidden>`)
+#### Proposed (`<ref def name="...">`)
 
 <div style="background: #0f141c; padding: 16px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: #cdd9e5; line-height: 1.5; margin: 12px 0; border: 1px solid #2d333b;">
 <table style="width: 100%; border-collapse: separate; border-spacing: 12px 5px; border: none; margin: 0;">
@@ -108,7 +114,7 @@ Radar imaging reveals thousands of volcanic structures.<ref name="nasa-radar" />
 
 ### Mechanics & Trade-Offs
 
-* `<references hidden>` does not render HTML where it sits—it simply registers definitions in the parser citation registry.
+* `<ref def name="...">` does not render an in-situ footnote marker `[1]` where it sits—it simply registers the citation definition in the parser citation registry.
 * The standard `<references />` tag at the bottom outputs everything in appearance order.
 * **Fault tolerance:** The parser resolves definitions page-wide. If someone moves a sentence to another section and forgets to move the definition, the page does not break. Bots can later clean up and migrate misplaced definitions.
 * **Trade-off (Diff review):** Because prose and source definitions are decoupled, they form separate hunks within the section rather than on the same line. Section-scoping keeps this physical distance minimal (within the same section) while leaving raw wikitext clean and readable.

@@ -68,9 +68,9 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ---
 
-### 2.2 Upstream `<references hidden>` Tag Roadmap (Future Strategy)
+### 2.2 Upstream `<ref def>` Tag Roadmap (Future Strategy)
 
-*Focus: Long-term MediaWiki wikitext feature proposal, developer RFCs, community discussion, and upstream parser integration.*
+*Focus: Long-term MediaWiki wikitext feature proposal (`<ref def name="...">`), developer RFCs, community discussion, and upstream parser integration.*
 
 #### Upstream Proposal Checklist & Status Dashboard
 
@@ -125,14 +125,14 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 | Decision | Choice | Rationale |
 | :--- | :--- | :--- |
-| **Primary Working Title** | `<references hidden>` | Native HTML5 boolean attribute `hidden` on the existing `<references>` tag. Maximizes AST parser reuse (`mwparserfromhell`, Parsoid AST) and bot compatibility (AWB) without registering new XML tags. Quote-free, clean wikitext ergonomics. Evaluated alternatives: `<references-def>` and `<references display="none">`. |
+| **Primary Working Proposal** | `<ref def name="...">` | Native boolean attribute `def` on `<ref>` explicitly designates a definition-only node without in-situ footnote rendering. The container block `<references def>...</references>` is **optional** for grouping multiple citations. Evaluated alternatives: `<references hidden>`, `<references-def>`, and `<references display="none">`. |
 | **Reader View** | Unified global list at document bottom | Preserves the familiar Wikipedia reader experience and continuous `[1], [2], ...` footnote numbering. |
 | **Fault Tolerance** | Page-wide resolution scope | Moving sentences between sections never causes red citation errors; ensures high resilience for human editors. |
 | **Bot Philosophy** | "Bots clean up" (simple, async) | Avoids frustrating authors with strict lint errors. Normalization and block consolidation happen asynchronously. |
 | **Formatting** | Single-line per `<ref>` inside definition block | Prevents excessive vertical file bloat and ensures atomic, 1-line Git diff hunks per source update. |
 | **Diff Tooling Scope** | Zero changes required (`wikidiff2` untouched) | Avoids scope creep and maintainer pushback. Decoupling of claim and source in diff hunks is documented as an acknowledged trade-off mitigated by section locality. |
 | **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp|45}}`). |
-| **Legacy & Third-Party Compatibility** | Dynamic LDR Hoisting (Pre-parse Hook & Export Transpiler) | Transpiles `<references hidden>` to standard List-Defined References (LDR) on-the-fly for unpatched/third-party wikis and database dumps (Kiwix). Completely eliminates in-situ `<ol>` rendering and stateful citation flush issues. |
+| **Legacy & Third-Party Compatibility** | Dynamic LDR Hoisting (Pre-parse Hook & Export Transpiler) | Transpiles `<ref def>` and `<references def>` to standard List-Defined References (LDR) on-the-fly for unpatched/third-party wikis and database dumps (Kiwix). Completely eliminates in-situ `<ol>` rendering and stateful citation flush issues. |
 | **RefDiff Internationalization (i18n)** | Deliberate Omission (Language-Agnostic Design) | RefDiff deliberately does not implement an i18n framework (`mw.messages`/`i18next`). The gadget UI has a negligible string footprint (~3 static strings: proper name `RefDiff`, `Inline modified refs`, `Diff view:`). Decoupled badges rely on universal mathematical notation (`⟨...⟩`, `~`, `+`, `-`) and verbatim citation metadata. Omitting i18n preserves the zero-dependency, single-file footprint (~40 KB) required for instant cross-wiki deployment via `m:Special:MyPage/global.js` without network overhead or translation bundle latency (see ADR §3.1). |
 
 ---
@@ -970,6 +970,19 @@ This register serves as the authoritative system of record for all real-world Wi
     * **Ring 1:** Pinned commit canary (`refdiff-v1.3.0.js` on 5 benchmark diffs).
     * **Ring 2:** Production publishing (`refdiff.js` on Meta & en.WP).
     * **Ring 3:** Community feedback & gadget candidacy (`en:User talk:Powercycler/RefDiff`).
+
+---
+
+### 2026-10-14: Prioritized `<ref def name="...">` as Primary Upstream Syntax Proposal
+
+* **Context & Architectural Pivot:**
+  * Refactored the upstream wikitext proposal strategy to prioritize tag-level definition syntax: `<ref def name="...">...</ref>` over container-level `<references hidden>`.
+  * *Rationale:* The boolean attribute `def` on standard `<ref>` directly flags a definition-only citation node, suppressing in-situ footnote marker `[1]` rendering without requiring opening/closing container wrappers (`<references>...</references>`). Provides maximum wikitext brevity for short sections while preserving container compatibility (`<references hidden>`, `<references-def>`) as evaluated alternatives.
+* **Artifacts Synchronized:**
+  * [`proposal/PROPOSAL.md`](proposal/PROPOSAL.md): Title, wikitext examples, and technical specification refactored to `<ref def name="...">`.
+  * [`proposal/POST.md`](proposal/POST.md): Discussion draft and visual diff comparison refactored to `<ref def name="...">`.
+  * [`proposal/CONCEPT.md`](proposal/CONCEPT.md): Section 2 architecture diagrams and Section 6 candidate evaluation refactored to prioritize `<ref def name="...">`.
+  * [`LOG.md`](LOG.md): Section 2.2 roadmap and ADR §3.1 updated.
 
 
 

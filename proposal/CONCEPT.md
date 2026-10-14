@@ -51,16 +51,12 @@ The concept relies on a strict **Separation of Storage and Presentation**:
 |  == Section A ==                                                      |
 |  Claim 1.<ref name="ref-a1" />                                        |
 |                                                                       |
-|  <references hidden>                                                  |
-|    <ref name="ref-a1">Full citation for A1...</ref>                   |
-|  </references>                                                        |
+|  <ref def name="ref-a1">Full citation for A1...</ref>                 |
 |                                                                       |
 |  == Section B ==                                                      |
 |  Claim 2.<ref name="ref-b1" />                                        |
 |                                                                       |
-|  <references hidden>                                                  |
-|    <ref name="ref-b1">Full citation for B1...</ref>                   |
-|  </references>                                                        |
+|  <ref def name="ref-b1">Full citation for B1...</ref>                 |
 +-----------------------------------------------------------------------+
                                   │
                   [Parser Aggregation & Rendering]
@@ -339,37 +335,31 @@ Four technical pathways exist for realizing this model:
 
 | Candidate | Example | Evaluation |
 | :--- | :--- | :--- |
-| **`<references hidden>`** *(Primary Working Title)* | `<references hidden>`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Optimal Web Standard & Tooling Reuse:** Uses the native HTML5 boolean attribute `hidden` on the existing `<references>` tag. Reuses existing AST parsers (`mwparserfromhell`, `wikitextparser`, Parsoid AST) and bots without registering a new XML tag. Quote-free, clean wikitext ergonomics (`<references hidden>`). |
+| **`<ref def name="...">`** *(Primary Working Proposal)* | `<ref def name="id">...</ref>` | **Optimal Granularity & Zero Container Bloat:** Uses a native boolean attribute `def` directly on `<ref>`. Designates a pure citation definition without rendering an in-situ footnote marker `[1]`. Works standalone at section boundaries or optionally inside containers. |
+| **`<references hidden>`** *(Container Alternative)* | `<references hidden>`<br>`  <ref name="id">...</ref>`<br>`</references>` | **HTML5 Container Standard:** Reuses existing AST parsers and bots for container blocks. Quote-free boolean attribute on `<references>`. |
 | **`<references-def>`** *(Dedicated XML Tag Alternative)* | `<references-def>`<br>`  <ref name="id">...</ref>`<br>`</references-def>` | **Strict Declaration Separation:** Clearly separates *definition/declaration* (`def`) from *rendering* (`references`). Eliminates any risk of accidental footnote rendering on unpatched legacy third-party wikis. |
-| **`<references display="none">`** *(CSS Property-Value Alternative)* | `<references display="none">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **CSS Property Alignment:** 1:1 match with the standard CSS rule `display: none;`. More verbose than boolean `hidden` due to required attribute quotes and value. |
+| **`<references display="none">`** *(CSS Property-Value Alternative)* | `<references display="none">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **CSS Property Alignment:** 1:1 match with the standard CSS rule `display: none;`. More verbose than boolean `hidden` or `def` due to required attribute quotes and value. |
 | **`<references definition="true">`** / **`<references define>`** *(Functional Role)* | `<references definition="true">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Tooling Continuity:** Explicitly names the container's purpose. Reuses the existing `<references>` tag; existing AST parsers, bots (AWB), and regexes instantly recognize the block. |
 | **`<references scope="section">`** | `<references scope="section">`<br>`  <ref name="id">...</ref>`<br>`</references>` | **Ambiguous Scope:** Suggests that references are strictly isolated to the section, contradicting the desired page-wide fault tolerance. |
 | **`<references-sub>`** | `<references-sub>`<br>`  <ref name="id">...</ref>`<br>`</references-sub>` | **Confusing:** Risks collision with MediaWiki's existing "sub-referencing" feature (`details="..."`). |
 
 ---
 
-### 6.1 HTML5 Boolean Attribute (`<references hidden>`) vs. Dedicated Tag (`<references-def>`)
+### 6.1 Tag-Level Definition (`<ref def name="...">`) vs. Container Approaches
 
-A central architectural decision is whether to adopt the native HTML5 boolean attribute on the existing tag (**`<references hidden>`**) or introduce a **new dedicated parser tag** (`<references-def>`):
+A central architectural decision is whether to define citations at the **tag level** (**`<ref def name="...">`**) or via a **container block** (`<references hidden>`, `<references-def>`):
 
-#### Advantages of the HTML5 Boolean Attribute (`<references hidden>`)
-Tool and bot maintainers (AWB, Refill, ProveIt, Pywikibot, user scripts) often express fatigue when new XML tags are added to wikitext because every grammar, syntax highlighter, and regex pipeline must be updated. Reusing `<references>` with the standard HTML5 boolean `hidden` attribute offers major benefits:
-1. **HTML5 Semantic Standard:**
-   In the HTML5 specification (§3.2.6), the `hidden` boolean attribute indicates that an element is not currently relevant and must be hidden from visual presentation. MediaWiki tags frequently adopt HTML5 attribute conventions.
-2. **AST & Parser Continuity:**
-   Python and Node.js wikitext parsers (`mwparserfromhell`, `wikitextparser`, Parsoid AST) already treat `<references>...</references>` as a known node that encapsulates `<ref>` definitions (due to List-Defined References). No grammar changes are required.
-3. **Regex & Bot Compatibility:**
-   Scripts and bot pipelines searching for reference containers using expressions like `/<references(?:\s+[^>]*)?>.*?<\/references>/is` automatically capture section definition blocks without code modifications.
-4. **Wikitext Brevity & Ergonomics:**
-   Unlike `<references display="none">` or `<references definition="true">`, a boolean attribute requires no value or quotes: editors type simply `<references hidden>`. This minimizes keystrokes, syntax errors, and visual noise in wikitext.
+#### Advantages of Tag-Level Definition (`<ref def name="...">`)
+1. **Zero Container Overhead:**
+   Editors do not need opening and closing container tags (`<references>...</references>`). In short sections with 1–2 references, adding `def` to `<ref name="...">` is lightweight, natural, and low-friction.
+2. **Explicit Semantic Contract:**
+   Standard `<ref name="foo">...</ref>` renders an inline footnote callout `[1]` in-situ. Adding `def` (`<ref def name="foo">...</ref>`) cleanly communicates the intent: *this tag defines the reference; do not output an in-situ footnote callout here*.
+3. **Flexible Placement & Container Compatibility:**
+   `<ref def name="...">` can sit standalone at section boundaries or be placed inside an optional container block (`<references hidden>` or `<references-def>`) if an editor or automated bot prefers structured grouping.
+4. **AST & Tooling Simplicity:**
+   Parsers already extract `<ref>` tags across the DOM. Recognizing the boolean `def` attribute requires a trivial check in `Extension:Cite` rather than registering an entirely new AST element or block-level parser grammar.
 
-#### Trade-Offs & Counter-Arguments
-1. **Fallback on Unpatched Parsers (Mitigated via Dynamic Reformatting):**
-   In standard unpatched MediaWiki today, `<references>` ignores or errors on unrecognized attributes and executes its default `<ol>` render method. However, this is completely mitigated by the **On-the-Fly Reformatting Compatibility Layer (Pathway D)**: a 15-line hook in `LocalSettings.php` transpiles `<references hidden>` to standard LDR at parse time on third-party wikis. Furthermore, Wikimedia export filters (`Special:Export`, database dumps for Kiwix and mirrors) automatically transpile wikitext to standard LDR on export, ensuring external consumers and mirrors never encounter unrecognized syntax.
-2. **Action vs. Declaration Mental Model:**
-   For human editors, `<references />` has historically meant an *action* ("render the bibliography here"). Some editors find `<references-def>` more intuitive because the `-def` suffix clearly communicates that it is a *declaration block* rather than a display element.
-
-**Recommendation:** The proposal adopts **`<references hidden>`** as its primary working title solution for maximum tooling reuse and syntax brevity, while formally presenting `<references-def>` (for strict parser separation) and `<references display="none">` (for explicit CSS alignment) as evaluated alternatives.
+**Recommendation:** The proposal adopts **`<ref def name="...">`** as its primary working proposal, while retaining `<references hidden>` and `<references-def>` as evaluated container alternatives.
 
 ---
 
