@@ -1303,6 +1303,24 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2, §3 Ring 0, §5 Checklist; verified at 93 lines `< 100`).
   * Verified 115/115 tests, 10/10 deployment pre-flight gates, and 5/5 live CDP tests.
 
+---
+
+### 2026-10-14: Automated Pre-Flight Live Benchmark Suite via CDP Monkey Patching
+
+* **Context & Architectural Innovation:**
+  * Automated the 5 canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Cosmic Inflation` 1379470949, `Donnie Brasco` 1380017400) directly during **pre-flight testing** via Chrome DevTools Protocol (CDP port 9222) monkey patching.
+  * Rather than relying on manual user testing on English Wikipedia with `common.js` modifications, automation directly injects the local `refdiff.js` into live Wikipedia diff pages, validating:
+    1. OOUI mode switcher mounting.
+    2. Decoupled citation row injection and compact badge rendering.
+    3. Interactive footnote anchor discovery (`<sup class="reference refdiff-ref"><a href="...">`).
+    4. Bidirectional Memento restoration roundtrip (`selectMode('wikitext')` $\leftrightarrow$ `selectMode('refdiff')`).
+    5. Zero uncaught JS exceptions and zero DOM corruption.
+* **Artifacts Synchronized:**
+  * Created [`tests/test_live_benchmarks.py`](tests/test_live_benchmarks.py) running the 5 live Wikipedia benchmarks in ~8 seconds.
+  * Added `npm run test:bench` script to [`package.json`](package.json).
+  * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2 commands, §2 bullets, §5 checklist; verified at 94 lines `< 100`).
+  * Executed live run: all 5 benchmarks verified **PASSED**.
+
 
 
 

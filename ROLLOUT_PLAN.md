@@ -28,7 +28,7 @@ All checks must pass before release:
 node scripts/bump_version.js <patch|minor|major>  # Automated version bump across manifests & docs
 git diff --stat && git diff                       # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
 npm run ci && node tests/test_deployment.js      # Headless unit, real DOM & pre-flight (115 tests, 10 gates)
-npm run test:live                               # Level 4: Live browser CDP integration (port 9222)
+npm run test:live && npm run test:bench         # Level 4: Live browser CDP & 5 live benchmark diffs (monkey patching)
 npm run check:deploy                            # Live on-wiki deployment audit across Wikimedia APIs
 ```
 - **Version Bump, Uprev Cadence & Diff Audit:** Before any deployment, assure a formal version uprev is executed across manifests (`node scripts/bump_version.js <patch|minor>`); enforce smaller, focused changes between uprevs (no monolithic diffs); every uprev strictly triggers a formal diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
@@ -38,6 +38,7 @@ npm run check:deploy                            # Live on-wiki deployment audit 
 - **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
 - **Stress & Benchmark Budget:** < 50ms processing on 114-reference table (`test_benchmarks.js`).
 - **Mandatory Live CDP Invariant (Level 4):** We always run live browser CDP tests (`npm run test:live` via port 9222) before any update to `refdiff.js` to verify real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
+- **Live Benchmark Monkey Patching (`npm run test:bench`):** We test all 5 live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400) directly in Chromium via CDP monkey patching before on-wiki deployment (`test_live_benchmarks.py`).
 - **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Remote SHA-1 & revision verification across Wikimedia APIs (`scripts/check_live_deployment.js`).
 
 ---
@@ -81,7 +82,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 ## 5. Deployment Runbook Checklist
 
 - [ ] **Version Bump (Mandatory Uprev):** Assure version uprev before deployment; execute formal version bump across manifests (`node scripts/bump_version.js <patch|minor>`) and sync release SHA-1 (`c47b31ff`).
-- [ ] **Pre-Flight Quality Gates:** Assure a formal version uprev is executed; run live browser CDP tests (`npm run test:live` on port 9222) before updating `refdiff.js`; diff audit (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates).
+- [ ] **Pre-Flight Quality Gates:** Assure a formal version uprev is executed; run live browser CDP tests (`npm run test:live` on port 9222) and 5 live benchmarks via monkey patching (`npm run test:bench`) before updating `refdiff.js`; diff audit (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates).
 - [ ] **Git:** Tag release `v1.4.0` and push (`git tag -a v1.4.0 -m "Release v1.4.0" && git push origin v1.4.0`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
