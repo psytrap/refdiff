@@ -1323,12 +1323,12 @@ This register serves as the authoritative system of record for all real-world Wi
 
 ---
 
-### 2026-10-14: Codified Two-Phase Version Strategy: Minor Pre-Flight & Major Post-Deployment
+### 2026-10-14: Codified Two-Phase Version Strategy: Patch Pre-Flight & Minor Post-Deployment
 
 * **Context & Architectural Policy:**
   * Codified the project versioning strategy into [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) and [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.8):
-    1. **Pre-Flight Pass & Feature Completion (Minor Uprev):** Upon completing a feature increment and passing all pre-flight quality gates (CI, DOM fixtures, live CDP, and live benchmark monkey patching), execute a **minor uprev bump** (`node scripts/bump_version.js minor`).
-    2. **Post-Deployment Milestone (Major Uprev):** After on-wiki rollout is completed and verified across all Wikimedia targets (`m:User:Powercycler/refdiff.js`, `en:User:Powercycler/refdiff.js`, docs, userbox; `npm run check:deploy` passes), execute a **major uprev bump** (`node scripts/bump_version.js major`) to stamp the deployed milestone.
+    1. **Pre-Flight Pass & Feature Completion (Patch Uprev):** Upon completing a feature increment and passing all pre-flight quality gates (CI, DOM fixtures, live CDP, and live benchmark monkey patching), execute a **patch uprev bump** (`node scripts/bump_version.js patch`).
+    2. **Post-Deployment Milestone (Minor Uprev):** After on-wiki rollout is completed and verified across all Wikimedia targets (`m:User:Powercycler/refdiff.js`, `en:User:Powercycler/refdiff.js`, docs, userbox; `npm run check:deploy` passes), execute a **minor uprev bump** (`node scripts/bump_version.js minor`) to stamp the deployed milestone.
 * **Artifacts Synchronized:**
   * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2, §3 Ring 0, §3 Ring 3, §5 Checklist; verified at 96 lines `< 100`).
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.8 Two-Phase Version Strategy).
