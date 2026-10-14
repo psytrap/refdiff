@@ -4,7 +4,7 @@
  * Automated Live On-Wiki Deployment Auditor:
  * Queries the live Wikimedia APIs (English Wikipedia & Meta-Wiki) to verify:
  *  1. Canonical Lead Script (en:User:Powercycler/refdiff.js)
- *  2. Pinned Canary Release (en:User:Powercycler/refdiff-v1.3.0.js)
+ *  2. Staging Canary (en:User:Powercycler/refdiff-canary.js)
  *  3. Canonical Documentation (en:User:Powercycler/RefDiff)
  *  4. Canonical Userbox Template (en:Template:User RefDiff)
  *  5. Meta-Wiki Global Dummy Loader (m:User:Powercycler/refdiff.js)
@@ -71,7 +71,7 @@ async function auditDeployment() {
   try {
     const enRes = await fetchApi('https://en.wikipedia.org/w/api.php', [
       'User:Powercycler/refdiff.js',
-      `User:Powercycler/refdiff-v${pkg.version}.js`,
+      'User:Powercycler/refdiff-canary.js',
       'User:Powercycler/RefDiff',
       'Template:User RefDiff'
     ]);
@@ -121,11 +121,11 @@ async function auditDeployment() {
     });
   }
 
-  // 2. English Wikipedia - Pinned Canary
-  const enCanary = enwikiPages[`User:Powercycler/refdiff-v${pkg.version}.js`];
+  // 2. English Wikipedia - Staging Canary
+  const enCanary = enwikiPages['User:Powercycler/refdiff-canary.js'];
   if (!enCanary || enCanary.missing !== undefined) {
     reports.push({
-      target: `en:User:Powercycler/refdiff-v${pkg.version}.js (Canary)`,
+      target: 'en:User:Powercycler/refdiff-canary.js (Canary)',
       status: 'NOT DEPLOYED (Missing)',
       details: 'Page does not exist on en.wikipedia.org yet. Action: Publish canary for Ring 1 verification.',
       ok: false
@@ -135,7 +135,7 @@ async function auditDeployment() {
     const liveSha1 = rev ? rev.sha1 : '';
     const isSync = liveSha1 === localJsSha1;
     reports.push({
-      target: `en:User:Powercycler/refdiff-v${pkg.version}.js (Canary)`,
+      target: 'en:User:Powercycler/refdiff-canary.js (Canary)',
       status: isSync ? 'DEPLOYED & SYNCHRONIZED' : 'DEPLOYED (Out of Sync)',
       details: `Rev ${rev.revid} (${rev.timestamp}), SHA-1: ${liveSha1}`,
       ok: isSync
@@ -262,7 +262,7 @@ async function auditDeployment() {
     console.log(' To complete the deployment according to DEPLOYMENT_PLAN.md:');
     console.log('  1. Publish canonical lead script to en:User:Powercycler/refdiff.js');
     console.log(`     (Copy refdiff.js, ${ (localJs.length / 1024).toFixed(1) } KB)`);
-    console.log('  2. Publish canary release to en:User:Powercycler/refdiff-v1.3.0.js');
+    console.log('  2. Publish canary release to en:User:Powercycler/refdiff-canary.js');
     console.log('  3. Update m:User:Powercycler/refdiff.js (Meta-Wiki Beta Channel tracking latest changes, or 1-line loader):');
     console.log(`     Option Beta: Copy latest refdiff.js (${ (localJs.length / 1024).toFixed(1) } KB)`);
     console.log(`     Option Dummy: ${EXPECTED_META_LOADER}`);

@@ -63,7 +63,7 @@ RefDiff operates a dual-engine DOM verification pipeline:
 
 To meet Wikimedia security policies for user scripts and gadgets:
 1. **No External CDNs:** Production deployments load strictly from Wikimedia servers (`en.wikipedia.org`, `meta.wikimedia.org`, or local wiki `Special:MyPage`).
-2. **Commit-Pinned Loader Pattern:** Users requiring immutable, tamper-proof versions can pin release revisions (`refdiff-v1.3.0.js`).
+2. **Revision-Pinned Loader Pattern:** Users requiring immutable, tamper-proof versions can pin release revisions via MediaWiki's native revision ID (`&oldid=123456789`) rather than creating versioned filenames.
 3. **Wikitext Protection:** The script begins with `/* <nowiki> */` and ends with `/* </nowiki> */` to prevent template parsing and signature expansion.
 
 ---

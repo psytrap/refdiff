@@ -249,14 +249,13 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
     const userboxContent = fs.readFileSync(userboxEnwikiPath, 'utf8');
 
-    // 2. Version consistency across all release artifacts
+    // 2. Version consistency and unversioned filename policy (no versions in filenames)
     const planVersionMatch = deployPlanContent.match(/\*\*Version:\*\*\s*([0-9]+\.[0-9]+\.[0-9]+)/);
     assert.ok(planVersionMatch, 'DEPLOYMENT_PLAN.md must declare Version');
     assert.strictEqual(planVersionMatch[1], pkg.version, 'DEPLOYMENT_PLAN.md version must match package.json');
 
-    const canaryMatch = deployPlanContent.match(/refdiff-v([0-9]+\.[0-9]+\.[0-9]+)\.js/);
-    assert.ok(canaryMatch, 'DEPLOYMENT_PLAN.md must declare canary script matching release version');
-    assert.strictEqual(canaryMatch[1], pkg.version, 'Canary script version must match package.json');
+    assert.strictEqual(/refdiff-v[0-9]/.test(deployPlanContent), false, 'DEPLOYMENT_PLAN.md must not contain versioned filenames (policy: no versions in filenames)');
+    assert.strictEqual(deployPlanContent.includes('en:User:Powercycler/refdiff-canary.js'), true, 'DEPLOYMENT_PLAN.md must declare unversioned canary script target en:User:Powercycler/refdiff-canary.js');
 
     // 3. Canonical lead script destination consistency
     const canonicalScriptTarget = 'en:User:Powercycler/refdiff.js';

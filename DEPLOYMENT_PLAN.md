@@ -12,7 +12,7 @@
 |:---|:---|:---|
 | **Production Script (Lead)** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff.js` (Canonical lead script) |
 | **Meta Loader (Dummy)** | Stub snippet | `m:User:Powercycler/refdiff.js` (1-line `mw.loader.load` forwarding to en.WP) |
-| **Pinned Canary** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff-v1.3.0.js` (Immutable canary on en.WP) |
+| **Canary Channel** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff-canary.js` (Canary staging channel on en.WP) |
 | **Documentation (Lead)** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` (Authoritative documentation) |
 | **Meta Docs (Dummy)** | Soft redirect | `m:User:Powercycler/RefDiff` (Soft redirect pointing to en.WP) |
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` (Reference test diff) |
@@ -48,8 +48,8 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 - All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
-### Ring 1: Pinned Commit Canary
-- Publish `refdiff.js` to `en:User:Powercycler/refdiff-v1.3.0.js` (review on-wiki diff preview) and verify with `npm run check:deploy`.
+### Ring 1: Staging Canary
+- Publish `refdiff.js` to `en:User:Powercycler/refdiff-canary.js` (review on-wiki diff preview) and verify with `npm run check:deploy`.
 - Test on 5 live benchmark diffs:
   1. `Bihar Legislative Assembly` (diff=1379207737) — apostrophe in attrs, underscore footnote anchors.
   2. `Odoacer` (diff=1379486498) — shortened footnotes (`{{sfn}}`) author-year badges, Popups preview.
@@ -88,7 +88,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 - [ ] **Pre-Flight:** Quick diff review (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
-- [ ] **Canary Verification:** Publish `refdiff-v1.3.0.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
+- [ ] **Canary Verification:** Publish `refdiff-canary.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (canonical production release).
 - [ ] **Publish Meta Stub:** Ensure `m:User:Powercycler/refdiff.js` has dummy loader forwarding to en.WP.
 - [ ] **Publish Lead Docs:** Update `en:User:Powercycler/RefDiff` & verify Meta doc soft redirect.

@@ -77,7 +77,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ##### Active Release Action Item
 - [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
-  * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Pinned Canary `refdiff-v1.3.0.js` on en.WP), Ring 2 (Production publish to `en:User:Powercycler/refdiff.js`), and Ring 3 (Community feedback).
+  * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Staging Canary `refdiff-canary.js` on en.WP), Ring 2 (Production publish to `en:User:Powercycler/refdiff.js`), and Ring 3 (Community feedback).
 
 ##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
@@ -1130,6 +1130,23 @@ This register serves as the authoritative system of record for all real-world Wi
     * **Tier 1:** Early Adopter Pilot (10-User Milestone on en.WP; R.1, R.7).
     * **Tier 2:** 100-User Opt-In Gadget Scale (Community gadget candidacy for NPP/RC; R.2, R.3, R.4).
     * **Tier 3:** Beyond 100-User Goal (Mass scale, default gadget & multi-platform; R.5, R.6, R.9, U.1–U.8).
+
+---
+
+### 2026-10-14: Adopted "No Versions in Filenames" Policy for On-Wiki Script Pages
+
+* **Context & Architectural Refinement:**
+  * Enforced a strict policy prohibiting version numbers in on-wiki script page titles (eliminating `refdiff-v1.3.0.js` in favor of unversioned `refdiff-canary.js`).
+  * In MediaWiki, immutability is natively achieved via revision IDs (`&oldid=...`). Creating distinct page titles per release clutters user space with abandoned pages, breaks permanent loader URLs, and confuses editors about canonical targets.
+* **Key Provisions & Invariants:**
+  * *Canonical Lead:* `en:User:Powercycler/refdiff.js`.
+  * *Staging Canary Channel:* `en:User:Powercycler/refdiff-canary.js` (unversioned permanent staging target for Ring 1 smoke tests).
+  * *Immutable Version Pinning:* Documented via MediaWiki's native `&oldid=123456789` parameter in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.4.
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§1 Artifacts Table, §3 Ring 1, §5 Runbook Checklist).
+  * Updated [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js) to monitor `refdiff-canary.js`.
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) with automated regex assertion prohibiting versioned filenames.
+
 
 
 
