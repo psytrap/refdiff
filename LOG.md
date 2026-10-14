@@ -1241,6 +1241,19 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (asserting destinations for Meta lead, en.WP pointer, early harness, and en.WP doc lead).
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.4 On-Wiki Distribution Architecture).
 
+---
+
+### 2026-10-14: Enforced Mandatory Live Browser CDP Verification Before Any refdiff.js Update
+
+* **Context & Architectural Invariant:**
+  * Codified the strict deployment invariant: **Maintainers and release automation must ALWAYS execute live browser CDP testing (`npm run test:live` on port 9222) before pushing or rolling out any update to `refdiff.js`.**
+  * Headless unit and JSDOM DOM tests provide essential regression coverage, but live browser CDP verification remains the non-negotiable safeguard ensuring real Chromium rendering, OOUI element reactivity, Vector 2022 light/dark theme token persistence, and `Extension:Popups` hovercards function without defect before any live deployment.
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2 Pre-Flight Quality Gates, §3 Ring 0, §5 Runbook Checklist; strictly maintained at 91 lines < 100 limit).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.3 Real DOM Regression Harness).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (added automated assertion verifying that DEPLOYMENT_PLAN.md mandates CDP before any update to `refdiff.js`).
+
+
 
 
 

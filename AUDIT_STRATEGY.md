@@ -55,6 +55,7 @@ RefDiff operates a dual-engine DOM verification pipeline:
   $$\text{table.innerHTML}_{\text{initial}} \equiv \text{table.innerHTML}_{\text{restored}}$$
   Restoration must leave zero orphaned rows, leaked classes, or dangling event listeners.
 * **Level 4 — Live Chromium CDP (`tests/test_live_cdp.py`):** Live browser verification over WebSocket port 9222 covering OOUI mode switcher, Vector 2022 Dark Mode tokens, and `Extension:Popups` Reference Previews.
+* **Mandatory CDP Pre-Condition:** Live browser CDP testing (`npm run test:live` on port 9222) is an invariant that must ALWAYS be executed before any update or deployment to `refdiff.js`. No changes to `refdiff.js` may be published without passing live CDP sign-off.
 * **Performance Budgets:** Processing 114 references across split diffchanges must complete in **< 50 ms** in browser environments and **< 250 ms** across all 15 suites in CI.
 
 ---

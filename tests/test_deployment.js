@@ -290,6 +290,15 @@ suite('Deployment & Release Pre-Flight Checks', () => {
 
     // 8. Tool compatibility check (Twinkle & Ultraviolet)
     assert.strictEqual(deployPlanContent.includes('Twinkle') && deployPlanContent.includes('Ultraviolet'), true, 'DEPLOYMENT_PLAN.md must track Twinkle and Ultraviolet compatibility');
+
+    // 9. Mandatory CDP testing invariant before any update to refdiff.js
+    assert.strictEqual(
+      deployPlanContent.includes('always run') &&
+      deployPlanContent.includes('CDP') &&
+      deployPlanContent.includes('before any update to `refdiff.js`'),
+      true,
+      'DEPLOYMENT_PLAN.md must enforce that we always run CDP before any update to refdiff.js'
+    );
   });
 });
 
