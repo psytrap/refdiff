@@ -26,7 +26,7 @@ All checks must pass before release:
 ```bash
 node scripts/bump_version.js patch                # Patch uprev for pre-flight testing (feature uprev only after shipment)
 git diff --stat && git diff                       # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
-npm run inspect                                   # User visual inspection via live monkey patching (Stage 5)
+npm run inspect && npm run capture                # User visual inspection & full audit capture across change cases (Stage 5)
 npm run preflight                                 # Full pre-flight: CI, deployment gates, live CDP & benchmarks (Stage 6)
 npm run check:deploy                            # Post-shipment live audit across Wikimedia APIs (final verification)
 ```
@@ -39,7 +39,7 @@ npm run check:deploy                            # Post-shipment live audit acros
 - **Deployment Pre-Flight:** Automated release gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync across manifests, size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
 - **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
 - **Stress & Benchmark Budget:** < 50ms processing on high-density reference fixtures (`test_benchmarks.js`).
-- **User Visual Inspection via Monkey Patching (`npm run inspect`):** Interactive visual inspection on live Wikipedia diffs before executing automated CDP test suites and rollout.
+- **Visual Capture & User Acknowledgment Gate (`npm run inspect`, `npm run capture`):** Rollout default: capture visual inspection matrix across all change cases (pure adds, dels, mods in light/dark themes) and obtain explicit user acknowledgment before rollout.
 - **Mandatory Live CDP Invariant (Level 4):** We always run live browser CDP tests (`npm run test:live` via port 9222) before any update to `refdiff.js` to verify real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
 - **Live Benchmark Monkey Patching (`npm run test:bench`):** We test canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400) directly in Chromium via CDP monkey patching before on-wiki deployment (`test_live_benchmarks.py`).
 - **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Final verification step: audits remote SHA-1 & revision parity across Wikimedia APIs (`scripts/check_live_deployment.js`) once shipment is complete.
@@ -84,7 +84,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 ## 5. Deployment Runbook Checklist
 
 - [ ] **CI & Local Pre-Flight Gates:** Assure version uprev before deployment; execute patch bump only once during pre-flight (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and pre-flight suite (`npm run ci && node tests/test_deployment.js`).
-- [ ] **User Visual Inspection (`npm run inspect`):** Conduct interactive visual inspection via live monkey patching on Wikipedia diffs before automated CDP suites and rollout.
+- [ ] **Visual Capture & User Acknowledgment Gate:** Generate visual inspection captures across all change cases (`npm run capture`), present to user, and obtain explicit acknowledgment before rollout.
 - [ ] **Automated Live CDP & Benchmarks:** Verify live browser integration and canonical live diffs (`npm run test:live && npm run test:bench`).
 - [ ] **Git Release Tag (Ring 0):** Tag release candidate and push (`git tag -a v<version> -m "Release v<version>"`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.

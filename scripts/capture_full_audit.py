@@ -14,8 +14,9 @@ import urllib.request
 import websockets
 
 CDP_HTTP = 'http://127.0.0.1:9222'
-ARTIFACTS_DIR = '/home/mik/.gemini/antigravity/brain/42bcc6c0-adbf-448b-bfea-f1f1d1b28b96'
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ARTIFACTS_DIR = os.environ.get('ARTIFACTS_DIR') or os.path.join(REPO_DIR, 'tests', 'screenshots')
+os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 REFDIFF_JS = os.path.join(REPO_DIR, 'refdiff.js')
 
 

@@ -12,6 +12,7 @@
     "check:deploy": "node scripts/check_live_deployment.js",
     "bump": "node scripts/bump_version.js",
     "inspect": "python3 scripts/inspect_diff.py",
+    "capture": "python3 scripts/capture_full_audit.py",
     "ci": "npm run lint && npm run test"
   },
   "repository": {

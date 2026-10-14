@@ -1482,6 +1482,25 @@ This register serves as the authoritative system of record for all real-world Wi
   * Step R.13 marked completed.
   * Pre-flight gates cleared; ready for on-wiki deployment execution per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
 
+---
+
+### 2026-10-14: Codified Visual Capture & User Acknowledgment Gate as Rollout Default
+
+* **Context & Policy Directive:**
+  * Formally established the protocol ("provide captures and let user acknowledge") as the mandatory **Rollout Default Gate** before any on-wiki release.
+  * Ensures that automated tests alone do not trigger deployment; visual captures across all citation change cases must be systematically gathered, formatted, presented to the reviewer, and explicitly acknowledged.
+* **Process & Tooling Standard:**
+  * Registered standard script in `package.json`: `"capture": "python3 scripts/capture_full_audit.py"`.
+  * Script automated across Meta Showcase (`diff=31142550`) sections 1–5 and canonical benchmark diffs in both Vector 2022 Light and Dark themes.
+  * Portable output directory configuration: defaults to `tests/screenshots` or honors `ARTIFACTS_DIR`.
+* **Artifacts Synchronized:**
+  * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2 Pre-Flight Quality Gates and §5 Checklist; verified at 97 lines `< 100`).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§4 Stage 5 and §5 Quality Gates table).
+  * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§3 Test Pyramid Level 5 and §4 CI/CD scripts).
+  * Updated [`package.json`](package.json) (registered `npm run capture`).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+
 
 
 

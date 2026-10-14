@@ -236,17 +236,17 @@ flowchart LR
     Q1["1. Candidate Triage<br/>(TEST_PLAN.md)"] --> Q2["2. Raw HTML Capture<br/>(tests/fixtures/)"]
     Q2 --> Q3["3. JSDOM Reproduction<br/>(test_jsdom.js)"]
     Q3 --> Q4["4. Core Fix<br/>(refdiff.js)"]
-    Q4 --> Q5["5. User Visual Inspection<br/>(Monkey Patching)"]
+    Q4 --> Q5["5. Visual Capture & User Acknowledgment<br/>(capture_full_audit.py)"]
     Q5 --> Q6["6. CDP Audit<br/>(test_live_cdp.py)"]
-    Q6 --> Q7["7. Regression Lock & Rollout<br/>(npm run ci)"]
+    Q6 --> Q7["7. Regression Lock & Rollout<br/>(ROLLOUT_PLAN.md)"]
 ```
 
 1. **Candidate Triage:** Diff URL, revision ID, and anomaly logged in [`TEST_PLAN.md`](TEST_PLAN.md#51-real-world-diffs--verification-queue).
 2. **Raw HTML Capture:** Raw MediaWiki diff HTML saved into test fixtures.
 3. **JSDOM Reproduction:** Failing test added without mocks to `test_jsdom.js`.
 4. **Core Fix:** `refdiff.js` patched following modular standards.
-5. **User Visual Inspection:** Interactive visual review by the user in a live browser using monkey patching before automated CDP runs and rollout.
-6. **CDP Browser Audit:** Live browser testing on port 9222 verifies switcher, themes, and popups.
+5. **Visual Capture & User Acknowledgment Gate (Rollout Default):** Automated capture of all citation change cases (pure additions, pure deletions, intra-line modifications, template refs across Vector 2022 Light and Dark themes) via [`scripts/capture_full_audit.py`](scripts/capture_full_audit.py) (`npm run capture`). The high-resolution visual evidence gallery is presented to the user for explicit review and sign-off before advancing to automated CDP regression runs and rollout rings.
+6. **CDP Browser Audit:** Live browser testing on port 9222 verifies switcher, themes, and popups (`test_live_cdp.py`).
 7. **Regression Lock & Rollout:** Diff marked `Verified` in `TEST_PLAN.md`, pre-flight CI locked, and phased rollout executed per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
 
 ---
@@ -257,10 +257,11 @@ All criteria must pass before merging or tagging releases:
 
 | Quality Gate | Invariant / Threshold | Verification Command |
 |:---|:---|:---|
-| **Test Suite Pass Rate** | **115 / 115 passing tests across 15 suites** | `npm test` |
+| **Test Suite Pass Rate** | **121 / 121 passing tests across 15 suites** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 ESLint warnings** | `npm run lint` |
 | **Clean Code & Test Smells** | **AAA pattern, descriptive assertions, 0 global leaks** | `npm test && npm run lint` |
 | **Deployment Pre-Flight** | **10 checks: zero BOM, nowiki, version sync, rollback, deployment consistency** | `node tests/test_deployment.js` |
+| **Visual Capture & User Gate** | **Rollout default: captures across all change cases in Light/Dark acknowledged by user** | `npm run capture` |
 | **Live On-Wiki Deployment** | **All release targets verified & synchronized across Wikimedia APIs** | `npm run check:deploy` |
 | **Uprev Diff Audit Gate** | **Small changes between uprevs; zero debris, no orphaned references, concise hunks** | `git diff --stat && git diff` |
 | **CI Execution Budget** | **< 250 ms across all 15 test suites** | `npm run ci` |

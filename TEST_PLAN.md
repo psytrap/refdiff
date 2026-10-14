@@ -49,6 +49,10 @@ While [`refdiff.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/ref
 
 ```mermaid
 flowchart TD
+    subgraph Level_5["Level 5: Visual Capture & User Acknowledgment (Rollout Default)"]
+        L5["scripts/capture_full_audit.py (npm run capture)<br/>Meta Showcase (diff=31142550) & Bihar (diff=1379207737)<br/>Pure Adds • Pure Dels • Mods • Light/Dark Modes • User Sign-off"]
+    end
+
     subgraph Level_4["Level 4: Live Browser CDP Integration (~15s)"]
         L4["Chromium Remote Debugging (port 9222)<br/>Real Wikipedia Diffs (Odoacer, Zagreb Airport)<br/>OOUI Switcher • Popups Tooltips • Theme Switching"]
     end
@@ -65,7 +69,7 @@ flowchart TD
         L1["tests/test_parser.js, test_pairing.js, test_anchor.js, etc.<br/>Regex Tag & Attribute Extraction • {{sfn}} Tokenizer<br/>Storage, Anchor Sanitization & isDiffPage"]
     end
 
-    Level_1 --> Level_2 --> Level_3 --> Level_4
+    Level_1 --> Level_2 --> Level_3 --> Level_4 --> Level_5
 ```
 
 ### Level 1: Pure Unit & Parser Specs (Headless Node.js)
@@ -94,6 +98,14 @@ flowchart TD
   5. Automatic disabling and re-enabling of native Inline diff switch during RefDiff mode.
   6. Night Mode / Vector-2022 dark mode style verification.
 
+### Level 5: Visual Capture & User Acknowledgment Gate (Rollout Default)
+* **Goal:** Mandatory pre-rollout gate: capture comprehensive visual evidence across all change cases (pure additions, pure deletions, intra-line modifications, template refs) in both Vector 2022 Light and Dark themes, and obtain explicit user acknowledgment before rollout.
+* **Runner:** `npm run capture` (`python3 scripts/capture_full_audit.py`).
+* **Requirements:**
+  1. Automated capture across all 5 sections of Meta Showcase diff (`31142550`) and Bihar diff (`1379207737`).
+  2. Verified rendering: pure adds/dels have zero `<ins>`/`<del>` wrappers; modifications retain native diffchange highlights on changed words.
+  3. Presentation of image gallery to the user and receipt of explicit user sign-off prior to advancing to deployment rings.
+
 ---
 
 ## 4. Test Execution & CI/CD Quality Gates
@@ -104,7 +116,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit, component & real DOM test suite (115 tests in ~250ms)
+# 2. Run the fast headless unit, component & real DOM test suite (121 tests in ~250ms)
 npm test
 
 # 3. Run combined CI verification
@@ -115,6 +127,9 @@ node tests/test_parser.js
 
 # 5. Run live Chromium CDP browser integration suite (requires Chromium on port 9222)
 npm run test:live
+
+# 6. Capture full visual audit across all change cases (Rollout Default Gate)
+npm run capture
 ```
 
 ### Quality Gates for Pull Requests & Releases
