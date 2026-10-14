@@ -1,29 +1,20 @@
-<!-- ===========================================================================
-  English Wikipedia Userbox Template for RefDiff (User Space)
-  Target On-Wiki Page: User:Powercycler/Userbox RefDiff
-=========================================================================== -->
 <includeonly>{{Userbox
-| border-c = {{{border-c|#d4a017}}}
-| border-s = {{{border-s|1}}}
-| id-c     = {{{id-c|#fffdf0}}}
-| id-fc    = {{{id-fc|#9a6700}}}
-| id-s     = {{{id-s|11}}}
-| id       = {{{id|<span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: {{{id-fc|#9a6700}}}; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">{{{badge|{{{1|⟨~ref~⟩}}}}}}</span>}}}
-| info-c   = {{{info-c|#ffffff}}}
-| info-fc  = {{{info-fc|#202122}}}
-| info-s   = {{{info-s|8}}}
-| info-lh  = {{{info-lh|1.25em}}}
-| info     = {{{info|This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.}}}
+| border-c = #d4a017
+| border-s = 1
+| id-c     = #fffdf0
+| id-fc    = #9a6700
+| id-s     = 11
+| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
+| info-c   = #ffffff
+| info-fc  = #202122
+| info-s   = 8
+| info-lh  = 1.25em
+| info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
 | usercategory = Wikipedians who use RefDiff
 | nocat    = {{{nocat|}}}
 }}</includeonly><noinclude>
-<!-- Template Documentation -->
-This [[Wikipedia:Userboxes|userbox]] identifies users who patrol diffs and review citations using the [[User:Powercycler/RefDiff|RefDiff]] user script, which decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate [[Wikipedia:Template camouflage|template camouflage]].
-
 == Usage ==
-
-=== Quick usage ===
-Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} stack):
+Place the following wikitext on your user page:
 
 <syntaxhighlight lang="wikitext">
 {{User:Powercycler/Userbox RefDiff}}
@@ -44,128 +35,6 @@ Place the following wikitext on your user page (or inside a {{tlx|Userboxtop}} s
 | info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
 | nocat    = yes
 }}
-
-== Customization options ==
-
-{| class="wikitable"
-! Wikitext !! Rendered Userbox !! Description
-|-
-| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff}}</nowiki>}}
-| {{Userbox
-| border-c = #d4a017
-| id       = <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
-| id-c     = #fffdf0
-| info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
-}}
-| '''Default:''' Signature amber modified badge ({{mono|⟨~ref~⟩}}) representing citation decoupling in diffs.
-|-
-| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⟨ref⟩|border-c=#3366cc|id-c=#f0f4fc|id-fc=#3366cc}}</nowiki>}}
-| {{Userbox
-| border-c = #3366cc
-| id       = <span style="font-family: monospace; font-size: 1.15em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
-| id-c     = #f0f4fc
-| info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
-}}
-| '''Minimalist Prose Badge:''' Neutral blue angle bracket badge.
-|-
-| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⧉ RefDiff|border-c=#3366cc|id-c=#eaf3ff|id-fc=#3366cc}}</nowiki>}}
-| {{Userbox
-| border-c = #3366cc
-| id       = <span style="font-size: 1.05em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>
-| id-c     = #eaf3ff
-| info     = This user reviews diffs and combats [[Wikipedia:Template camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-| nocat    = yes
-}}
-| '''Toolbar Mode Icon:''' Matches the OOUI diff toolbar mode button.
-|}
-
-== TemplateData ==
-{{TemplateDataHeader}}
-<templatedata>
-{
-  "description": "Userbox for users of the RefDiff user script on English Wikipedia",
-  "params": {
-    "badge": {
-      "aliases": ["1"],
-      "label": "Badge symbol",
-      "description": "Custom badge text or icon for the left ID box",
-      "example": "⟨ref⟩ or ⧉ RefDiff",
-      "type": "string",
-      "default": "⟨~ref~⟩"
-    },
-    "border-c": {
-      "label": "Border color",
-      "description": "Border hex color code",
-      "example": "#d4a017",
-      "type": "string",
-      "default": "#d4a017"
-    },
-    "border-s": {
-      "label": "Border width",
-      "description": "Border thickness in pixels",
-      "type": "number",
-      "default": 1
-    },
-    "id-c": {
-      "label": "ID background color",
-      "description": "Background color of left ID box",
-      "example": "#fffdf0",
-      "type": "string",
-      "default": "#fffdf0"
-    },
-    "id-fc": {
-      "label": "ID font color",
-      "description": "Font color of left ID box",
-      "example": "#9a6700",
-      "type": "string",
-      "default": "#9a6700"
-    },
-    "id-s": {
-      "label": "ID font size",
-      "description": "Font size of left ID box (in points)",
-      "type": "number",
-      "default": 11
-    },
-    "info-c": {
-      "label": "Info background color",
-      "description": "Background color of right text box",
-      "type": "string",
-      "default": "#ffffff"
-    },
-    "info-fc": {
-      "label": "Info font color",
-      "description": "Font color of right text box",
-      "type": "string",
-      "default": "#202122"
-    },
-    "info": {
-      "label": "Info text",
-      "description": "Custom message text",
-      "type": "content"
-    },
-    "link": {
-      "label": "RefDiff documentation link",
-      "description": "Target wikilink for RefDiff",
-      "type": "wiki-page-name",
-      "default": "User:Powercycler/RefDiff"
-    },
-    "nocat": {
-      "label": "Suppress categorization",
-      "description": "Set to 'yes' or 'true' to suppress Category:Wikipedians who use RefDiff",
-      "type": "string",
-      "default": ""
-    }
-  },
-  "format": "inline"
-}
-</templatedata>
-
-== See also ==
-* [[User:Powercycler/RefDiff]] – RefDiff documentation & user script
-* [[Wikipedia:Userboxes]]
-* [[Wikipedia:Template camouflage]]
 
 [[Category:Wikipedia user scripts user templates]]
 [[Category:Wikipedians who use RefDiff| ]]
