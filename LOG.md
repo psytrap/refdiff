@@ -58,6 +58,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
 | **R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
 | **R.15** | On-Wiki Tool Documentation Cleanup | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
+| **R.16** | Meta Documentation Sync / Soft Redirect | Normal | 🔮 Future | TODO: Update `m:User:Powercycler/RefDiff` (set soft redirect to en.WP lead docs or synchronize full content) |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -105,6 +106,11 @@ This log records the rationale, architectural decisions, completed milestones, a
     3. **Metrics & Test Coverage Synchronization:** Update test counts and coverage statistics in the infobox and QA section to reflect the current test suite (121 tests passing across 15 modular suites).
     4. **Feature & Troubleshooting Guidance:** Review visual diff activation troubleshooting, keyboard shortcuts, and configuration options (`window.refdiffConfig`) to ensure clear, friction-free onboarding for early adopters.
     5. **On-Wiki Parity:** Re-sync local `refdiff.wiki` and remote `en:User:Powercycler/RefDiff` to maintain 100% byte-for-byte deployment parity.
+- [ ] **Step R.16: Meta-Wiki Documentation Soft Redirect & Cross-Wiki Parity (Tier 1 — Normal)**
+  * **TODO:** Resolve missing/outdated documentation lead on Meta-Wiki (`m:User:Powercycler/RefDiff`):
+    1. **Soft Redirect vs Full Parity:** Either implement a clean soft redirect pointing to authoritative documentation on English Wikipedia (`en:User:Powercycler/RefDiff`) per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1, or mirror the updated v1.4.3 documentation lead.
+    2. **Showcase Integration:** Ensure seamless cross-wiki navigation between the Meta-Wiki Showcase (`m:User:Powercycler/RefDiff/Show_case`), the canonical code lead (`m:User:Powercycler/refdiff.js`), and the English Wikipedia documentation lead.
+    3. **Auditor Synchronization:** Verify that `npm run check:deploy` reports `m:User:Powercycler/RefDiff` in full sync with the designated cross-wiki redirect or mirrored lead.
 
 ##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
@@ -1564,6 +1570,22 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.15).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Tracked TODO for Meta-Wiki Documentation Soft Redirect & Cross-Wiki Parity
+
+* **Context & Issue Description:**
+  * Recorded a formal tracking item and TODO (Step R.16) for resolving outdated/missing documentation on Meta-Wiki (`m:User:Powercycler/RefDiff`).
+  * While English Wikipedia hosts the authoritative, publication-ready documentation lead (`en:User:Powercycler/RefDiff`, 29.2 KB), `m:User:Powercycler/RefDiff` currently retains legacy standalone wikitext from earlier development (Rev 31144013, 14.1 KB).
+  * Action items to address:
+    1. **Establish Canonical Soft Redirect or Synchronized Mirror:** Deploy a clean cross-wiki soft redirect template (e.g. `{{Soft redirect|en:User:Powercycler/RefDiff}}` or prominent banner) directing Meta-Wiki visitors to the authoritative English Wikipedia documentation lead, or mirror the complete v1.4.3 documentation.
+    2. **Interwiki Link Alignment:** Harmonize cross-wiki links between `m:User:Powercycler/RefDiff/Show_case`, `m:User:Powercycler/refdiff.js`, and `en:User:Powercycler/RefDiff`.
+    3. **Auditor Target Verification:** Confirm `scripts/check_live_deployment.js` recognizes the updated redirect or mirrored page state cleanly.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.16).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
 
 
 
