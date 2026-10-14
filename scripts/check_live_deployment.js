@@ -31,7 +31,6 @@ const localUserbox = fs.readFileSync(path.join(rootDir, 'userbox_enwiki.wiki'), 
 const localJsSha1 = crypto.createHash('sha1').update(localJs, 'utf8').digest('hex');
 const localJsTrimmedSha1 = crypto.createHash('sha1').update(localJs.trimEnd(), 'utf8').digest('hex');
 const localWikiSha1 = crypto.createHash('sha1').update(localWiki, 'utf8').digest('hex');
-const localWikiTrimmedSha1 = crypto.createHash('sha1').update(localWiki.trimEnd(), 'utf8').digest('hex');
 
 function getGitReleaseInfo() {
   try {

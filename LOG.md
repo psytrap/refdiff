@@ -16,7 +16,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 🧪 **[TEST_PLAN.md](TEST_PLAN.md):** Test pyramid, 1-to-1 modular suite architecture, and quality assurance framework.
   * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
   * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Meta-Wiki and cross-wiki user pages.
-  * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki):** Dedicated English Wikipedia userbox template (`Template:User RefDiff`) with TemplateData documentation.
+  * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki):** Dedicated English Wikipedia userbox template (`User:Powercycler/Userbox RefDiff`).
   * 🚀 **[ROLLOUT_PLAN.md](ROLLOUT_PLAN.md):** Phased rollout protocol (Rings 0–3), pre-flight gates, rollback runbook, and health checks.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
@@ -33,7 +33,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | Dimension | Tier 1: Early Adopter Pilot (10-User Milestone) | Tier 2: Community Reviewer Scale (50-User Milestone) | Tier 3: Mass Deployment (Beyond 50 Users) |
 | :--- | :--- | :--- | :--- |
 | **Objective** | Validate real-world value with early adopters on en.WP | Qualify for official opt-in English Wikipedia Gadget | Site-wide default gadget or upstream MediaWiki core feature |
-| **Adoption Target** | $\ge 10$ active patrollers via `Template:User RefDiff` | $\ge 50$ active NPP/RC reviewers over 60 days | 1,000+ editors, site-wide default, cross-wiki deployment |
+| **Adoption Target** | $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` | $\ge 50$ active NPP/RC reviewers over 60 days | 1,000+ editors, site-wide default, cross-wiki deployment |
 | **Distribution** | Personal user script in `common.js` / `global.js` | Built-in opt-in Gadget in `Special:Preferences` | Default-enabled gadget (`[default]`) or native `Extension:Cite` |
 | **Crash Blast Radius** | Fail-open `try...catch` boundary (reverts to native diff) | Zero blast radius across diverse multi-script ecosystems | Core platform stability, server-side / Parsoid guarantees |
 | **Tool Compatibility** | Non-interference verified on standard diff headers | Formal automated contract tests (Twinkle, HotCat, etc.) | Universal compatibility across all gadgets and extensions |
@@ -57,6 +57,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.1** | Fail-Open Crash Boundary | High | 🔮 Future | Top-level `try...catch` boundary; zero blast radius on `common.js` |
 | **R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
 | **R.14** | Better Userbox Design & Usability | Normal | 🔮 Future | TODO: Refine userbox aesthetics, badge customization, category handling, and mobile preview |
+| **R.15** | On-Wiki Tool Documentation Cleanup | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -97,6 +98,13 @@ This log records the rationale, architectural decisions, completed milestones, a
     2. **Customization & Simplicity:** Offer optional customizable parameters (custom badge, colors, custom text) while preserving a clean, zero-friction default invocation without redlink categories.
     3. **Category Infrastructure:** Optionally establish an official tracking category (e.g. `Category:Wikipedians who use RefDiff`) once adoption warrants it, or maintain category-free operation to prevent redlink clutter on user pages.
     4. **Stack & Babel Compatibility:** Verify clean alignment inside userbox stacks (`{{Userboxtop}}`), Babel boxes, and mobile user page layouts.
+- [ ] **Step R.15: On-Wiki Tool Documentation Cleanup & Polish (Tier 1 — Normal)**
+  * **TODO:** Audit and clean up on-wiki documentation lead (`refdiff.wiki` and deployed `en:User:Powercycler/RefDiff`):
+    1. **Userbox Transclusion Parity:** Update transclusion examples and documentation links from legacy `User:Powercycler/User RefDiff` to canonical `{{User:Powercycler/Userbox RefDiff}}`. Align the documented parameters with the deployed user space template.
+    2. **Redlink & Link Pruning:** Prune non-existent tracking categories or redlinks across documentation sections, ensuring all showcased links and subpage pointers resolve cleanly on English Wikipedia and Meta-Wiki.
+    3. **Metrics & Test Coverage Synchronization:** Update test counts and coverage statistics in the infobox and QA section to reflect the current test suite (121 tests passing across 15 modular suites).
+    4. **Feature & Troubleshooting Guidance:** Review visual diff activation troubleshooting, keyboard shortcuts, and configuration options (`window.refdiffConfig`) to ensure clear, friction-free onboarding for early adopters.
+    5. **On-Wiki Parity:** Re-sync local `refdiff.wiki` and remote `en:User:Powercycler/RefDiff` to maintain 100% byte-for-byte deployment parity.
 
 ##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
@@ -1541,6 +1549,22 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.14).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Tracked TODO for On-Wiki Tool Documentation Cleanup & Polish
+
+* **Context & Issue Description:**
+  * Recorded a formal tracking item and TODO (Step R.15) for auditing, polishing, and synchronizing on-wiki tool documentation (`refdiff.wiki` and `en:User:Powercycler/RefDiff`).
+  * Following the v1.4.3 release and userbox relocation to user space (`User:Powercycler/Userbox RefDiff`), the documentation lead requires maintenance:
+    1. **Userbox Transclusion & Parameter Parity:** Align references from legacy `User:Powercycler/User RefDiff` to canonical `User:Powercycler/Userbox RefDiff`, removing obsolete parameter documentation that no longer matches the simplified user space template.
+    2. **Link Verification & Redlink Elimination:** Ensure all wiki links, category references, and showcase anchors resolve cleanly without dead links or red categories.
+    3. **Test Metrics & QA Synchronization:** Update test suite figures (121 tests passing across 15 test suites) in the infobox and QA sections.
+    4. **On-Wiki Parity:** Re-sync local `refdiff.wiki` with `en:User:Powercycler/RefDiff` via deployment audit tools.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.15).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
 
 
 
