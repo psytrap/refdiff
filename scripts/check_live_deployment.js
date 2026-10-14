@@ -20,6 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+const { execSync } = require('child_process');
 
 const rootDir = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
@@ -30,7 +31,31 @@ const localUserbox = fs.readFileSync(path.join(rootDir, 'userbox_enwiki.wiki'), 
 const localJsSha1 = crypto.createHash('sha1').update(localJs, 'utf8').digest('hex');
 const localWikiSha1 = crypto.createHash('sha1').update(localWiki, 'utf8').digest('hex');
 
-const EXPECTED_EN_SHA_POINTER = `// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: ${localJsSha1.slice(0, 8)})\nmw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');`;
+function getGitReleaseInfo() {
+  try {
+    const latestTag = execSync('git describe --tags --abbrev=0 --match "v*"', {
+      cwd: rootDir,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    }).trim();
+    if (!latestTag) return null;
+
+    const tagJs = execSync(`git show ${latestTag}:refdiff.js`, {
+      cwd: rootDir,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    });
+    const tagJsSha1 = crypto.createHash('sha1').update(tagJs, 'utf8').digest('hex');
+
+    return {
+      tag: latestTag,
+      jsSha1: tagJsSha1,
+      sizeKb: (tagJs.length / 1024).toFixed(1)
+    };
+  } catch (_) {
+    return null;
+  }
+}
 
 const USER_AGENT = `RefDiffLiveDeployAudit/${pkg.version} (https://en.wikipedia.org/wiki/User:Powercycler/RefDiff; contact: User:Powercycler)`;
 
@@ -54,12 +79,23 @@ function fetchApi(apiBase, titles) {
 }
 
 async function auditDeployment() {
+  const gitRelease = getGitReleaseInfo();
+  const targetTag = gitRelease ? gitRelease.tag : `v${pkg.version}`;
+  const isPostShipmentCycle = gitRelease && gitRelease.tag !== `v${pkg.version}` && gitRelease.jsSha1 !== localJsSha1;
+  const targetJsSha1 = isPostShipmentCycle ? gitRelease.jsSha1 : localJsSha1;
+
   console.log('========================================================================');
-  console.log(` RefDiff Live On-Wiki Deployment Auditor (Target Release: v${pkg.version})`);
+  const targetHeader = isPostShipmentCycle
+    ? `Target Release: ${targetTag} | Working Tree: v${pkg.version}`
+    : `Target Release: ${targetTag}`;
+  console.log(` RefDiff Live On-Wiki Deployment Auditor (${targetHeader})`);
   console.log('========================================================================\n');
 
-  console.log('Local Release Artifacts:');
-  console.log(`  - refdiff.js (Script Lead):   ${(localJs.length / 1024).toFixed(1)} KB (SHA-1: ${localJsSha1})`);
+  console.log('Release Artifacts:');
+  console.log(`  - refdiff.js (Working Tree):   ${(localJs.length / 1024).toFixed(1)} KB (SHA-1: ${localJsSha1})`);
+  if (gitRelease) {
+    console.log(`  - refdiff.js (Release ${gitRelease.tag}):   ${gitRelease.sizeKb} KB (SHA-1: ${gitRelease.jsSha1})`);
+  }
   console.log(`  - refdiff.wiki (Doc Lead):     ${(localWiki.length / 1024).toFixed(1)} KB (SHA-1: ${localWikiSha1})`);
   console.log(`  - userbox_enwiki.wiki:         ${(localUserbox.length / 1024).toFixed(1)} KB\n`);
 
@@ -112,11 +148,32 @@ async function auditDeployment() {
   } else {
     const rev = metaLead.revisions && metaLead.revisions[0];
     const liveSha1 = rev ? rev.sha1 : '';
-    const isSync = liveSha1 === localJsSha1;
+    const matchTree = liveSha1 === localJsSha1;
+    const matchTag = gitRelease && liveSha1 === gitRelease.jsSha1;
+    const isSync = matchTree || matchTag;
+
+    let syncStatus = 'DEPLOYED & SYNCHRONIZED (Script Lead)';
+    let detailMsg = `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB, SHA-1: ${liveSha1}. `;
+
+    if (matchTree && matchTag) {
+      syncStatus = `DEPLOYED & SYNCHRONIZED (${gitRelease.tag})`;
+      detailMsg += `Production is 100% in sync with release ${gitRelease.tag}.`;
+    } else if (matchTag) {
+      syncStatus = `DEPLOYED & SYNCHRONIZED (Release ${gitRelease.tag})`;
+      detailMsg += `Production matches latest release tag ${gitRelease.tag} (Working tree is v${pkg.version} for next development cycle).`;
+    } else if (matchTree) {
+      syncStatus = `DEPLOYED & SYNCHRONIZED (Working Tree v${pkg.version})`;
+      detailMsg += `Production matches local working tree v${pkg.version}.`;
+    } else {
+      syncStatus = 'DEPLOYED (Out of Sync)';
+      const expectedSha = gitRelease ? `${gitRelease.jsSha1.slice(0, 8)} (${gitRelease.tag}) or ${localJsSha1.slice(0, 8)} (local)` : localJsSha1;
+      detailMsg += `Update needed. Expected SHA-1: ${expectedSha}.`;
+    }
+
     reports.push({
       target: 'm:User:Powercycler/refdiff.js (Script Lead)',
-      status: isSync ? 'DEPLOYED & SYNCHRONIZED (Script Lead)' : 'DEPLOYED (Out of Sync)',
-      details: `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB, SHA-1: ${liveSha1}. ${isSync ? 'Canonical script lead synchronized.' : `Local SHA-1: ${localJsSha1}. Update needed.`}`,
+      status: syncStatus,
+      details: detailMsg,
       ok: isSync
     });
   }
@@ -155,19 +212,24 @@ async function auditDeployment() {
     const rev = enPointer.revisions && enPointer.revisions[0];
     const content = rev ? (rev['*'] || '') : '';
     const isForwarder = content.includes('mw.loader.load') && (content.includes('meta.wikimedia.org') || content.includes('User:Powercycler/refdiff.js'));
-    const referencesRelease = content.includes(localJsSha1.slice(0, 8)) || content.includes(localJsSha1) || content.includes(`v${pkg.version}`);
+    const referencesTree = content.includes(localJsSha1.slice(0, 8)) || content.includes(localJsSha1) || content.includes(`v${pkg.version}`);
+    const referencesTag = gitRelease && (content.includes(gitRelease.jsSha1.slice(0, 8)) || content.includes(gitRelease.jsSha1) || content.includes(gitRelease.tag));
+    const referencesRelease = referencesTree || referencesTag;
+    const matchedTag = referencesTag ? gitRelease.tag : `v${pkg.version}`;
+    const matchedSha = referencesTag ? gitRelease.jsSha1.slice(0, 8) : localJsSha1.slice(0, 8);
+
     if (isForwarder && referencesRelease) {
       reports.push({
         target: 'en:User:Powercycler/refdiff.js (en.WP SHA Pointer)',
-        status: 'DEPLOYED & POINTING TO RELEASE',
-        details: `Rev ${rev.revid} (${rev.timestamp}). Forwards to Meta-Wiki script lead referencing release SHA-1 (${localJsSha1.slice(0, 8)}).`,
+        status: `DEPLOYED & POINTING TO RELEASE (${matchedTag})`,
+        details: `Rev ${rev.revid} (${rev.timestamp}). Forwards to Meta-Wiki script lead referencing release SHA-1 (${matchedSha}).`,
         ok: true
       });
     } else if (isForwarder) {
       reports.push({
         target: 'en:User:Powercycler/refdiff.js (en.WP SHA Pointer)',
         status: 'DEPLOYED (Pointer Outdated)',
-        details: `Rev ${rev.revid} (${rev.timestamp}). Forwards to Meta-Wiki but missing current release SHA-1 (${localJsSha1.slice(0, 8)}). Update pointer.`,
+        details: `Rev ${rev.revid} (${rev.timestamp}). Forwards to Meta-Wiki but missing current release SHA-1 (${matchedSha}). Update pointer.`,
         ok: false
       });
     } else {
@@ -257,15 +319,17 @@ async function auditDeployment() {
     console.log('🎉 ALL TARGETS ARE FULLY DEPLOYED AND SYNCHRONIZED!');
     process.exit(0);
   } else {
+    const targetTagLabel = gitRelease ? gitRelease.tag : `v${pkg.version}`;
+    const pointerCode = `// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: ${targetJsSha1.slice(0, 8)})\nmw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');`;
     console.log('⚠️ DEPLOYMENT ACTION REQUIRED:');
     console.log(' To complete the rollout according to ROLLOUT_PLAN.md (Rollout and Deployment Plan):');
-    console.log('  1. Update m:User:Powercycler/refdiff.js (Meta-Wiki Script Lead):');
-    console.log(`     Copy local refdiff.js (${ (localJs.length / 1024).toFixed(1) } KB, SHA-1: ${localJsSha1})`);
+    console.log(`  1. Update m:User:Powercycler/refdiff.js (Meta-Wiki Script Lead):`);
+    console.log(`     Copy refdiff.js (${targetTagLabel}) (${ (localJs.length / 1024).toFixed(1) } KB, SHA-1: ${targetJsSha1})`);
     console.log('  2. Early testing on en:User:Powercycler/common.js:');
     console.log('     Verify 5 live benchmark diffs before updating SHA pointer');
     console.log('  3. Update en:User:Powercycler/refdiff.js (en.WP SHA Pointer):');
-    console.log(`     Publish pointer forwarding to Meta script lead with release SHA-1 (${localJsSha1.slice(0, 8)}):`);
-    console.log(`     ${EXPECTED_EN_SHA_POINTER.replace(/\n/g, '\n     ')}`);
+    console.log(`     Publish pointer forwarding to Meta script lead with release SHA-1 (${targetJsSha1.slice(0, 8)}):`);
+    console.log(`     ${pointerCode.replace(/\n/g, '\n     ')}`);
     console.log('  4. Publish documentation to en:User:Powercycler/RefDiff (refdiff.wiki - Doc Lead)');
     console.log('  5. Ensure m:User:Powercycler/RefDiff is configured as soft redirect to en.WP');
     console.log('  6. Publish userbox to en:Template:User RefDiff (userbox_enwiki.wiki)');
