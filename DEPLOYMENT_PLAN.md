@@ -15,7 +15,7 @@
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` |
 | **en.WP Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) (§1, §2) | `en:Template:User RefDiff` &bull; `en:Template:User RefDiff/doc` |
 | **Meta Userbox** | [`userbox.wiki`](userbox.wiki) | `m:User:Powercycler/User RefDiff` |
-| **Outreach** | [`proposal/POST.md`](proposal/POST.md) | `en:WT:Citing sources` &bull; `en:WP:Village pump (technical)` |
+| **Outreach** | [`proposal/POST.md`](proposal/POST.md) | `en:User talk:Powercycler/RefDiff` (Dedicated tool talk page) |
 
 ---
 
@@ -63,9 +63,8 @@ npm run ci && node tests/test_deployment.js
    - Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
    - Create `m:User:Powercycler/User RefDiff` from [`userbox.wiki`](userbox.wiki).
 
-### Ring 3: Community Outreach & Gadget Candidacy
-- Announce on `en:WT:Citing sources` using [`proposal/POST.md`](proposal/POST.md).
-- Notify `en:WP:Village pump (technical)`.
+### Ring 3: Community Feedback & Gadget Candidacy
+- Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
 - Gadget candidacy once 50+ active reviewers adopt with zero critical regressions over 60 days.
 
 ---
@@ -90,4 +89,4 @@ npm run ci && node tests/test_deployment.js
 - [ ] **Publish Docs:** Update `en:User:Powercycler/RefDiff` and `m:User:Powercycler/RefDiff`.
 - [ ] **Publish Userboxes:** Create `Template:User RefDiff` (+ `/doc`) on en.WP and `User:Powercycler/User RefDiff` on Meta.
 - [ ] **Live Smoke Check:** Test diff=1379409916 and verify mode switcher, inline toggle, and dark mode.
-- [ ] **Outreach:** Post to `WT:Citing sources` and `WP:Village pump (technical)`.
+- [ ] **Outreach:** Post announcement and monitor feedback on `User talk:Powercycler/RefDiff`.

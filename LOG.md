@@ -908,6 +908,16 @@ This register serves as the authoritative system of record for all real-world Wi
   * **Step 5.6 (P1):** Legacy skin (Vector 2010 / Monobook) fallback testing and graceful mobile self-disablement.
   * **Step 5.7 (P2):** Formalization of 100-user production governance policy in `AUDIT_STRATEGY.md` §2.7.
 
+---
+
+### 2026-10-14: Scoped Deployment Outreach Strictly to Tool Talk Page on en.WP
+
+* **Context & Decision:**
+  * Streamlined community outreach and feedback collection destinations in `DEPLOYMENT_PLAN.md` (Table 1, Ring 3, and Section 5 Runbook Checklist).
+  * Rather than broadcasting broadly across community noticeboards (`en:WT:Citing sources`, `en:WP:Village pump (technical)`), initial feedback and release announcements are scoped strictly to the tool's dedicated talk page on en.WP: `en:User talk:Powercycler/RefDiff`.
+* **Artifacts Synchronized:**
+  * Updated `DEPLOYMENT_PLAN.md` (§1 Table 1, §3 Ring 3, §5 Runbook Checklist).
+
 
 
 
