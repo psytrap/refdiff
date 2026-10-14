@@ -35,7 +35,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 - **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
 - **Stress & Benchmark Budget:** < 50ms processing on 114-reference table (`test_benchmarks.js`).
 - **Live Browser CDP Integration (Level 4):** Chromium CDP automation on port 9222 verifying real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
-- **Live On-Wiki Deployment Auditor:** Remote SHA-1 & revision verification across Wikimedia APIs (`scripts/check_live_deployment.js`).
+- **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Remote SHA-1 & revision verification across Wikimedia APIs (`scripts/check_live_deployment.js`).
 
 ---
 
@@ -47,7 +47,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
 ### Ring 1: Pinned Commit Canary
-- Publish `refdiff.js` to `en:User:Powercycler/refdiff-v1.3.0.js`.
+- Publish `refdiff.js` to `en:User:Powercycler/refdiff-v1.3.0.js` and verify with `npm run check:deploy`.
 - Test on 5 live benchmark diffs:
   1. `Bihar Legislative Assembly` (diff=1379207737) — apostrophe in attrs, underscore footnote anchors.
   2. `Odoacer` (diff=1379486498) — shortened footnotes (`{{sfn}}`) author-year badges, Popups preview.
@@ -62,6 +62,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 4. **Meta Docs (Dummy):** Set `m:User:Powercycler/RefDiff` as a soft redirect pointing to `en:User:Powercycler/RefDiff`.
 5. **Showcase:** Verify `m:User:Powercycler/RefDiff/Show_case`.
 6. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
+7. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
 
 ### Ring 3: Community Feedback & Gadget Candidacy
 - Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
@@ -75,6 +76,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
   1. Revert `en:User:Powercycler/refdiff.js` via on-wiki page history to previous stable revision (< 1 min). The Meta dummy loader automatically forwards the reverted script without separate edits.
   2. Purge page cache (`&action=purge`). Users bypass browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd>).
   3. Defensive fallback: if script mounting fails, native wikitext diff remains untouched (guaranteed by automated pre-flight rollback check in `test_deployment.js`). In-place Memento (`restoreOriginal`) guarantees 100% byte-for-byte restoration and zero orphaned `.refdiff-cit-row` nodes.
+  4. Run `npm run check:deploy` to confirm reverted revision status on Wikimedia APIs.
 - **P1 (Non-critical — Syntax edge-case):**
   Unparsed citation remains inline in prose (graceful degradation). Follow 6-stage diff verification lifecycle in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#4-real-world-diff-verification-lifecycle).
 
