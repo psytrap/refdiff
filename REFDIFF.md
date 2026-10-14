@@ -207,11 +207,11 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ## 8. Development Roadmap & Status
 
-* [x] **Phase 1: Standalone Core Parser (Python CLI Prototype — Archived)**
-  * Implemented zero-dependency prototype in [`archive/python-prototype/refdiff.py`](archive/python-prototype/refdiff.py) using Python 3 standard library (`re`, `difflib`, `urllib`).
+* [x] **Phase 1: Standalone Core Parser (CLI Prototype — Concluded)**
+  * Prototyped standalone diff decoupling algorithm using standard library tools (`re`, `difflib`, `urllib`).
   * Supported CLI input, live Wikipedia diff fetching, `--stat`, and `--json`.
-* [x] **Phase 2: Git Diff Driver (`git-refdiff` — Archived)**
-  * Prototyped Git external diff driver invocations (`git diff` / `git log -p`) in [`archive/python-prototype/git-refdiff`](archive/python-prototype/git-refdiff).
+* [x] **Phase 2: Git Diff Driver (`git-refdiff` — Concluded)**
+  * Prototyped Git external diff driver invocations (`git diff` / `git log -p`).
 * [x] **Phase 3: MediaWiki User Script / Gadget (`refdiff.js`)**
   * **Zero-Loss DOM Manipulation:** Operates directly on MediaWiki's native diff table (`table.diff`), preserving 100% of revision metadata headers, line numbers (`Line 101:`), and context lines.
   * **Memento DOM Snapshot Pattern:** In-place cell updates preserve DOM node references, ensuring MediaWiki's `inlineFormatToggle.js` and VisualEditor closures remain active.
@@ -224,8 +224,8 @@ The tool compares `RawRefsA` against `RawRefsB`:
   * **Cognitive Load Color Ergonomics:** Subtle secondary styling for unmodified references (zero blue highlight, normal font weight); amber gold for edits.
   * **Prefixed Citation Diff Rows:** Injects citation diff rows directly underneath each prose line, prefixed with matching badges.
   * **Clean-Code Modular Architecture:** Centralized state object, CSS selector/class registries, and single-responsibility helper decomposition (see [**`ARCHITECTURE.md`**](ARCHITECTURE.md)).
-  * **Two-Layer Automated Verification:** 97/97 tests across 14 modular suites in `tests/` running in ~250ms with 100% function coverage and JSDOM real DOM testing (see [**`TEST_PLAN.md`**](TEST_PLAN.md)) and live browser automation in `tests/test_live_cdp.py`.
-  * **Global On-Wiki Deployment:** Published globally to Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)) for cross-wiki use.
+  * **Rigorous Automated Verification:** 115/115 tests across 15 modular suites in `tests/` running in ~250ms with 100% headless function coverage and JSDOM real DOM testing (see [**`TEST_PLAN.md`**](TEST_PLAN.md)) and live browser automation in `tests/test_live_cdp.py`.
+  * **On-Wiki Deployment:** Canonical release on English Wikipedia ([`en:User:Powercycler/refdiff.js`](https://en.wikipedia.org/wiki/User:Powercycler/refdiff.js)) and global cross-wiki loader stub on Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)).
 * [ ] **Phase 4: Upstream Phabricator Feature Request**
   * Submit RFC to Wikimedia Phabricator for native Parsoid/`wikidiff2` integration.
 
@@ -233,25 +233,25 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ## 9. Quick Start & Installation
 
-### Option A: Global Installation (All Wikimedia Wikis at Once)
-Add the following line to your **[Meta-Wiki global.js](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)** to enable RefDiff across all language Wikipedias, Wikidata, and Wikimedia projects automatically:
+### Option A: English Wikipedia (Canonical Lead)
+Add the following line to your local **[`Special:MyPage/common.js`](https://en.wikipedia.org/wiki/Special:MyPage/common.js)** on English Wikipedia:
 
 ```javascript
-// [[File:refdiff.js]] - Decoupled citation diffs across all wikis (RefDiff)
-mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 ```
 
-### Option B: Local Wiki Installation (`Special:MyPage/common.js`)
-To install RefDiff only on a specific wiki (e.g. English Wikipedia), add the following line to your local `Special:MyPage/common.js`:
+### Option B: Global Cross-Wiki Installation (All Wikimedia Wikis at Once)
+Add the following line to your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)** to enable RefDiff automatically across all Wikimedia projects:
 
 ```javascript
-// [[File:refdiff.js]] - Decoupled citation diffs for Special:Diff
-mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
+// [[m:User:Powercycler/refdiff.js]] - RefDiff cross-wiki loader
+mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 ```
 
 ### Option C: Browser Extension (Tampermonkey / Violentmonkey)
 Install `refdiff.js` directly as a user script in Tampermonkey, Violentmonkey, or Greasemonkey using the raw script URL:
-`https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js`
+`https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
 
 
 

@@ -413,7 +413,7 @@ This register serves as the authoritative system of record for all real-world Wi
     * Configured ESLint (`.eslintrc.json`) tailored for browser user scripts, MediaWiki globals (`mw`), and Node unit tests.
     * Added `package.json` with standard npm lifecycle scripts (`npm run lint`, `npm test`, `npm run ci`).
   * **Archival of Python Prototype (`archive/python-prototype/`):**
-    * Moved standalone CLI prototype (`refdiff.py`, `git-refdiff`, and `tests/test_refdiff.py`) into [`archive/python-prototype/`](archive/python-prototype/) with its own dedicated README.
+    * Moved standalone CLI prototype (`refdiff.py`, `git-refdiff`, and `tests/test_refdiff.py`) into `archive/python-prototype/` with its own dedicated README.
     * Refocused root repository and primary documentation on the native MediaWiki in-browser user script (`refdiff.js`).
     * Updated GitHub Actions CI to test the archived prototype suite via `PYTHONPATH=archive/python-prototype`.
   * **Test Suite Streamlining & Comprehensive HTML Integration:**

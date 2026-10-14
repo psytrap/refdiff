@@ -38,8 +38,8 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
 * **Interactive Reference Badges & Native Reference Previews:** Badges are rendered as semantic `<sup class="reference">` links. Hovering over a badge displays Wikipedia's standard **Reference Preview popup** from Read mode (`Extension:Popups`), and clicking modified badges jumps straight to their citation diff row.
 * **Instant Installation:** Add this one line to your `Special:MyPage/common.js` on English Wikipedia (or any MediaWiki wiki):
   ```javascript
-  // [[File:refdiff.js]] - Decoupled citation diffs for Special:Diff
-  mw.loader.load('https://cdn.jsdelivr.net/gh/m-k/einzelnachweise@main/refdiff.js');
+  // [[User:Powercycler/refdiff.js]] - Decoupled citation diffs for Special:Diff
+  mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
   ```
 * Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
 * **Userbox:** Display your usage on English Wikipedia with `{{User RefDiff}}` (or cross-wiki with `{{User:Powercycler/User RefDiff}}`, see [**userbox_enwiki.wiki**](userbox_enwiki.wiki) and [**userbox.wiki**](userbox.wiki)).

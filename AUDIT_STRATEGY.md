@@ -2,7 +2,7 @@
 
 > **Status:** Active & Implemented &bull; **Version:** 1.3.0  
 > **Target Audience:** Script Maintainers, Wikimedia Reviewers, Wikipedia Patrollers & Source Auditors  
-> **Governing Artifacts:** [`refdiff.js`](refdiff.js), [`tests/`](tests/), [`refdiff.wiki`](refdiff.wiki), [`LOG.md`](LOG.md)
+> **Governing Artifacts:** [`refdiff.js`](refdiff.js), [`tests/`](tests/), [`refdiff.wiki`](refdiff.wiki), [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`LOG.md`](LOG.md)
 
 ---
 
@@ -62,7 +62,7 @@ RefDiff operates a dual-engine DOM verification pipeline:
 ### 2.4 On-Wiki Distribution & Security Hygiene
 
 To meet Wikimedia security policies for user scripts and gadgets:
-1. **No External CDNs:** Production deployments load strictly from Wikimedia servers (`meta.wikimedia.org` or local wiki `Special:MyPage`).
+1. **No External CDNs:** Production deployments load strictly from Wikimedia servers (`en.wikipedia.org`, `meta.wikimedia.org`, or local wiki `Special:MyPage`).
 2. **Commit-Pinned Loader Pattern:** Users requiring immutable, tamper-proof versions can pin release revisions (`refdiff-v1.3.0.js`).
 3. **Wikitext Protection:** The script begins with `/* <nowiki> */` and ends with `/* </nowiki> */` to prevent template parsing and signature expansion.
 
@@ -116,6 +116,15 @@ To ensure tests remain resilient, diagnostic, and maintainable, RefDiff enforces
 
 ---
 
+### 2.7 10-User Adoption & Stability Policy
+
+To govern the transition from local canary release to gadget proposal:
+1. **Adoption Threshold:** Active transclusions monitored via `Special:WhatLinksHere/Template:User_RefDiff` reaching $\ge 10$ active patrollers.
+2. **Defect Threshold:** Zero uncaught runtime errors (P0) and zero unhandled table corruptions across real Wikipedia diff reviews.
+3. **Fail-Open Invariant:** Uncaught exceptions in any auxiliary component must cleanly restore the native diff view without impacting reviewer workflows or common.js tools (Twinkle, HotCat).
+
+---
+
 ## 3. Pillar 2: Editorial Review & Source Auditing Playbook
 
 ### 3.1 The "Template Camouflage" Audit Workflow
@@ -166,7 +175,7 @@ flowchart LR
     Q5 --> Q6["6. Regression Lock<br/>(npm run ci)"]
 ```
 
-1. **Candidate Triage:** Diff URL, revision ID, and anomaly logged in [`TEST_PLAN.md`](TEST_PLAN.md#51-real-world-wikipedia-diff-test-matrix).
+1. **Candidate Triage:** Diff URL, revision ID, and anomaly logged in [`TEST_PLAN.md`](TEST_PLAN.md#51-real-world-diffs--verification-queue).
 2. **Raw HTML Capture:** Raw MediaWiki diff HTML saved into test fixtures.
 3. **JSDOM Reproduction:** Failing test added without mocks to `test_jsdom.js`.
 4. **Core Fix:** `refdiff.js` patched following modular standards.
