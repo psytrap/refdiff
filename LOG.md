@@ -22,86 +22,100 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ---
 
-## 2. Planned Steps & Action Items (Roadmap)
+## 2. Planned Steps & Action Items (Roadmaps)
 
-### Roadmap Overview Checklist & Status Dashboard
+### 2.1 RefDiff Tool Roadmap (Active In-Browser Gadget)
 
-| Step | Phase & Milestone | Priority | Status | Primary Deliverable / Target |
+*Focus: Immediate client-side diff enhancement on `Special:Diff`, 100-user production readiness, patrol tool non-interference, and on-wiki rollout.*
+
+#### RefDiff Checklist & Status Dashboard
+
+| Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
-| **1.1** | Phase 1: Wikimedia Phabricator Task | P1 | 🔲 Open | Draft submission tagged `#extension-cite`, `#Parsoid` |
-| **1.2** | Phase 1: Cite Discussion Pages | P1 | 🔲 Open | `mw:Extension talk:Cite` & `en:WT:Citing sources` |
-| **1.3** | Phase 1: Community Wishlist Submission | P2 | 🔲 Open | `meta:Community Wishlist` proposal |
-| **2.1** | Phase 2: Feedback Synthesis | P1 | 🔲 Open | Synthesize community input on syntax & VE/mobile |
-| **2.2** | Phase 2: Specification Refinement | P2 | 🔲 Open | Update [`CONCEPT.md`](proposal/CONCEPT.md) & [`PROPOSAL.md`](proposal/PROPOSAL.md) |
-| **3.1** | Phase 3: Python CLI Tool (`ref-scope`) | P2 | 🔲 Open | Standalone CLI prototype for wikitext AST re-scoping |
-| **3.2** | Phase 3: Re-Scoping Bot Prototype | P3 | 🔲 Open | Definition anchor migration algorithm |
-| **4.1** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Open | `{{#invoke:RefDef|...}}` on-wiki template prototype |
-| **4.2** | Phase 4: Upstream Extension:Cite Patch | P1 | 🔲 Open | Experimental Gerrit patch for MediaWiki core/Cite |
-| **5.1** | Phase 5: Fail-Open Crash Isolation | P0 | 🔲 Open | Top-level `try...catch` boundary; zero blast radius on `common.js` |
-| **5.2** | Phase 5: AJAX / SPA Re-entrancy | P0 | 🔲 Open | Multi-diff table swap tests & Memento leak prevention |
-| **5.3** | Phase 5: Patrol Tool Non-Interference | P1 | 🔲 Open | Byte-for-byte protection of diff headers & Twinkle nodes |
-| **5.4** | Phase 5: Client-Side Observability | P1 | 🔲 Open | Opt-in `?refdiff_debug=1` diagnostic logging mode |
-| **5.5** | Phase 5: Accessibility (WCAG 2.1 AA) | P1 | 🔲 Open | Semantic `aria-label`, keyboard navigation, contrast ratios |
-| **5.6** | Phase 5: Legacy Skins & Mobile Guard | P1 | 🔲 Open | Vector 2010 fallback bar & graceful Minerva mobile disable |
-| **5.7** | Phase 5: Production Governance Policy | P2 | 🔲 Open | Formalize 100-user readiness policy in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7 |
+| **R.1** | Fail-Open Crash Boundary | P0 | 🔲 Open | Top-level `try...catch` boundary; zero blast radius on `common.js` |
+| **R.2** | Dynamic AJAX / SPA Re-entrancy | P0 | 🔲 Open | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
+| **R.3** | Patrol Tool Non-Interference Contract | P1 | 🔲 Open | Byte-for-byte protection of diff headers & Twinkle/HotCat nodes |
+| **R.4** | Client-Side Observability Mode | P1 | 🔲 Open | Opt-in `?refdiff_debug=1` diagnostic logging mode |
+| **R.5** | Accessibility (WCAG 2.1 AA) | P1 | 🔲 Open | Semantic `aria-label`, keyboard focus navigation, contrast ratio validation |
+| **R.6** | Legacy Skins & Mobile Guard | P1 | 🔲 Open | Vector 2010 fallback bar & graceful Minerva mobile auto-disable |
+| **R.7** | Production Governance Policy | P2 | 🔲 Open | Formalize 100-user readiness policy in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7 |
+| **R.8** | On-Wiki Phased Deployment (Rings 0–3) | P1 | 🚀 In Progress | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Canary next) |
 
----
-
-### Phase 1: Community & Technical Outreach (Immediate Next Steps)
-- [ ] **Step 1.1: Submit Wikimedia Phabricator Task**
-  * Submit draft to [phabricator.wikimedia.org](https://phabricator.wikimedia.org/maniphest/task/edit/form/1/) tagged with `#extension-cite`, `#Parsoid`, `#MediaWiki-Parser`.
-  * Record Phabricator task ID (e.g. `Txxxxxx`) in this log.
-- [ ] **Step 1.2: Post to Cite Discussion Pages**
-  * Post to `mw:Extension talk:Cite` (MediaWiki.org) and/or `en:Wikipedia talk:Citing sources` (or `de:Wikipedia Diskussion:Einzelnachweise`).
-  * Link the discussion to the Phabricator task.
-- [ ] **Step 1.3: Community Wishlist Submission**
-  * Submit a focused proposal to [meta:Community Wishlist](https://meta.wikimedia.org/wiki/Community_Wishlist) to gather editor endorsements and votes.
-
-### Phase 2: Feedback Synthesis & Specification Iteration
-- [ ] **Step 2.1: Monitor Community & Developer Reactions**
-  * Track feedback on syntax choices (`<references hidden>` vs `<references-def>` vs `<references display="none">`).
-  * Note community questions regarding VisualEditor UX and mobile rendering.
-- [ ] **Step 2.2: Refine Specification**
-  * Incorporate edge cases and consensus items into [CONCEPT.md](proposal/CONCEPT.md) and [PROPOSAL.md](proposal/PROPOSAL.md).
-
-### Phase 3: Proof of Concept (PoC) Prototype
-- [ ] **Step 3.1: Python CLI Demonstration Tool (`ref-scope`)**
-  * Build a standalone Python script in this repository using `mwparserfromhell` or `wikitextparser`.
-  * Capabilities:
-    1. Parse a standard Wikipedia wikitext article.
-    2. Extract inline `<ref>` tags and relocate them into section `<references hidden>` blocks.
-    3. Generate before/after git diff statistics on real Wikipedia sample articles.
-- [ ] **Step 3.2: Automated Re-Scoping Bot Prototype**
-  * Implement the basic "bot cleanup" algorithm: detect moved `<ref name="..." />` anchors and auto-migrate definitions between `<references hidden>` blocks.
-
-### Phase 4: Upstream MediaWiki Integration
-- [ ] **Step 4.1: Lua / Scribunto Prototype**
-  * Provide a lightweight template/module implementation (`{{#invoke:RefDef|...}}`) for wikis that want to test the workflow without server modifications.
-- [ ] **Step 4.2: MediaWiki Extension:Cite Patch (Gerrit)**
-  * Work with Wikimedia developers on an experimental patch for `Extension:Cite`.
-
-### Phase 5: 100-User Production Readiness & Fault Tolerance Roadmap (Open)
-- [ ] **Step 5.1: Fail-Open Crash Isolation & Top-Level Boundary (P0 — Critical)**
+#### RefDiff Action Items (Detail)
+- [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (P0 — Critical)**
   * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
   * Guarantee that unhandled runtime exceptions in RefDiff cleanly restore the native diff table and never bubble to `window.onerror` or abort subsequent scripts in `common.js` (e.g. Twinkle, HotCat).
-- [ ] **Step 5.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (P0 — Critical)**
+- [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (P0 — Critical)**
   * Add a JSDOM test simulating sequential `wikipage.diff` Ajax re-entrancy (e.g. 10 consecutive diff loads with table swaps).
   * Ensure RefDiff correctly re-initializes on swapped diff tables without leaking Memento snapshots or duplicating DOM controls.
-- [ ] **Step 5.3: Core Patrol Tool Non-Interference Contract (P1 — High)**
+- [ ] **Step R.3: Core Patrol Tool Non-Interference Contract (P1 — High)**
   * Add automated assertions verifying that RefDiff mutations are strictly confined to `tbody > tr.diff-deletedline`, `tr.diff-addedline`, and `tr.refdiff-cit-row`.
   * Guarantee that header nodes (`tr.diff-title`, `.diff-otitle`, `.diff-ntitle`, `.diff-notice`, `.diff-multi`) and third-party buttons (Twinkle rollback/vandalism links) remain 100% byte-for-byte untouched.
-- [ ] **Step 5.4: Client-Side Observability & Diagnostic Troubleshooting Mode (P1 — High)**
+- [ ] **Step R.4: Client-Side Observability & Diagnostic Troubleshooting Mode (P1 — High)**
   * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
   * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
-- [ ] **Step 5.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (P1 — High)**
+- [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (P1 — High)**
   * Add semantic `aria-label` attributes to inline badges (e.g. `aria-label="Citation 1"`, `aria-label="Modified citation: name"`).
   * Ensure keyboard focusability (`tabindex="0"`) and <kbd>Enter</kbd>/<kbd>Space</kbd> keydown navigation from prose badge to citation diff row.
   * Verify color contrast ratios for amber (`#9a6700`) and green (`#14866d`) badges satisfy WCAG 2.1 AA (4.5:1) in Vector 2022 Light and Dark themes.
-- [ ] **Step 5.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (P1 — High)**
+- [ ] **Step R.6: Legacy Skin (Vector 2010 / Monobook) & Mobile Self-Disablement (P1 — High)**
   * Add automated JSDOM test for legacy skins lacking OOUI button containers, verifying fallback mode bar (`#refdiff-mode-bar`) mounting.
   * Add graceful self-disablement invariant for single-column mobile viewports (`MinervaNeue`).
-- [ ] **Step 5.7: Governance Policy in AUDIT_STRATEGY.md (P2 — Operational)**
+- [ ] **Step R.7: Governance Policy in AUDIT_STRATEGY.md (P2 — Operational)**
   * Formalize these requirements in `AUDIT_STRATEGY.md` under §2.7 ("100-User Production Readiness & Fault-Tolerance Policy").
+- [ ] **Step R.8: Phased Rollout Protocol Execution (P1 — High)**
+  * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Pinned Canary `refdiff-v1.3.0.js`), Ring 2 (Production publish to `refdiff.js`), and Ring 3 (Community feedback).
+
+---
+
+### 2.2 Upstream `<references hidden>` Tag Roadmap (Future Strategy)
+
+*Focus: Long-term MediaWiki wikitext feature proposal, developer RFCs, community discussion, and upstream parser integration.*
+
+#### Upstream Proposal Checklist & Status Dashboard
+
+| Step | Phase & Milestone | Priority | Status | Primary Deliverable / Target |
+| :---: | :--- | :---: | :---: | :--- |
+| **U.1** | Phase 1: Wikimedia Phabricator Task | P1 | 🔲 Planned | Submit draft to Phabricator tagged `#extension-cite`, `#Parsoid` |
+| **U.2** | Phase 1: Cite Discussion Pages | P1 | 🔲 Planned | Post discussion to `mw:Extension talk:Cite` & `en:WT:Citing sources` |
+| **U.3** | Phase 1: Community Wishlist Submission | P2 | 🔲 Planned | Submit proposal to `meta:Community Wishlist` for endorsements |
+| **U.4** | Phase 2: Feedback Synthesis | P1 | 🔲 Planned | Track editor reactions on syntax options & VE/mobile |
+| **U.5** | Phase 2: Specification Refinement | P2 | 🔲 Planned | Update [`CONCEPT.md`](proposal/CONCEPT.md) & [`PROPOSAL.md`](proposal/PROPOSAL.md) |
+| **U.6** | Phase 3: Python CLI Tool (`refdiff.py`) | P2 | ✅ Completed (Archived) | Standalone CLI prototype implemented in [`archive/python-prototype/`](archive/python-prototype/) |
+| **U.7** | Phase 3: Re-Scoping Bot Prototype | P3 | 🔲 Planned | Bot algorithm for automated anchor re-scoping |
+| **U.8** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Planned | `{{#invoke:RefDef|...}}` on-wiki template prototype |
+| **U.9** | Phase 4: Upstream Extension:Cite Patch | P1 | 🔲 Planned | Experimental Gerrit patch for MediaWiki core `Extension:Cite` |
+
+#### Upstream Strategy Phases (Detail)
+
+##### Phase 1: Community & Technical Outreach (Immediate Next Steps)
+- [ ] **Step U.1: Submit Wikimedia Phabricator Task**
+  * Submit draft to [phabricator.wikimedia.org](https://phabricator.wikimedia.org/maniphest/task/edit/form/1/) tagged with `#extension-cite`, `#Parsoid`, `#MediaWiki-Parser`.
+  * Record Phabricator task ID (e.g. `Txxxxxx`) in this log.
+- [ ] **Step U.2: Post to Cite Discussion Pages**
+  * Post to `mw:Extension talk:Cite` (MediaWiki.org) and/or `en:Wikipedia talk:Citing sources` (or `de:Wikipedia Diskussion:Einzelnachweise`).
+  * Link the discussion to the Phabricator task.
+- [ ] **Step U.3: Community Wishlist Submission**
+  * Submit a focused proposal to [meta:Community Wishlist](https://meta.wikimedia.org/wiki/Community_Wishlist) to gather editor endorsements and votes.
+
+##### Phase 2: Feedback Synthesis & Specification Iteration
+- [ ] **Step U.4: Monitor Community & Developer Reactions**
+  * Track feedback on syntax choices (`<references hidden>` vs `<references-def>` vs `<references display="none">`).
+  * Note community questions regarding VisualEditor UX and mobile rendering.
+- [ ] **Step U.5: Refine Specification**
+  * Incorporate edge cases and consensus items into [CONCEPT.md](proposal/CONCEPT.md) and [PROPOSAL.md](proposal/PROPOSAL.md).
+
+##### Phase 3: Proof of Concept (PoC) Prototype
+- [x] **Step U.6: Python CLI Demonstration Tool (`refdiff.py` / `ref-scope`)**
+  * Built standalone Python script in [`archive/python-prototype/refdiff.py`](archive/python-prototype/refdiff.py) (834 lines) parsing wikitext and `<references hidden>` blocks with word diffs and stats. Archived in `bd8acaa` after graduating to native in-browser `refdiff.js`.
+- [ ] **Step U.7: Automated Re-Scoping Bot Prototype**
+  * Implement the basic "bot cleanup" algorithm: detect moved `<ref name="..." />` anchors and auto-migrate definitions between `<references hidden>` blocks.
+
+##### Phase 4: Upstream MediaWiki Integration
+- [ ] **Step U.8: Lua / Scribunto Prototype**
+  * Provide a lightweight template/module implementation (`{{#invoke:RefDef|...}}`) for wikis that want to test the workflow without server modifications.
+- [ ] **Step U.9: MediaWiki Extension:Cite Patch (Gerrit)**
+  * Work with Wikimedia developers on an experimental patch for `Extension:Cite`.
 
 ---
 
