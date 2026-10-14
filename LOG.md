@@ -13,6 +13,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 📄 **[CONCEPT.md](proposal/CONCEPT.md):** Comprehensive technical specification and architecture paper.
   * 📝 **[POST.md](proposal/POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
   * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, real DOM test framework, and editorial review strategy.
+  * 🧪 **[TEST_PLAN.md](TEST_PLAN.md):** Test pyramid, 1-to-1 modular suite architecture, and quality assurance framework.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -137,8 +138,111 @@ This register serves as the authoritative system of record for all security, arc
 * **Remediation & Implementation:**
   1. Enclosed `refdiff.js` within `/* <nowiki> */` at line 1 and `/* </nowiki> */` at the end of the file.
   2. Added automated regex regression assertion in `tests/test_jsdom.js` (Test 10) ensuring delimiters remain balanced and all internal template examples remain safely quarantined.
-* **Resolution Commit:** [`b0b7dde`](https://github.com/psytrap/einzelnachweise/commit/b0b7dde)
-* **Verification Gate:** Test 10 passing in `tests/test_jsdom.js`; zero templatelinks pollution on MediaWiki user script subpages.
+---
+
+### 3.3 Real-World Diff Verification Register
+
+This register serves as the authoritative system of record for all real-world Wikipedia diffs submitted, triaged, diagnosed, and verified across RefDiff development sprints. Life-cycle transitions adhere to the 6-stage verification protocol defined in [**`AUDIT_STRATEGY.md` (§4)**](AUDIT_STRATEGY.md#4-real-world-diff-verification-lifecycle) and [**`TEST_PLAN.md` (§5.1)**](TEST_PLAN.md#51-real-world-diffs--verification-queue).
+
+| Diff / Article | Revision | Focus Area | Status | Primary Remediation & Suite | Register Anchor |
+|:---|:---:|:---|:---:|:---|:---:|
+| [Odoacer](https://en.wikipedia.org/w/index.php?diff=1379486498) | `1379486498` | Shortened Footnotes (`{{sfn}}`) & Popups Previews | ✅ Verified | SFN parameter tokenizer & author-year badge anchor mapping | [Odoacer](#odoacer-diff1379486498) |
+| [Zagreb Airport](https://en.wikipedia.org/w/index.php?diff=1379409916) | `1379409916` | High-Density Table Stress Benchmark (114 refs) | ✅ Verified | Lookahead-protected regex; sub-50ms execution in JSDOM & CDP | [Zagreb Airport](#zagreb-airport-diff1379409916) |
+| [Kim Domingo](https://en.wikipedia.org/w/index.php?diff=1379491398) | `1379491398` | `wikidiff2` Split Tag Boundaries (`/<del>&gt;`) | ✅ Verified | Boundary shifting in `normalizeDiffTags` & single-sided additions | [Kim Domingo](#kim-domingo-diff1379491398) |
+| [Cosmic inflation](https://en.wikipedia.org/w/index.php?diff=1379470949) | `1379470949` | Whitespace-Only Prose Diff Retention | ✅ Verified | Guarded empty tag cleanup regex preserving whitespace edits | [Cosmic Inflation](#cosmic-inflation-diff1379470949) |
+| [Zipf's law](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357) | `1379548357` | Footnote Unwrapping, `{{rp}}` & Nested Braces | ✅ Verified | Omission of `{{rp}}` from ref parser; lookaround brace assertions | [Zipf's Law](#zipfs-law-diff1379548357) |
+| [Donnie Brasco (film)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354) | `1380017400` | Unclosed Quote Toleration (`name="mojo_2>`) | ✅ Verified | Hardened `extractName` regex tolerating unclosed quotes | [Donnie Brasco](#donnie-brasco-film-diff1380017400) |
+| [Karl-Heinz Riedle](https://en.wikipedia.org/w/index.php?title=Karl-Heinz_Riedle&diff=1380008554&oldid=1335846068) | `1380008554` | Prose Bold Formatting Markup Invariance | ✅ Verified | Clean prose bold handling adjacent to unchanged context refs | [Karl-Heinz Riedle](#karl-heinz-riedle-diff1380008554) |
+| [Bihar Legislative Assembly](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737) | `1379207737` | Embedded Apostrophe Truncation & Anchor Matching | ⏳ Needs fix | Quotation attribute truncation on `'` & space-to-`_` anchor logic | [Bihar Assembly](#bihar-legislative-assembly-diff1379207737) |
+
+---
+
+#### Odoacer (`diff=1379486498`)
+* **Article & Revision:** [Odoacer (diff=1379486498)](https://en.wikipedia.org/w/index.php?diff=1379486498)
+* **Date Evaluated:** 2026-10-10
+* **Status:** ✅ Verified
+* **Focus Area:** Shortened footnotes (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harvnb}}`), parameter extraction, and author-year anchor mapping.
+* **Diagnosis:** Traditional Wikipedia articles heavily employ shortened footnotes linking to a separate bibliography. RefDiff needed to extract author, year, and page parameters, generate concise badges (`⟨Castritius 2005⟩`), and map them to `#cite_note-FOOTNOTE*` anchors for `Extension:Popups` hovercards.
+* **Remediation:** Implemented `extractSfnInfo()` supporting 1 to 4+ authors, year, and page numbers. Integrated `cite_note-FOOTNOTE*` anchor resolution in `findCiteNoteAnchor`.
+* **Verification:** Unit tests in `tests/test_parser.js`; verified live in headless Chromium CDP on English Wikipedia.
+
+---
+
+#### Zagreb Airport (`diff=1379409916`)
+* **Article & Revision:** [Zagreb Airport (diff=1379409916)](https://en.wikipedia.org/w/index.php?diff=1379409916)
+* **Date Evaluated:** 2026-10-10
+* **Status:** ✅ Verified
+* **Focus Area:** High-density airline destination table with 114 citations across 4 change rows; execution performance budget.
+* **Diagnosis:** MediaWiki's character differ (`wikidiff2`) split HTML entities across tags (`&lt;/ref<del>&gt;`), causing closing tag regexes to fail and lookaheads to swallow adjacent table cells and text. Monolithic re-rendering risked browser unresponsiveness.
+* **Remediation:** Preprocessed split tags in `normalizeDiffTags`. Guarded regex lookaheads with `((?:(?!&lt;ref\b)[\s\S])*?)`. Optimized pairing algorithm to complete in single-digit milliseconds.
+* **Verification:** Fixture [`tests/stress_test_1379409916.html`](tests/stress_test_1379409916.html); benchmarks in `tests/test_benchmarks.js` (<15ms) and real DOM suite in `tests/test_jsdom.js` (<100ms).
+
+---
+
+#### Kim Domingo (`diff=1379491398`)
+* **Article & Revision:** [Kim Domingo (diff=1379491398)](https://en.wikipedia.org/w/index.php?diff=1379491398)
+* **Date Evaluated:** 2026-10-11
+* **Status:** ✅ Verified
+* **Focus Area:** Split self-closing tag boundaries (`/<del>&gt;`) and single-sided paragraph additions/deletions.
+* **Diagnosis:** Single-sided row changes (e.g. adding a new sentence with a citation callout `<ref name="kami" />`) were not decoupled if the row lacked a paired deleted/added companion row. Furthermore, `/<del>&gt;` split spans caused malformed tag markers.
+* **Remediation:** Added `normalizeDiffTags` boundary shifting rule for `/<del>&gt;`. Extended `applyDecoupling` to process single-sided change rows, decoupling new citation callouts into dedicated rows while preserving clean prose.
+* **Verification:** Automated regression test in `tests/test_pipeline.js`; verified live in Chromium CDP across Light and Dark themes.
+
+---
+
+#### Cosmic Inflation (`diff=1379470949`)
+* **Article & Revision:** [Cosmic inflation (diff=1379470949)](https://en.wikipedia.org/w/index.php?diff=1379470949)
+* **Date Evaluated:** 2026-10-11
+* **Status:** ✅ Verified
+* **Focus Area:** Whitespace-only prose edits retention without false context conversion.
+* **Diagnosis:** An editor added a space (`<ins class="diffchange diffchange-inline"> </ins>`) to prose adjacent to citations. RefDiff's cleanup regex `/<(ins|del)\b[^>]*>\s*<\/\1>/gi` stripped whitespace-containing diff spans, leaving the row with zero diff tags and causing `updateProseRowAppearance` to convert it to an unchanged context row, masking the edit.
+* **Remediation:** Updated empty tag regex to strictly target `/<(ins|del)\b[^>]*><\/\1>/gi` (zero whitespace inside tags), preserving whitespace edits with native blue highlighting and `+`/`-` line markers.
+* **Verification:** Regression assertions in `tests/test_utils.js` and `tests/test_pipeline.js`; verified live via Chromium CDP.
+
+---
+
+#### Zipf's Law (`diff=1379548357`)
+* **Article & Revision:** [Zipf's law (diff=1379548357)](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357)
+* **Date Evaluated:** 2026-10-13
+* **Status:** ✅ Verified
+* **Focus Area:** Explanatory footnote unwrapping (`{{efn|...<ref name="zipf"/>{{rp|546}}}}`), reference page suffixes (`{{rp}}`), and nested template brace handling.
+* **Diagnosis:** Unwrapping an explanatory footnote into top-level prose caused:
+  1. `{{rp|546}}` to be mistakenly parsed as an independent citation and paired with the deleted `{{efn}}`, creating a phantom modified badge `⟨~546~⟩`.
+  2. Nested template braces to truncate parsing prematurely.
+  3. Preceding template braces to merge into triple braces `}}}`.
+* **Remediation:** Removed `rp` from `TEMPLATE_REF_REGEX` so it remains attached to the preceding prose badge. Added 2-level nested template brace matching. Implemented lookaround assertions `(?<!\{)` and `(?!\})` in `normalizeDiffTags`. Added `hasBalancedDiffTags` check.
+* **Verification:** Suite of 4 regression tests in `tests/test_constants.js`, `tests/test_parser.js`, and `tests/test_pipeline.js`.
+
+---
+
+#### Donnie Brasco (film) (`diff=1380017400`)
+* **Article & Revision:** [Donnie Brasco (film) (diff=1380017400)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354)
+* **Date Evaluated:** 2026-10-13
+* **Status:** ✅ Verified
+* **Focus Area:** Tolerating unclosed quotation marks in wikitext tag attributes (`<ref name="mojo_2>`).
+* **Diagnosis:** MediaWiki's parser tolerates missing closing quotes before `>` brackets, generating footnote anchor `id="cite_note-mojo_2-4"`. RefDiff's strict attribute regex required closing quotes, causing attribute extraction to return `null`, fallback to anonymous label `ref1`, and failure to connect to the hovercard anchor.
+* **Remediation:** Hardened `extractName` regex with fallback boundary matching: `/(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;|\/|&gt;|>|\s*$)|name\s*=\s*([^\s"'>&]+)/i`. Accurately extracts `"mojo_2"` and resolves the hovercard anchor.
+* **Verification:** Unit test in `tests/test_parser.js` asserting unclosed quote extraction and anchor resolution.
+
+---
+
+#### Karl-Heinz Riedle (`diff=1380008554`)
+* **Article & Revision:** [Karl-Heinz Riedle (diff=1380008554)](https://en.wikipedia.org/w/index.php?title=Karl-Heinz_Riedle&diff=1380008554&oldid=1335846068)
+* **Date Evaluated:** 2026-10-13
+* **Status:** ✅ Verified
+* **Focus Area:** Prose bold formatting markup (`'''"Kalle"'''`) in an article with citation context rows.
+* **Diagnosis:** An editor added a nickname with bold quotes into the lede sentence, directly adjacent to paragraphs containing unchanged citations.
+* **Verification:** Confirmed that RefDiff leaves prose wikitext diff highlighting (`<ins class="diffchange">''' "'''Kalle'''" '''</ins>`) 100% intact, does not generate false citation rows, and maintains byte-for-byte Memento restoration.
+
+---
+
+#### Bihar Legislative Assembly (`diff=1379207737`)
+* **Article & Revision:** [Bihar Legislative Assembly (diff=1379207737)](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737)
+* **Date Queued:** 2026-10-13
+* **Status:** ⏳ Needs fix
+* **Focus Area:** Quotation attribute truncation on embedded apostrophes and space-to-underscore footnote anchor discovery.
+* **Diagnosis:** Reference tags containing embedded single quotes / apostrophes inside double-quoted attributes (e.g. `name="Bihar Legislative Assembly Speaker's Secretariat"`) can experience regex attribute truncation if single quotes are treated symmetrically with double quotes. Additionally, footnote anchors generated by MediaWiki convert spaces to underscores (`cite_note-Bihar_Legislative_Assembly_Speaker's_Secretariat-1`), requiring normalized lookup in `findCiteNoteAnchor`.
+* **Target Remediation:** Refine attribute quote boundary precedence in `extractName` to strictly respect outer quote delimiters, and ensure `findCiteNoteAnchor` queries both raw and underscore-replaced variant IDs.
 
 ---
 
@@ -565,6 +669,18 @@ This register serves as the authoritative system of record for all security, arc
   * Established Section 3.2 in `LOG.md` as the **Audit Findings Register (K1 / M1 / M6 / M7 Taxonomy)**, cataloging findings K1, M1, M6, and M7 with complete root causes, remediations, commits, and verification gates.
   * Refactored `AUDIT_STRATEGY.md` §2.1 to delegate record keeping directly to `LOG.md` with a clean summary matrix and cross-links.
   * Added `AUDIT_STRATEGY.md` to `LOG.md` Section 1 Core Artifacts.
+
+---
+
+### 2026-10-14: Test & Real-World Diff Verification Record Keeping Delegation to LOG.md
+
+* **Context & Motivation:**
+  * Aligned documentation architecture so that [`TEST_PLAN.md`](TEST_PLAN.md) defines the formal testing pyramid, 1-to-1 virtual source-to-test mapping, and continuous quality gates, while [`LOG.md`](LOG.md) serves as the persistent, authoritative system of record for real-world diff investigations, edge-case diagnoses, and verification status transitions.
+* **Architectural & Register Updates:**
+  * Established Section 3.3 in `LOG.md` as the **Real-World Diff Verification Register**, cataloging real-world Wikipedia revisions (Odoacer, Zagreb Airport, Kim Domingo, Cosmic inflation, Zipf's law, Donnie Brasco, Karl-Heinz Riedle, Bihar Legislative Assembly) with comprehensive root-cause diagnoses, fixes, and verification gates.
+  * Refactored `TEST_PLAN.md` §5.1 to delegate record keeping directly to `LOG.md` via a structured summary table and cross-links.
+  * Added `TEST_PLAN.md` to `LOG.md` Section 1 Core Artifacts.
+  * Synchronized test execution metrics in `TEST_PLAN.md` to **99 passing tests** across **14 modular test files** in ~250ms with 0 ESLint warnings.
 
 
 

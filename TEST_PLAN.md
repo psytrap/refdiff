@@ -7,8 +7,8 @@ This document defines the testing strategy, test pyramid, coverage evaluation, a
 ## 1. Executive Evaluation: "Is it Enough or Too Much?"
 
 ### Quantitative Metrics
-* **Unit & Component Tests (`npm test`):** **79 passing tests** across **13 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
-* **Execution Time:** **~18–25 ms** (all 13 test files execute sequentially in a single process via `tests/runner.js`).
+* **Unit, Component & Real DOM Tests (`npm test` / `npm run ci`):** **99 passing tests** across **14 modular test files** + benchmarks under [`tests/`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/).
+* **Execution Time:** **~20 ms** (unit suites) / **~250 ms** (combined with headless JSDOM suites via `npm run ci`).
 * **Selective Execution:** Any test file can also be run independently in isolation (e.g. `node tests/test_parser.js`).
 * **Code Coverage (Headless Node.js):** **100.0% function coverage** (71 of 71 functions) measured via V8 coverage without browser shims.
 * **Browser Runtime Coverage (Chromium CDP):** Real MediaWiki DOM integration, OOUI visual transitions, and hovercard popups verified end-to-end via [`tests/test_live_cdp.py`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/tests/test_live_cdp.py).
@@ -135,7 +135,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit & component test suite (79 tests in ~20ms)
+# 2. Run the fast headless unit, component & real DOM test suite (99 tests in ~250ms)
 npm test
 
 # 3. Run combined CI verification
@@ -170,14 +170,18 @@ npm run test:live
 
 ### 5.1 Real-World Diffs & Verification Queue
 
-| Diff / Article | Revision | Focus Area & Verification Rationale | Status |
-|---|---|---|:---:|
-| [Odoacer](https://en.wikipedia.org/w/index.php?diff=1379486498) | `1379486498` | Shortened footnotes (`{{sfn}}`) & author-year popup anchor discovery | Verified |
-| [Zagreb Airport](https://en.wikipedia.org/w/index.php?diff=1379409916) | `1379409916` | High-density 114-ref airport destination table stress test (<50ms budget) | Verified |
-| [Kim Domingo](https://en.wikipedia.org/w/index.php?diff=1379491398) | `1379491398` | `wikidiff2` split tag boundaries (`/<del>&gt;`) & prose callout additions | Verified |
-| [Cosmic inflation](https://en.wikipedia.org/w/index.php?diff=1379470949) | `1379470949` | Whitespace-only prose edits retention without false context conversion | Verified |
-| [Zipf's law](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357) | `1379548357` | Footnote unwrapping (`{{efn}}`), `{{rp}}` page suffix retention, nested refs & brace delimiter guards | Verified |
-| [Donnie Brasco (film)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354) | `1380017400` | Unclosed quote attribute (`<ref name="mojo_2>`) tolerated; correct badge `⟨+mojo_2+⟩` & anchor discovery verified | Verified |
-| [Bihar Legislative Assembly](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737) | `1379207737` | Quotation attribute truncation on embedded apostrophe (`name="...Speaker's..."`) & space-to-underscore anchor discovery | ⏳ Needs fix |
+> [!NOTE]
+> **Record Keeping in [`LOG.md`](LOG.md):** While this test plan defines the testing strategy, quality gates, and roadmap priorities, all detailed real-world diff triage logs, edge-case diagnoses, verification status transitions, and fix histories are recorded and tracked in the authoritative ledger: [**`LOG.md` (§3.3 Real-World Diff Verification Register)**](LOG.md#33-real-world-diff-verification-register).
+
+| Diff / Article | Revision | Focus Area & Verification Rationale | Status | Ledger Record |
+|---|---|---|:---:|:---:|
+| [Odoacer](https://en.wikipedia.org/w/index.php?diff=1379486498) | `1379486498` | Shortened footnotes (`{{sfn}}`) & author-year popup anchor discovery | ✅ Verified | [`LOG.md#odoacer`](LOG.md#odoacer-diff1379486498) |
+| [Zagreb Airport](https://en.wikipedia.org/w/index.php?diff=1379409916) | `1379409916` | High-density 114-ref airport destination table stress test (<50ms budget) | ✅ Verified | [`LOG.md#zagreb-airport`](LOG.md#zagreb-airport-diff1379409916) |
+| [Kim Domingo](https://en.wikipedia.org/w/index.php?diff=1379491398) | `1379491398` | `wikidiff2` split tag boundaries (`/<del>&gt;`) & prose callout additions | ✅ Verified | [`LOG.md#kim-domingo`](LOG.md#kim-domingo-diff1379491398) |
+| [Cosmic inflation](https://en.wikipedia.org/w/index.php?diff=1379470949) | `1379470949` | Whitespace-only prose edits retention without false context conversion | ✅ Verified | [`LOG.md#cosmic-inflation`](LOG.md#cosmic-inflation-diff1379470949) |
+| [Zipf's law](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357) | `1379548357` | Footnote unwrapping (`{{efn}}`), `{{rp}}` page suffix retention, nested refs & brace delimiter guards | ✅ Verified | [`LOG.md#zipfs-law`](LOG.md#zipfs-law-diff1379548357) |
+| [Donnie Brasco (film)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354) | `1380017400` | Unclosed quote attribute (`<ref name="mojo_2>`) tolerated; correct badge `⟨+mojo_2+⟩` & anchor discovery verified | ✅ Verified | [`LOG.md#donnie-brasco`](LOG.md#donnie-brasco-film-diff1380017400) |
+| [Karl-Heinz Riedle](https://en.wikipedia.org/w/index.php?title=Karl-Heinz_Riedle&diff=1380008554&oldid=1335846068) | `1380008554` | Prose bold markup edit (`"'''Kalle'''"`) adjacent to context rows; clean non-citation diff invariance | ✅ Verified | [`LOG.md#riedle`](LOG.md#karl-heinz-riedle-diff1380008554) |
+| [Bihar Legislative Assembly](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737) | `1379207737` | Quotation attribute truncation on embedded apostrophe (`name="...Speaker's..."`) & space-to-underscore anchor discovery | ⏳ Needs fix | [`LOG.md#bihar`](LOG.md#bihar-legislative-assembly-diff1379207737) |
 
 
