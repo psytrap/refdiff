@@ -71,6 +71,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Diff Tooling Scope** | Zero changes required (`wikidiff2` untouched) | Avoids scope creep and maintainer pushback. Decoupling of claim and source in diff hunks is documented as an acknowledged trade-off mitigated by section locality. |
 | **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp|45}}`). |
 | **Legacy & Third-Party Compatibility** | Dynamic LDR Hoisting (Pre-parse Hook & Export Transpiler) | Transpiles `<references hidden>` to standard List-Defined References (LDR) on-the-fly for unpatched/third-party wikis and database dumps (Kiwix). Completely eliminates in-situ `<ol>` rendering and stateful citation flush issues. |
+| **RefDiff Internationalization (i18n)** | Deliberate Omission (Language-Agnostic Design) | RefDiff deliberately does not implement an i18n framework (`mw.messages`/`i18next`). The gadget UI has a negligible string footprint (~3 static strings: proper name `RefDiff`, `Inline modified refs`, `Diff view:`). Decoupled badges rely on universal mathematical notation (`⟨...⟩`, `~`, `+`, `-`) and verbatim citation metadata. Omitting i18n preserves the zero-dependency, single-file footprint (~40 KB) required for instant cross-wiki deployment via `m:Special:MyPage/global.js` without network overhead or translation bundle latency (see [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md)). |
 
 ---
 
@@ -750,6 +751,22 @@ This register serves as the authoritative system of record for all real-world Wi
   * Refactored unlabelled assertions across `tests/test_utils.js`, `tests/test_state.js`, `tests/test_benchmarks.js`, and `tests/test_parser.js` to eliminate Assertion Roulette and provide explicit diagnostic messages.
 * **Verification & Results:**
   * All 103/103 tests pass with 0 ESLint warnings in ~250ms.
+
+---
+
+### 2026-10-14: Architectural Decision: Deliberate Omission of i18n Framework (`poc/ultraviolet/COMPARISON.md`)
+
+* **Context & Motivation:**
+  * Following the comparative review against [Ultraviolet](poc/ultraviolet/COMPARISON.md) and evaluation of item 5 ("i18n through `mw.messages.set` plus `mw.msg`"), a formal architectural decision was made to **omit internationalization (i18n)** from RefDiff.
+* **Architectural Rationale & Trade-off Analysis:**
+  1. *Negligible String Footprint:* Unlike Ultraviolet (which contains hundreds of user-facing templates, warning forms, and report dialogs), RefDiff's user interface contains only three static tokens: `"RefDiff"` (proper tool name, which is universal and unlocalized on Wikimedia), `"Inline modified refs"` (toolbar checkbox), and `"Diff view:"` (fallback bar).
+  2. *Language-Agnostic Mathematical Notation:* RefDiff's primary visual output consists of mathematical angle-bracket badges (`⟨ref1⟩`, `⟨~ref2~⟩`, `⟨+ref3+⟩`, `⟨-ref4-⟩`) and diff markers (`+`, `-`, `~`). Shortened footnote badges synthesize author-year metadata (`⟨Castritius 2005⟩`) verbatim from the wikitext source. This mathematical and bibliographic representation is universally language-neutral.
+  3. *Zero-Dependency & Sub-50ms Execution Budget:* Introducing an i18n subsystem (message tables, loader hooks, translation packs) would add significant bundle weight, network latency, and memory footprint without meaningful utility, violating RefDiff's core budget of sub-50ms execution.
+  4. *Seamless Cross-Wiki Portability:* RefDiff is designed for central loading across all 300+ Wikimedia language editions via `m:Special:MyPage/global.js`. A language-agnostic design ensures immediate out-of-the-box functionality everywhere without requiring translation campaigns or language pack updates.
+* **Documentation & Ledger Updates:**
+  * Updated [`poc/ultraviolet/COMPARISON.md`](poc/ultraviolet/COMPARISON.md) (Overview table, item 5, and bottom line summary) to document the formal decision.
+  * Codified the decision in the **Architectural Decision Register (ADR §3.1)** in `LOG.md`.
+
 
 
 

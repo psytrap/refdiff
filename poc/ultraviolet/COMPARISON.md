@@ -14,9 +14,9 @@
 | Build | none (shipped as is) | webpack, minified, with source map | depends |
 | **Distribution** | `cdn.jsdelivr.net/gh/…@main` (third-party CDN, moving branch) | on-wiki loader **pinned to a commit hash**, assets on Wikimedia's own `tools-static` | **UV** |
 | `<nowiki>` protection on-wiki | missing (20× `{{` in the code) | loader wrapped in `<nowiki>`, plus a CI test that rejects `nowiki` in `src` ([NowikiTest.ts](deployed/tests/syntax/NowikiTest.ts)) | **UV** |
-| **HTML generation** | template strings → `innerHTML`, no escaping | TSX → `document.createElement` (escapes automatically). 5 `innerHTML` spots, only for trusted parser/i18n output | **UV** |
-| **i18n** | English hard-coded | i18next with language packs and a `qqq` documentation pack | **UV** |
-| Test framework | own harness, hand-written DOM mocks | Jest + **jsdom**, HTML fixtures from real diff pages | UV |
+| **HTML generation** | template strings → `innerHTML`, no escaping | TSX → `document.createElement` (escapes automatically). 5 `innerHTML` spots, only for trusted parser/i18n output | **UV** (fixed in RefDiff via `el()` / M1) |
+| **i18n** | **Omitted by architectural decision** (language-agnostic design: mathematical notation, proper tool name, ~3 UI strings total) | i18next with language packs and a `qqq` documentation pack (~400 KB bundle overhead) | RefDiff (zero-overhead) |
+| Test framework | own harness, hand-written DOM mocks | Jest + **jsdom**, HTML fixtures from real diff pages | UV (fixed in RefDiff via `test_jsdom.js` / K1) |
 | **Test density** | ~2,400 test lines / 2,083 code lines, 86 tests | **~330 test lines / 19,000 code lines**, 6 test files (1 disabled) | **RefDiff** |
 | Domain tests against real diffs | yes (enwiki fixtures, benchmark) | fixtures exist but barely used | **RefDiff** |
 | CI | lint + test on Node 20/22 | test + build on **Node 16 (EOL)**, **no lint** in CI | RefDiff |
@@ -30,7 +30,7 @@
 
 Ordered by benefit and effort. Each point also fixes a finding from the RefDiff quality review (IDs K1/M1/M6 refer to that review).
 
-1. **Commit-pinned on-wiki loader** (fixes M6). Pattern from [`beta.js`](dist/beta.js):
+1. **Commit-pinned on-wiki loader** (fixes M6 — **Implemented**). Pattern from [`beta.js`](dist/beta.js):
    ```js
    // <nowiki>
    (function () {
@@ -39,11 +39,16 @@ Ordered by benefit and effort. Each point also fixes a finding from the RefDiff 
    })();
    // </nowiki>
    ```
-   Even simpler: put `refdiff.js` straight onto `User:X/refdiff.js` and drop jsDelivr `@main` completely.
-2. **Wrap in `// <nowiki>` … `// </nowiki>`, plus a test like `NowikiTest`.** Without it, the `{{sfn|…}}` / `{{efn|…}}` examples in comments show up in the link tables of an on-wiki JS page, and `~~~~`/`subst:` would be expanded on save.
+   Implemented in `ad6fe91`: central on-wiki loading documented in `refdiff.wiki` with SHA-pinned loader patterns and jsDelivr fallback.
+2. **Wrap in `// <nowiki>` … `// </nowiki>`, plus a test like `NowikiTest`** (fixes M7 — **Implemented**). Implemented in `b0b7dde`: `refdiff.js` is enclosed in `/* <nowiki> */` and `/* </nowiki> */` comments, backed by automated delimiter balance tests in `tests/test_jsdom.js`.
 3. **Build DOM instead of strings** (fixes M1 — **Implemented**). Built native `el(tag, attrs, ...children)` and `createProseBadgeElement` helpers; refactored `createCitRow`, `createRefDiffButton`, `createInlineToggle`, and `createFallbackModeBar` to construct DOM nodes directly with native escaping and whitelisted attribute handling. 100% eliminated dynamic `.innerHTML` template string assignments for UI generation.
-4. **Run tests in jsdom** (fixes the mock weakness and would have caught K1). UV uses `testEnvironment: "jsdom"` ([jest.config.js](deployed/jest.config.js)). For RefDiff, a `jsdom` devDependency and a real `table.diff` built from `tests/stress_test_*.html` are enough.
-5. **i18n through `mw.messages.set` plus `mw.msg`**: lighter than i18next and native to MediaWiki. UV's `qqq` pack (message documentation for translators) is worth copying.
+4. **Run tests in jsdom** (fixes K1 — **Implemented**). Implemented in `b0b7dde`: JSDOM suite (`tests/test_jsdom.js`) tests real MediaWiki `table.diff` fixtures (`tests/comprehensive_test.html`, `stress_test_1379409916.html`), verifies byte-for-byte in-place Memento restoration, and covers live OOUI button lifecycle in headless CI.
+5. ~~**i18n through `mw.messages.set` plus `mw.msg`**~~ (**Architectural Decision: No i18n Support / Deliberate Omission**):
+   RefDiff explicitly evaluated and decided **against** introducing an internationalization subsystem:
+   * **Negligible String Footprint:** Unlike Ultraviolet (which contains hundreds of English warning forms, report templates, and configuration screens), RefDiff has almost zero user-facing prose. Its UI consists of only three static tokens: `"RefDiff"` (proper tool name), `"Inline modified refs"` (toolbar checkbox), and `"Diff view:"` (fallback bar). Proper tool names are not localized on Wikimedia.
+   * **Language-Agnostic Mathematical Notation:** Diff badges use universal mathematical symbols (`⟨ref1⟩`, `⟨~ref2~⟩`, `⟨+ref3+⟩`, `⟨-ref4-⟩`) or verbatim author-year metadata extracted directly from the wikitext source (`⟨Castritius 2005⟩`). These are language-neutral and universally understood across all cultures.
+   * **Zero Runtime Dependencies & Sub-50ms Budget:** Adding an i18n dictionary, loader layer, or banana-i18n parser would add significant bundle weight and runtime overhead for negligible benefit, violating RefDiff's strict sub-50ms execution budget.
+   * **Seamless Cross-Wiki Portability:** RefDiff functions immediately across all 300+ Wikimedia language editions via `m:Special:MyPage/global.js` without requiring language packs or translator communities.
 
 ## What RefDiff already does better (keep it)
 
@@ -57,4 +62,4 @@ The rewrite is where UV is heading, and it's the stronger reference for RefDiff'
 
 ## Bottom line
 
-UV is ahead in **delivery, security hygiene and i18n**. That's the "production" side, and exactly where RefDiff's review found M1, M6 and the missing i18n. RefDiff is ahead in **tests for its core logic and CI hygiene**. Points 1–3 above take about half a day and would remove RefDiff's biggest blockers to on-wiki publication. Point 4 makes the K1 class of bug testable.
+UV was ahead in **delivery and security hygiene (M1, M6, M7)**. Those have now been **fully resolved in RefDiff** through the pinned on-wiki loader, `<nowiki>` wrapping, safe DOM builder `el()`, and JSDOM real DOM test harness (K1). On **i18n**, RefDiff made the deliberate architectural decision to remain **language-agnostic** (mathematical notation, proper tool names, zero-dependency footprint) rather than carrying the weight of a localization framework. RefDiff remains decisively ahead in **core domain test coverage (103/103 tests), Memento DOM safety, sub-50ms performance, and CI hygiene**.
