@@ -26,6 +26,26 @@ suite('src/anchor.js - Footnote Anchor Discovery', () => {
     });
   });
 
+  test('findCiteNoteAnchor discovers explicit references with spaces and apostrophes via underscore conversion (Bihar Legislative Assembly diff=1379207737)', () => {
+    const rawName = "From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey";
+    const underscoreName = rawName.replace(/ /g, '_');
+    const mockId = `cite_note-${underscoreName}-4`;
+
+    withMockEnvironment({
+      document: {
+        querySelector: (sel) => {
+          if (sel.includes(underscoreName)) {
+            return { id: mockId };
+          }
+          return null;
+        }
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(rawName, '{{cite news}}');
+      assert.strictEqual(anchor, mockId, 'Should match anchor converted from spaces to underscores');
+    });
+  });
+
   test('findCiteNoteAnchor discovers anonymous references by matching URL in mock DOM', () => {
     const targetUrl = 'https://www.croatianaviation.com/post/eurowings-test';
 

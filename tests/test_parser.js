@@ -43,6 +43,24 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     assert.strictEqual(refs[0].label, 'mojo_2');
   });
 
+  test('extracts reference name with embedded apostrophes inside double quotes (Bihar Legislative Assembly diff=1379207737)', () => {
+    const sample = '&lt;ref name="From teen in RSS shakha to Speaker\'s Chair: Bihar BJP leader Prem Kumar\'s long journey"&gt;{{cite news...}}&lt;/ref&gt;';
+    const refs = parseRefs(sample);
+    assert.strictEqual(refs.length, 1);
+    const expected = "From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey";
+    assert.strictEqual(extractName(refs[0].attrs), expected, 'Should preserve embedded apostrophes without truncation');
+    assert.strictEqual(refs[0].name, expected);
+    assert.strictEqual(refs[0].label, expected);
+  });
+
+  test('extracts reference name with embedded double quotes inside single quotes', () => {
+    const sample = '&lt;ref name=\'He said "Hello" world\'&gt;{{cite web}}&lt;/ref&gt;';
+    const refs = parseRefs(sample);
+    assert.strictEqual(refs.length, 1);
+    assert.strictEqual(extractName(refs[0].attrs), 'He said "Hello" world');
+    assert.strictEqual(refs[0].name, 'He said "Hello" world');
+  });
+
   test('extractSfnInfo parses single author and year correctly', () => {
     const info = extractSfnInfo('|Castritius|2005');
     assert.strictEqual(info.label, 'Castritius 2005');

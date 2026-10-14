@@ -201,7 +201,7 @@ To merge any code change or issue release tags:
 
 | Quality Gate | Requirement | Verification Command |
 |:---|:---:|:---|
-| **Test Suite Pass Rate** | **100% (99/99 passing)** | `npm test` |
+| **Test Suite Pass Rate** | **100% (103/103 passing)** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 warnings** | `npm run lint` |
 | **Execution Budget** | **< 250 ms across all 14 suites** | `npm run ci` |
 | **Stress Benchmark** | **< 50 ms on 114-ref table** | `node tests/test_benchmarks.js` |

@@ -386,14 +386,18 @@
 
   /**
    * Extracts the reference name attribute from a tag attributes string.
+   * Tolerates unclosed quotes before tag close (Donnie Brasco diff=1380017400)
+   * and preserves embedded quotes/apostrophes inside matching outer quotes (Bihar diff=1379207737).
    * @param {string} [attrsStr]
    * @returns {string|null}
    */
   function extractName(attrsStr) {
     if (!attrsStr) return null;
     const clean = stripHtml(attrsStr);
-    const m = clean.match(/name\s*=\s*(?:&quot;|["']|&apos;)(.*?)(?:&quot;|["']|&apos;|\/|&gt;|>|\s*$)|name\s*=\s*([^\s"'>&]+)/i);
-    return m ? (m[1] || m[2]).trim() : null;
+    const m = clean.match(/name\s*=\s*(?:"|&quot;)(.*?)(?:"|&quot;|\/|&gt;|>|\s*$)|name\s*=\s*(?:'|&apos;)(.*?)(?:'|&apos;|\/|&gt;|>|\s*$)|name\s*=\s*([^\s"'>&]+)/i);
+    if (!m) return null;
+    const val = m[1] !== undefined ? m[1] : (m[2] !== undefined ? m[2] : m[3]);
+    return val !== undefined ? val.trim() : null;
   }
 
   /**
@@ -742,20 +746,37 @@
 
     // 1. Try explicit reference name (e.g. cite_note-name-1 or cite_note-FOOTNOTE...)
     if (name) {
-      try {
-        const safe = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(name) : name.replace(/["\\]/g, '\\$&');
-        const el = document.querySelector(`[id^="cite_note-${safe}-"], [id="cite_note-${safe}"]`) ||
-          (safe.startsWith('FOOTNOTE') ? document.querySelector(`[id*="${safe}"]`) : null);
-        if (el && el.id) return el.id;
-      } catch (_e) {
-        // Fallback manual scan if selector query fails
-        const allNotes = document.querySelectorAll('[id^="cite_note-"]');
-        const prefix = `cite_note-${name}-`.toLowerCase();
-        const exact = `cite_note-${name}`.toLowerCase();
-        for (let i = 0; i < allNotes.length; i++) {
-          const id = allNotes[i].id.toLowerCase();
-          if (id === exact || id.startsWith(prefix) || id.includes(name.toLowerCase())) return allNotes[i].id;
+      const candidates = [name];
+      if (/\s/.test(name)) {
+        candidates.push(name.trim().replace(/\s+/g, '_'));
+      }
+      for (const cand of candidates) {
+        try {
+          const safe = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(cand) : cand.replace(/["\\]/g, '\\$&');
+          const el = document.querySelector(`[id^="cite_note-${safe}-"], [id="cite_note-${safe}"]`) ||
+            (safe.startsWith('FOOTNOTE') ? document.querySelector(`[id*="${safe}"]`) : null);
+          if (el && el.id) return el.id;
+        } catch (_e) {
+          // Selector query failed
         }
+      }
+
+      // Fallback manual scan if selector query did not find or threw
+      try {
+        const allNotes = document.querySelectorAll('[id^="cite_note-"]');
+        if (allNotes && allNotes.length > 0) {
+          for (const cand of candidates) {
+            const prefix = `cite_note-${cand}-`.toLowerCase();
+            const exact = `cite_note-${cand}`.toLowerCase();
+            const candLower = cand.toLowerCase();
+            for (let i = 0; i < allNotes.length; i++) {
+              const id = allNotes[i].id.toLowerCase();
+              if (id === exact || id.startsWith(prefix) || id.includes(candLower)) return allNotes[i].id;
+            }
+          }
+        }
+      } catch (_e) {
+        // Fallback scan error ignored
       }
     }
 

@@ -283,6 +283,58 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
     });
   });
 
+  test('handles reference with embedded apostrophe in attribute and discovers underscore-normalized anchor (Bihar diff=1379207737)', () => {
+    const biharHtml = `
+      <div class="references">
+        <ol>
+          <li id="cite_note-1">Note 1</li>
+          <li id="cite_note-From_teen_in_RSS_shakha_to_Speaker's_Chair:_Bihar_BJP_leader_Prem_Kumar's_long_journey-4">
+            <span>Prem Kumar text</span>
+          </li>
+        </ol>
+      </div>
+      <table class="diff">
+        <tbody>
+          <tr>
+            <td class="diff-marker" data-marker="+"></td>
+            <td class="diff-addedline diff-side-added"><div>|&lt;ref name="From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey"&gt;{{cite news |date=2 December 2025 |title=From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey |url=https://example.com}}&lt;/ref&gt;</div></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    withJsdom(biharHtml, 'https://en.wikipedia.org/w/index.php?diff=1379207737', ({ document, RefDiff }) => {
+      const table = document.querySelector('table.diff');
+      const initialTableHtml = table.innerHTML;
+
+      RefDiff.applyDecoupling(table);
+
+      // Verify badge text contains full title without truncation at "Speaker"
+      const badge = table.querySelector('.ref-badge-add');
+      assert.strictEqual(!!badge, true, 'Added reference badge should be rendered');
+      assert.strictEqual(
+        badge.textContent,
+        "⟨+From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey+⟩",
+        'Badge text must preserve embedded apostrophe and full name'
+      );
+
+      // Verify anchor discovery points to the underscore-converted cite_note ID
+      const expectedHref = "#cite_note-From_teen_in_RSS_shakha_to_Speaker's_Chair:_Bihar_BJP_leader_Prem_Kumar's_long_journey-4";
+      assert.strictEqual(badge.getAttribute('href'), expectedHref, 'Badge href should discover underscore-normalized footnote anchor');
+
+      // Verify decoupled citation row prefix badge also links to the footnote anchor
+      const citRow = table.querySelector('.refdiff-cit-row');
+      assert.strictEqual(!!citRow, true, 'Dedicated citation row should be inserted');
+      const citBadge = citRow.querySelector('.ref-badge-add');
+      assert.strictEqual(!!citBadge, true, 'Citation row prefix badge should exist');
+      assert.strictEqual(citBadge.getAttribute('href'), expectedHref, 'Citation row prefix badge should link to footnote anchor');
+
+      // Verify byte-for-byte Memento restoration
+      RefDiff.restoreOriginal(table);
+      assert.strictEqual(table.innerHTML, initialTableHtml, 'Table should be restored byte-for-byte');
+    });
+  });
+
   test('verifies on-wiki nowiki wrapping protects script from template expansion', () => {
     const src = fs.readFileSync(path.join(__dirname, '../refdiff.js'), 'utf8');
     assert.strictEqual(src.trimStart().startsWith('/* <nowiki> */'), true, 'refdiff.js must start with /* <nowiki> */');

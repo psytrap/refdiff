@@ -407,13 +407,13 @@ While RefDiff addresses citation camouflage during **revision diff review** (`Sp
 RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification and [**AUDIT_STRATEGY.md**](AUDIT_STRATEGY.md) for the quality taxonomy and editorial audit strategy):
 
 1. **Modular Unit, Component & Real DOM Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **99 tests** (100% headless function & DOM integration coverage) across **14 modular test files** covering virtual modules and real DOM integration.
+   * **103 tests** (100% headless function & DOM integration coverage) across **14 modular test files** covering virtual modules and real DOM integration.
    * Fast execution budget: entire suite executes in **~250 ms** via `node tests/runner.js` (`npm test`).
    * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js`, `node tests/test_pairing.js`, or `node tests/test_jsdom.js`).
    * **Mock & JSDOM Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures, supplemented by `tests/test_jsdom.js` running against real MediaWiki diff fixtures.
-   * **Parser & Templates (`tests/test_parser.js`, `tests/test_constants.js`):** XML entity decoding (`&quot;`), self-closing tags, nested `diffchange` spans, boundary split normalization, `TEMPLATE_REF_REGEX`, mixed sequential order, unclosed quotation attribute toleration (`name="foo>`), and `extractSfnInfo` for 1, 2, 3, and 4+ authors.
+   * **Parser & Templates (`tests/test_parser.js`, `tests/test_constants.js`):** XML entity decoding (`&quot;`), self-closing tags, nested `diffchange` spans, boundary split normalization, `TEMPLATE_REF_REGEX`, mixed sequential order, unclosed quotation attribute toleration (`name="foo>`), embedded apostrophe preservation in double quotes, and `extractSfnInfo` for 1, 2, 3, and 4+ authors.
    * **Heuristic Pairing (`tests/test_pairing.js`):** 3-pass matching algorithm, insertions at front/end, surrounded edits, pure additions/deletions, self-closing identicals, and `{{sfn}}` pairing by label.
-   * **Anchor Discovery & Popups (`tests/test_anchor.js`):** Resolves explicit named footnotes, anonymous URL matching, shortened `cite_note-FOOTNOTE*` anchors, and `sanitizeAnchor` tokenization.
+   * **Anchor Discovery & Popups (`tests/test_anchor.js`):** Resolves explicit named footnotes (including space-to-underscore normalized IDs), anonymous URL matching, shortened `cite_note-FOOTNOTE*` anchors, and `sanitizeAnchor` tokenization.
    * **Memento & Pipeline (`tests/test_memento.js`, `tests/test_pipeline.js`):** In-place DOM snapshotting (`captureRowSnapshot` / `restoreRowSnapshot`), table decoupling mutation and clean round-trip restoration preserving native MediaWiki event closures.
    * **Mode Coordination & UI (`tests/test_mode_coordinator.js`, `tests/test_dom_helpers.js`):** 3-way mode switching (visual/wikitext/refdiff), row categorization, `wikitextBodyUpdate` hook firing, and locking `mw-diffPage-inline-toggle-switch`.
    * **Persistence (`tests/test_state.js`):** `localStorage`, `mw.storage`, and `?refdiff=0/1` URL parameter overrides.
@@ -422,7 +422,7 @@ RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test 
 
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
-   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer `diff=1379486498`, Zagreb Airport `diff=1379409916`, Kim Domingo `diff=1379491398`, Cosmic inflation `diff=1379470949`, Zipf's law `diff=1379548357`, and Donnie Brasco `diff=1380017400`).
+   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer `diff=1379486498`, Zagreb Airport `diff=1379409916`, Kim Domingo `diff=1379491398`, Cosmic inflation `diff=1379470949`, Zipf's law `diff=1379548357`, Donnie Brasco `diff=1380017400`, and Bihar Legislative Assembly `diff=1379207737`).
    * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards (`Extension:Popups`), visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.
 
 ---
