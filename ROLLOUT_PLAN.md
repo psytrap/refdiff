@@ -1,4 +1,4 @@
-# RefDiff: Deployment Plan
+# RefDiff: Rollout and Deployment Plan
 
 > **Version:** 1.4.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
 > **Script Lead:** Meta-Wiki (`m.WM`) &bull; **Doc Lead:** English Wikipedia (`en.WP`) &bull; **en.WP Script:** SHA Pointer  

@@ -2,7 +2,7 @@
 
 > **Status:** Active & Implemented &bull; **Version:** 1.4.0  
 > **Target Audience:** Script Maintainers, Wikimedia Reviewers, Wikipedia Patrollers & Source Auditors  
-> **Governing Artifacts:** [`refdiff.js`](refdiff.js), [`tests/`](tests/), [`refdiff.wiki`](refdiff.wiki), [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`LOG.md`](LOG.md)
+> **Governing Artifacts:** [`refdiff.js`](refdiff.js), [`tests/`](tests/), [`refdiff.wiki`](refdiff.wiki), [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`LOG.md`](LOG.md)
 
 ---
 
@@ -182,9 +182,9 @@ git status --short
 #### Mandatory Pre-Deployment Uprev & Diff Audit Trigger
 
 To ensure diff reviews remain fast, high-confidence, and zero-defect, all releases enforce core uprev policies:
-1. **Mandatory Uprev Before Deployment:** Maintainers and release automation must assure a formal version uprev is executed across all repository manifests (`package.json`, `refdiff.js`, `refdiff.wiki`, `DEPLOYMENT_PLAN.md`) before initiating on-wiki deployment. Deploying against unbumped version numbers is prohibited.
+1. **Mandatory Uprev Before Deployment:** Maintainers and release automation must assure a formal version uprev is executed across all repository manifests (`package.json`, `refdiff.js`, `refdiff.wiki`, `ROLLOUT_PLAN.md`) before initiating on-wiki deployment. Deploying against unbumped version numbers is prohibited.
 2. **Smaller Changes Between Uprevs:** Version bumps (patch, minor) must be scoped to small, single-focus increments rather than massive, monolithic changesets. Small batches prevent reviewer fatigue, keep hunks immediately comprehensible, and make regressions straightforward to isolate.
-3. **Uprev Triggers Diff Audit:** Every version bump strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md).
+3. **Uprev Triggers Diff Audit:** Every version bump strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
 
 ---
 

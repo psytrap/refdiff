@@ -227,15 +227,15 @@ suite('Deployment & Release Pre-Flight Checks', () => {
   });
 
   test('validates deployment consistency: all artifacts, destinations, and loader URLs are synchronized', () => {
-    const deploymentPlanPath = path.join(rootDir, 'DEPLOYMENT_PLAN.md');
+    const rolloutPlanPath = path.join(rootDir, 'ROLLOUT_PLAN.md');
     const postMdPath = path.join(rootDir, 'proposal', 'POST.md');
 
-    // 1. All deployment artifacts mapped in DEPLOYMENT_PLAN.md must exist on disk and be non-empty
+    // 1. All deployment and rollout artifacts mapped in ROLLOUT_PLAN.md must exist on disk and be non-empty
     const requiredArtifacts = [
       { path: refdiffPath, name: 'refdiff.js' },
       { path: refdiffWikiPath, name: 'refdiff.wiki' },
       { path: userboxEnwikiPath, name: 'userbox_enwiki.wiki' },
-      { path: deploymentPlanPath, name: 'DEPLOYMENT_PLAN.md' },
+      { path: rolloutPlanPath, name: 'ROLLOUT_PLAN.md' },
       { path: postMdPath, name: 'proposal/POST.md' }
     ];
 
@@ -245,67 +245,74 @@ suite('Deployment & Release Pre-Flight Checks', () => {
       assert.ok(stat.size > 0, `${art.name} must not be empty`);
     }
 
-    const deployPlanContent = fs.readFileSync(deploymentPlanPath, 'utf8');
+    const rolloutPlanContent = fs.readFileSync(rolloutPlanPath, 'utf8');
     const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
     const userboxContent = fs.readFileSync(userboxEnwikiPath, 'utf8');
 
-    // 2. Version consistency and unversioned filename policy (no versions in filenames)
-    const planVersionMatch = deployPlanContent.match(/\*\*Version:\*\*\s*([0-9]+\.[0-9]+\.[0-9]+)/);
-    assert.ok(planVersionMatch, 'DEPLOYMENT_PLAN.md must declare Version');
-    assert.strictEqual(planVersionMatch[1], pkg.version, 'DEPLOYMENT_PLAN.md version must match package.json');
+    // Title validation: in-text title must be "RefDiff: Rollout and Deployment Plan"
+    assert.strictEqual(
+      rolloutPlanContent.includes('# RefDiff: Rollout and Deployment Plan'),
+      true,
+      'ROLLOUT_PLAN.md must be titled "RefDiff: Rollout and Deployment Plan" in text'
+    );
 
-    assert.strictEqual(/refdiff-v[0-9]/.test(deployPlanContent), false, 'DEPLOYMENT_PLAN.md must not contain versioned filenames (policy: no versions in filenames)');
-    assert.strictEqual(/refdiff-canary/i.test(deployPlanContent), false, 'DEPLOYMENT_PLAN.md must not contain canary channel (policy: no canary, only uprev when ready)');
-    assert.strictEqual(deployPlanContent.includes('no canary needed'), true, 'DEPLOYMENT_PLAN.md must explicitly document no canary needed policy');
+    // 2. Version consistency and unversioned filename policy (no versions in filenames)
+    const planVersionMatch = rolloutPlanContent.match(/\*\*Version:\*\*\s*([0-9]+\.[0-9]+\.[0-9]+)/);
+    assert.ok(planVersionMatch, 'ROLLOUT_PLAN.md must declare Version');
+    assert.strictEqual(planVersionMatch[1], pkg.version, 'ROLLOUT_PLAN.md version must match package.json');
+
+    assert.strictEqual(/refdiff-v[0-9]/.test(rolloutPlanContent), false, 'ROLLOUT_PLAN.md must not contain versioned filenames (policy: no versions in filenames)');
+    assert.strictEqual(/refdiff-canary/i.test(rolloutPlanContent), false, 'ROLLOUT_PLAN.md must not contain canary channel (policy: no canary, only uprev when ready)');
+    assert.strictEqual(rolloutPlanContent.includes('no canary needed'), true, 'ROLLOUT_PLAN.md must explicitly document no canary needed policy');
 
     // 3. Script lead (Meta), SHA pointer (en.WP), and early testing harness consistency
     const metaLeadTarget = 'm:User:Powercycler/refdiff.js';
     const enPointerTarget = 'en:User:Powercycler/refdiff.js';
     const enCommonTarget = 'en:User:Powercycler/common.js';
-    assert.strictEqual(deployPlanContent.includes(metaLeadTarget), true, `DEPLOYMENT_PLAN.md must list Meta script lead ${metaLeadTarget}`);
-    assert.strictEqual(deployPlanContent.includes(enPointerTarget), true, `DEPLOYMENT_PLAN.md must list en.WP SHA pointer ${enPointerTarget}`);
-    assert.strictEqual(deployPlanContent.includes(enCommonTarget), true, `DEPLOYMENT_PLAN.md must list early testing harness ${enCommonTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(metaLeadTarget), true, `ROLLOUT_PLAN.md must list Meta script lead ${metaLeadTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(enPointerTarget), true, `ROLLOUT_PLAN.md must list en.WP SHA pointer ${enPointerTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(enCommonTarget), true, `ROLLOUT_PLAN.md must list early testing harness ${enCommonTarget}`);
     assert.strictEqual(wikiContent.includes('en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 1 must load from canonical script pointer on en.wikipedia.org');
     assert.strictEqual(wikiContent.includes('meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 2 must load from Meta-Wiki lead script');
 
     // 4. Documentation destination consistency (en.WP leads documentation)
     const canonicalDocTarget = 'en:User:Powercycler/RefDiff';
     const metaDocTarget = 'm:User:Powercycler/RefDiff';
-    assert.strictEqual(deployPlanContent.includes(canonicalDocTarget), true, `DEPLOYMENT_PLAN.md must list canonical doc target ${canonicalDocTarget}`);
-    assert.strictEqual(deployPlanContent.includes(metaDocTarget), true, `DEPLOYMENT_PLAN.md must list Meta soft redirect doc target ${metaDocTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(canonicalDocTarget), true, `ROLLOUT_PLAN.md must list canonical doc target ${canonicalDocTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(metaDocTarget), true, `ROLLOUT_PLAN.md must list Meta soft redirect doc target ${metaDocTarget}`);
     assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox_enwiki.wiki must link to canonical doc target');
 
     // 5. Userbox template destination consistency
-    assert.strictEqual(deployPlanContent.includes('en:Template:User RefDiff'), true, 'DEPLOYMENT_PLAN.md must list en:Template:User RefDiff');
+    assert.strictEqual(rolloutPlanContent.includes('en:Template:User RefDiff'), true, 'ROLLOUT_PLAN.md must list en:Template:User RefDiff');
     assert.strictEqual(userboxContent.includes('Template:User RefDiff'), true, 'userbox_enwiki.wiki doc must reference Template:User RefDiff');
     assert.strictEqual(userboxContent.includes('{{User RefDiff}}'), true, 'userbox_enwiki.wiki doc must reference {{User RefDiff}}');
 
     // 6. Outreach discussion destination consistency
     const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';
-    assert.strictEqual(deployPlanContent.includes(canonicalTalkTarget), true, `DEPLOYMENT_PLAN.md must list ${canonicalTalkTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(canonicalTalkTarget), true, `ROLLOUT_PLAN.md must list ${canonicalTalkTarget}`);
 
     // 7. Uprev cadence & diff audit trigger policy
-    assert.strictEqual(deployPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'DEPLOYMENT_PLAN.md must enforce uprev cadence and diff audit policy');
-    assert.strictEqual(deployPlanContent.includes('smaller, focused changes between uprevs'), true, 'DEPLOYMENT_PLAN.md must require small changes between uprevs');
+    assert.strictEqual(rolloutPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'ROLLOUT_PLAN.md must enforce uprev cadence and diff audit policy');
+    assert.strictEqual(rolloutPlanContent.includes('smaller, focused changes between uprevs'), true, 'ROLLOUT_PLAN.md must require small changes between uprevs');
 
     // 8. Tool compatibility check (Twinkle & Ultraviolet)
-    assert.strictEqual(deployPlanContent.includes('Twinkle') && deployPlanContent.includes('Ultraviolet'), true, 'DEPLOYMENT_PLAN.md must track Twinkle and Ultraviolet compatibility');
+    assert.strictEqual(rolloutPlanContent.includes('Twinkle') && rolloutPlanContent.includes('Ultraviolet'), true, 'ROLLOUT_PLAN.md must track Twinkle and Ultraviolet compatibility');
 
     // 9. Mandatory CDP testing invariant before any update to refdiff.js
     assert.strictEqual(
-      deployPlanContent.includes('always run') &&
-      deployPlanContent.includes('CDP') &&
-      deployPlanContent.includes('before any update to `refdiff.js`'),
+      rolloutPlanContent.includes('always run') &&
+      rolloutPlanContent.includes('CDP') &&
+      rolloutPlanContent.includes('before any update to `refdiff.js`'),
       true,
-      'DEPLOYMENT_PLAN.md must enforce that we always run CDP before any update to refdiff.js'
+      'ROLLOUT_PLAN.md must enforce that we always run CDP before any update to refdiff.js'
     );
 
     // 10. Mandatory pre-deployment uprev policy
     assert.strictEqual(
-      deployPlanContent.includes('assure a formal version uprev is executed') &&
-      deployPlanContent.includes('Assure version uprev before deployment'),
+      rolloutPlanContent.includes('assure a formal version uprev is executed') &&
+      rolloutPlanContent.includes('Assure version uprev before deployment'),
       true,
-      'DEPLOYMENT_PLAN.md must enforce mandatory pre-deployment uprev policy'
+      'ROLLOUT_PLAN.md must enforce mandatory pre-deployment uprev policy'
     );
   });
 });

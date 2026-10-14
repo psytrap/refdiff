@@ -258,7 +258,7 @@ async function auditDeployment() {
     process.exit(0);
   } else {
     console.log('⚠️ DEPLOYMENT ACTION REQUIRED:');
-    console.log(' To complete the deployment according to DEPLOYMENT_PLAN.md:');
+    console.log(' To complete the rollout according to ROLLOUT_PLAN.md (Rollout and Deployment Plan):');
     console.log('  1. Update m:User:Powercycler/refdiff.js (Meta-Wiki Script Lead):');
     console.log(`     Copy local refdiff.js (${ (localJs.length / 1024).toFixed(1) } KB, SHA-1: ${localJsSha1})`);
     console.log('  2. Early testing on en:User:Powercycler/common.js:');

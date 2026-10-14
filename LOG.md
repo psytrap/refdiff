@@ -17,7 +17,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
   * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Meta-Wiki and cross-wiki user pages.
   * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki):** Dedicated English Wikipedia userbox template (`Template:User RefDiff`) with TemplateData documentation.
-  * 🚀 **[DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md):** Phased rollout protocol (Rings 0–3), pre-flight gates, rollback runbook, and health checks.
+  * 🚀 **[ROLLOUT_PLAN.md](ROLLOUT_PLAN.md):** Phased rollout protocol (Rings 0–3), pre-flight gates, rollback runbook, and health checks.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -48,7 +48,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
-| **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Production publish next) |
+| **R.8** | On-Wiki Phased Rollout (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (Ring 0 cleared, Ring 1 Production publish next) |
 
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
@@ -77,7 +77,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ##### Active Release Action Item
 - [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
-  * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Production publish to `en:User:Powercycler/refdiff.js`), Ring 2 (Live smoke test on 5 benchmark diffs), and Ring 3 (Community feedback).
+  * Follow [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) through Ring 0 (cleared), Ring 1 (Update Meta script lead `m:User:Powercycler/refdiff.js`), Ring 2 (Early testing on en.WP common.js, SHA pointer uprev, doc publish), and Ring 3 (Community feedback).
 
 ##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
@@ -1273,6 +1273,21 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (version `1.4.0`, §2.8 pre-deployment uprev policy).
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (automated assertion for pre-deployment uprev policy).
   * Updated [`LOG.md`](LOG.md) (Dashboard `v1.4.0` and changelog).
+
+---
+
+### 2026-10-14: Transitioned DEPLOYMENT_PLAN.md to ROLLOUT_PLAN.md ("RefDiff: Rollout and Deployment Plan")
+
+* **Context & Architectural Rationale:**
+  * Adopted the cleaner, release-management-aligned filename **`ROLLOUT_PLAN.md`**, while preserving the explicit full title **`# RefDiff: Rollout and Deployment Plan`** in text.
+  * In modern release engineering, "Deployment" denotes technical artifact publishing to on-wiki destinations, while "Rollout" denotes the phased ring-based exposure to users (Ring 0 local $\rightarrow$ Ring 1 Meta lead $\rightarrow$ Ring 2 en.WP personal testing & SHA pointer $\rightarrow$ Ring 3 community pilot).
+  * Consolidating both under `ROLLOUT_PLAN.md` with in-text title `RefDiff: Rollout and Deployment Plan` provides maximal precision and clarity.
+* **Artifacts Synchronized:**
+  * Renamed file via git: `DEPLOYMENT_PLAN.md` $\rightarrow$ [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (verified at 91 lines `< 100`).
+  * Updated title in [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md): `# RefDiff: Rollout and Deployment Plan`.
+  * Updated [`README.md`](README.md), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), and [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (added automated title assertion and path verification).
+  * Updated [`LOG.md`](LOG.md) (overview index, dashboard deliverable, step R.8, and changelog).
 
 
 
