@@ -5,9 +5,45 @@
  */
 
 const { assert, suite, test, withMockEnvironment, finishStandalone } = require('./harness.js');
-const { createProseBadge, createCitRow, replaceRefInHtml } = require('../refdiff.js');
+const { JSDOM } = require('jsdom');
+const { createProseBadge, createProseBadgeElement, createCitRow, replaceRefInHtml, el } = require('../refdiff.js');
+
+const getDoc = () => (new JSDOM()).window.document;
 
 suite('src/renderer.js - Badge & Citation Row Rendering', () => {
+  test('el creates DOM elements with escaped textContent and safe attributes (M1)', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      const node = el('div', {
+        id: 'test-id',
+        class: 'foo bar',
+        title: 'Title with "quotes" and <tags>',
+        'data-marker': '+'
+      }, 'Text with <raw> & "special" chars');
+
+      assert.strictEqual(node.tagName, 'DIV');
+      assert.strictEqual(node.id, 'test-id');
+      assert.strictEqual(node.className, 'foo bar');
+      assert.strictEqual(node.getAttribute('title'), 'Title with "quotes" and <tags>');
+      assert.strictEqual(node.getAttribute('data-marker'), '+');
+      assert.strictEqual(node.textContent, 'Text with <raw> & "special" chars');
+      assert.strictEqual(node.innerHTML, 'Text with &lt;raw&gt; &amp; "special" chars');
+    });
+  });
+
+  test('createProseBadgeElement constructs native DOM tree with XSS immunity (M1)', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      const malicious = '"><script>alert(1)</script>';
+      const badge = createProseBadgeElement('mod', malicious, '#refdiff-cit-1');
+      assert.strictEqual(badge.tagName, 'SUP');
+      assert.strictEqual(badge.className, 'reference refdiff-ref');
+
+      const a = badge.querySelector('a');
+      assert.strictEqual(a.className, 'ref-badge-mod');
+      assert.strictEqual(a.textContent, `⟨~${malicious}~⟩`);
+      assert.strictEqual(badge.querySelectorAll('script').length, 0, 'No script tags should be injected');
+    });
+  });
+
   test('replaceRefInHtml replaces reference wrapped in diffchange tag', () => {
     const html = '<div>prose <del class="diffchange diffchange-inline">&lt;ref name="test"&gt;cite&lt;/ref&gt;</del> more prose</div>';
     const result = replaceRefInHtml(html, '&lt;ref name="test"&gt;cite&lt;/ref&gt;', '⟨ref1⟩');
@@ -23,6 +59,7 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
     const resultWrapped = replaceRefInHtml(htmlWrapped, '&lt;ref name="test"&gt;cite&lt;/ref&gt;', '⟨~test~⟩', true);
     assert.strictEqual(resultWrapped, '<div>prose ⟨~test~⟩<ins class="diffchange diffchange-inline">&lt;ref name="test"&gt;cite&lt;/ref&gt;</ins> more prose</div>');
   });
+
   test('creates mathematical angle bracket badges with correct styling', () => {
     const norm = createProseBadge('norm', 'ref1');
     assert.strictEqual(norm.includes('⟨ref1⟩'), true, 'Norm badge should use ⟨ref1⟩');
@@ -61,16 +98,7 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
   });
 
   test('createCitRow assigns rowId and links prefix badge when citeNoteId is present', () => {
-    withMockEnvironment({
-      document: {
-        createElement: () => ({
-          className: '',
-          innerHTML: '',
-          set id(val) { this._id = val; },
-          get id() { return this._id; }
-        })
-      }
-    }, () => {
+    withMockEnvironment({ document: getDoc() }, () => {
       const row = createCitRow({
         label: 'exyu_240625',
         oldRaw: '<ref name="exyu_240625">old</ref>',
@@ -85,16 +113,7 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
   });
 
   test('createCitRow styles added citations entirely as added (<ins>), stripping partial diffchange spans', () => {
-    withMockEnvironment({
-      document: {
-        createElement: () => ({
-          className: '',
-          innerHTML: '',
-          set id(val) { this._id = val; },
-          get id() { return this._id; }
-        })
-      }
-    }, () => {
+    withMockEnvironment({ document: getDoc() }, () => {
       const row = createCitRow({
         label: 'kami',
         oldRaw: '',
@@ -118,16 +137,7 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
   });
 
   test('createCitRow styles deleted citations entirely as deleted (<del>), stripping partial diffchange spans', () => {
-    withMockEnvironment({
-      document: {
-        createElement: () => ({
-          className: '',
-          innerHTML: '',
-          set id(val) { this._id = val; },
-          get id() { return this._id; }
-        })
-      }
-    }, () => {
+    withMockEnvironment({ document: getDoc() }, () => {
       const row = createCitRow({
         label: 'oldRef',
         oldRaw: '&lt;ref name="oldRef" /&gt;',

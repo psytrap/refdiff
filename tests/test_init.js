@@ -5,6 +5,7 @@
  */
 
 const { assert, suite, test, withMockEnvironment, setupMockStorage, finishStandalone } = require('./harness.js');
+const { JSDOM } = require('jsdom');
 const {
   isDiffPage,
   createRefDiffButton,
@@ -18,6 +19,8 @@ const {
   isInlineModifiedPreferred,
   isSeparateChangedPreferred
 } = require('../refdiff.js');
+
+const getDoc = () => (new JSDOM()).window.document;
 
 suite('src/init.js - Page Detection', () => {
   test('isDiffPage accurately identifies MediaWiki diff views across multiple signals', () => {
@@ -82,43 +85,21 @@ suite('src/init.js - Page Detection', () => {
   });
 
   test('createRefDiffButton creates OOUI button matching ButtonOptionWidget or ButtonWidget', () => {
-    withMockEnvironment({
-      document: {
-        createElement: (tag) => ({
-          tagName: tag.toUpperCase(),
-          id: '',
-          className: '',
-          innerHTML: '',
-          setAttribute(k, v) { this[k] = v; },
-          removeAttribute() {}
-        })
-      }
-    }, () => {
+    withMockEnvironment({ document: getDoc() }, () => {
       const selectBtn = createRefDiffButton(true);
       assert.strictEqual(selectBtn.tagName, 'DIV');
-      assert.strictEqual(selectBtn.role, 'option');
+      assert.strictEqual(selectBtn.getAttribute('role') || selectBtn.role, 'option');
       assert.strictEqual(selectBtn.className.includes('oo-ui-buttonOptionWidget'), true);
 
       const normalBtn = createRefDiffButton(false);
       assert.strictEqual(normalBtn.tagName, 'SPAN');
-      assert.strictEqual(normalBtn.role, 'button');
+      assert.strictEqual(normalBtn.getAttribute('role') || normalBtn.role, 'button');
       assert.strictEqual(normalBtn.className.includes('oo-ui-buttonWidget'), true);
     });
   });
 
   test('createDecoupleToggle renders checkbox container with correct state', () => {
-    withMockEnvironment({
-      document: {
-        createElement: (tag) => ({
-          tagName: tag.toUpperCase(),
-          id: '',
-          className: '',
-          innerHTML: '',
-          setAttribute() {},
-          removeAttribute() {}
-        })
-      }
-    }, () => {
+    withMockEnvironment({ document: getDoc() }, () => {
       const toggleTrue = createInlineToggle(true);
       assert.strictEqual(toggleTrue.id, 'refdiff-inline-container');
       assert.strictEqual(toggleTrue.innerHTML.includes('checked'), true);
@@ -188,18 +169,7 @@ suite('src/init.js - Page Detection', () => {
   });
 
   test('createFallbackModeBar renders mode bar with appropriate active link', () => {
-    withMockEnvironment({
-      document: {
-        createElement: (tag) => ({
-          tagName: tag.toUpperCase(),
-          id: '',
-          className: '',
-          innerHTML: '',
-          setAttribute() {},
-          removeAttribute() {}
-        })
-      }
-    }, () => {
+    withMockEnvironment({ document: getDoc() }, () => {
       const barTrue = createFallbackModeBar(true);
       assert.strictEqual(barTrue.innerHTML.includes('id="refdiff-btn-decoupled" class="active"'), true);
       assert.strictEqual(barTrue.innerHTML.includes('Inline modified refs'), true);
@@ -470,15 +440,7 @@ suite('src/init.js - Page Detection', () => {
       MutationObserver: MockMutationObserver,
       document: {
         head: { appendChild: () => {} },
-        createElement: (tag) => ({
-          tagName: tag ? tag.toUpperCase() : 'DIV',
-          className: '',
-          innerHTML: '',
-          setAttribute() {},
-          removeAttribute() {},
-          classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
-          querySelector: () => null
-        }),
+        createElement: (tag) => getDoc().createElement(tag || 'div'),
         querySelector: (sel) => (sel === 'table.diff' ? mockTable : null),
         getElementById: () => null,
         querySelectorAll: () => [],

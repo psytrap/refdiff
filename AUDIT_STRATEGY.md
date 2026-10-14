@@ -45,9 +45,9 @@ Findings from internal code reviews and comparative audits (e.g. against [Ultrav
 * **[K1] Real DOM Mock Weakness (Resolved):**
   * *Finding:* Hand-written mock objects (`{ innerHTML: ... }`) in `tests/harness.js` did not test real DOM behaviors (`tr.cells`, live HTMLCollections, event bubbling, or browser quirks like missing `scrollIntoView`).
   * *Remediation:* Integrated `jsdom` devDependency and implemented [`tests/test_jsdom.js`](tests/test_jsdom.js) running real MediaWiki HTML diff fixtures (`comprehensive_test.html` and `stress_test_1379409916.html`). Guarded `scrollIntoView` and `MutationObserver` defensively.
-* **[M1] HTML Generation via Template Strings (In Progress / Hardened):**
+* **[M1] HTML Generation via Template Strings (Resolved):**
   * *Finding:* Dynamic markup built with template literals rather than `document.createElement` presents potential XSS vectors if attribute strings contain unescaped user content.
-  * *Remediation:* Sanitized reference names via `sanitizeAnchor`, decoupled badge generation with strict entity filtering, and established roadmap for `el(tag, attrs, ...children)` DOM builder helper.
+  * *Remediation:* Implemented native safe DOM builder `el(tag, attrs, ...children)` and `createProseBadgeElement`. Refactored `createCitRow`, `createRefDiffButton`, `createInlineToggle`, and `createFallbackModeBar` to construct DOM nodes directly with native escaping and whitelisted attribute handling. 100% eliminated dynamic `.innerHTML` template string assignments for UI generation.
 * **[M6] Unpinned CDN Distribution (Resolved / Documented):**
   * *Finding:* Loading from third-party CDN `@main` branch introduces supply-chain risk and breaches Wikimedia's privacy/security policy.
   * *Remediation:* Standardized on-wiki distribution directly from Meta-Wiki (`m:User:Powercycler/refdiff.js`) with commit-pinned sha loaders (see [Section 2.4](#24-on-wiki-distribution--security-hygiene)).
@@ -204,7 +204,7 @@ To merge any code change or issue release tags:
 
 | Quality Gate | Requirement | Verification Command |
 |:---|:---:|:---|
-| **Test Suite Pass Rate** | **100% (97/97 passing)** | `npm test` |
+| **Test Suite Pass Rate** | **100% (99/99 passing)** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 warnings** | `npm run lint` |
 | **Execution Budget** | **< 250 ms across all 14 suites** | `npm run ci` |
 | **Stress Benchmark** | **< 50 ms on 114-ref table** | `node tests/test_benchmarks.js` |

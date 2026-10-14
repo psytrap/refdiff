@@ -850,7 +850,89 @@
      VIRTUAL FILE: src/renderer.js
      Description: Mathematical angle bracket badge generator (⟨ref1⟩, ⟨~name~⟩)
                   and decoupled citation diff row (tr.refdiff-cit-row) builder.
+                  Constructs DOM nodes natively via el() (resolves finding M1).
      ========================================================================== */
+
+  /**
+   * Safe DOM element builder (fixes M1). Avoids innerHTML injection and ensures
+   * text content and attribute values are safely set and escaped natively by the browser.
+   * @param {string} tag HTML tag name
+   * @param {Object|null} [attrs] Key-value pairs for attributes
+   * @param {...(Node|string|number|null|undefined)} children Child nodes or text content
+   * @returns {HTMLElement|null}
+   */
+  function el(tag, attrs, ...children) {
+    if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
+      return null;
+    }
+    const node = document.createElement(tag);
+    if (attrs && typeof attrs === 'object') {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === null || v === undefined) continue;
+        if (k === 'textContent') {
+          node.textContent = String(v);
+        } else if (k === 'className' || k === 'class') {
+          node.className = String(v);
+        } else if (k === 'id') {
+          node.id = String(v);
+        } else if (k === 'checked') {
+          if (v) {
+            if (typeof node.setAttribute === 'function') node.setAttribute('checked', 'checked');
+            node.checked = true;
+          } else {
+            if (typeof node.removeAttribute === 'function') node.removeAttribute('checked');
+            node.checked = false;
+          }
+        } else if (k === 'role') {
+          if (typeof node.setAttribute === 'function') node.setAttribute('role', String(v));
+          node.role = String(v);
+        } else if (k.startsWith('data-')) {
+          if (typeof node.setAttribute === 'function') node.setAttribute(k, String(v));
+          if (!node.dataset) node.dataset = {};
+          const prop = k.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+          node.dataset[prop] = String(v);
+        } else if (typeof node.setAttribute === 'function') {
+          node.setAttribute(k, String(v));
+        } else {
+          node[k] = v;
+        }
+      }
+    }
+    const doc = (node && node.ownerDocument) || (typeof document !== 'undefined' ? document : null);
+    const flatChildren = children.flat ? children.flat(Infinity) : children;
+    for (const child of flatChildren) {
+      if (child === null || child === undefined) continue;
+      if (typeof child === 'string' || typeof child === 'number') {
+        if (doc && typeof doc.createTextNode === 'function') {
+          node.appendChild(doc.createTextNode(String(child)));
+        } else if (typeof node.appendChild === 'function') {
+          node.appendChild({ textContent: String(child) });
+        }
+      } else if (typeof node.appendChild === 'function') {
+        node.appendChild(child);
+      }
+    }
+    return node;
+  }
+
+  /**
+   * Safely parses an HTML fragment into child DOM nodes and appends them to parent.
+   * Used for MediaWiki diff wikitext containing diffchange spans.
+   * @param {HTMLElement} parent
+   * @param {string} html
+   */
+  function appendHtmlChildren(parent, html) {
+    if (!parent || !html) return;
+    const doc = (parent && parent.ownerDocument) || (typeof document !== 'undefined' ? document : null);
+    if (!doc || typeof doc.createElement !== 'function') return;
+    const temp = doc.createElement('div');
+    temp.innerHTML = html;
+    if (typeof parent.appendChild === 'function') {
+      while (temp.firstChild) {
+        parent.appendChild(temp.firstChild);
+      }
+    }
+  }
 
   /**
    * Replaces raw reference wikitext with a badge, stripping surrounding diffchange wrappers if present.
@@ -878,13 +960,65 @@
   }
 
   /**
+   * Generates inline prose badge DOM element with reference link.
+   * Native DOM constructor with automatic attribute and text escaping.
+   * @param {'mod'|'add'|'del'|'norm'} type
+   * @param {string} label
+   * @param {string|null} [href] Target anchor or jump link
+   * @returns {HTMLElement|null}
+   */
+  function createProseBadgeElement(type, label, href) {
+    let badgeClass = CLASSES.BADGE;
+    let title = `Citation: ⟨${label}⟩`;
+    let inner = `⟨${label}⟩`;
+
+    switch (type) {
+      case 'mod':
+        badgeClass = CLASSES.BADGE_MOD;
+        title = `Citation metadata modified: ⟨~${label}~⟩`;
+        inner = `⟨~${label}~⟩`;
+        break;
+      case 'add':
+        badgeClass = CLASSES.BADGE_ADD;
+        title = `Added citation: ⟨+${label}+⟩`;
+        inner = `⟨+${label}+⟩`;
+        break;
+      case 'del':
+        badgeClass = CLASSES.BADGE_DEL;
+        title = `Removed citation: ⟨-${label}-⟩`;
+        inner = `⟨-${label}-⟩`;
+        break;
+    }
+
+    const isCiteNote = href && href.startsWith('#cite_note-');
+    let childNode;
+    if (href) {
+      const aAttrs = { href, class: badgeClass };
+      if (!isCiteNote) {
+        aAttrs.title = title;
+      }
+      childNode = el('a', aAttrs, inner);
+    } else {
+      childNode = el('span', { class: badgeClass, title }, inner);
+    }
+
+    return el('sup', { class: CLASSES.REF_CONTAINER }, childNode);
+  }
+
+  /**
    * Generates inline prose badge HTML with reference link.
+   * Serializes createProseBadgeElement to HTML string for regex substitution in prose cells.
    * @param {'mod'|'add'|'del'|'norm'} type
    * @param {string} label
    * @param {string|null} [href] Target anchor or jump link
    * @returns {string}
    */
   function createProseBadge(type, label, href) {
+    if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+      const badgeEl = createProseBadgeElement(type, label, href);
+      if (badgeEl && badgeEl.outerHTML) return badgeEl.outerHTML;
+    }
+
     let badgeClass = CLASSES.BADGE;
     let title = `Citation: ⟨${label}⟩`;
     let inner = `⟨${label}⟩`;
@@ -910,14 +1044,15 @@
     if (href) {
       const escapedHref = href.replace(/"/g, '&quot;');
       const isCiteNote = href.startsWith('#cite_note-');
-      const titleAttr = isCiteNote ? '' : ` title="${title}"`;
+      const titleAttr = isCiteNote ? '' : ` title="${title.replace(/"/g, '&quot;')}"`;
       return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}"${titleAttr}>${inner}</a></sup>`;
     }
-    return `<sup class="${CLASSES.REF_CONTAINER}"><span class="${badgeClass}" title="${title}">${inner}</span></sup>`;
+    return `<sup class="${CLASSES.REF_CONTAINER}"><span class="${badgeClass}" title="${title.replace(/"/g, '&quot;')}">${inner}</span></sup>`;
   }
 
   /**
    * Creates a decoupled citation diff table row (`<tr>`).
+   * Constructed purely with DOM elements via el() to eliminate XSS risks (fixes M1).
    * @param {Object} mc Modified citation model
    * @param {string} mc.label Badge label
    * @param {string} mc.oldRaw Previous raw reference wikitext
@@ -926,44 +1061,66 @@
    * @param {string|null} [mc.citeNoteId] Target cite_note anchor in live article
    * @param {boolean} [mc.isAdd] True if citation was purely added
    * @param {boolean} [mc.isDel] True if citation was purely deleted
-   * @returns {HTMLTableRowElement}
+   * @returns {HTMLTableRowElement|null}
    */
   function createCitRow(mc) {
-    const citRow = document.createElement('tr');
-    citRow.className = CLASSES.CIT_ROW;
+    const citRow = el('tr', { class: CLASSES.CIT_ROW });
+    if (!citRow) return null;
     if (mc.rowId) {
       citRow.id = mc.rowId;
     }
 
-    let delPrefix = '';
-    let addPrefix = '';
-    let delContent = mc.oldRaw;
-    let addContent = mc.newRaw;
-    const badgeHref = mc.citeNoteId ? ` href="#${mc.citeNoteId.replace(/"/g, '&quot;')}"` : '';
-    const isCiteNote = !!mc.citeNoteId;
+    const badgeHref = mc.citeNoteId ? `#${mc.citeNoteId}` : null;
+    let delDiv;
+    let addDiv;
 
     if (mc.isAdd) {
-      const titleAttr = isCiteNote ? '' : ' title="Added citation"';
-      addPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_ADD}"${titleAttr}>⟨+${mc.label}+⟩</a></sup> `;
-      const cleanContent = addContent ? addContent.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
-      addContent = cleanContent ? `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${cleanContent}</ins>` : '';
+      delDiv = el('div');
+      const badgeNode = createProseBadgeElement('add', mc.label, badgeHref);
+      let insNode = null;
+      const cleanContent = mc.newRaw ? mc.newRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
+      if (cleanContent) {
+        insNode = el('ins', { class: `${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}` });
+        appendHtmlChildren(insNode, cleanContent);
+      }
+      addDiv = el('div', null, badgeNode, ' ', insNode);
     } else if (mc.isDel) {
-      delPrefix = `<sup class="${CLASSES.REF_CONTAINER}"><span class="${CLASSES.BADGE_DEL}" title="Removed citation">⟨-${mc.label}-⟩</span></sup> `;
-      const cleanContent = delContent ? delContent.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
-      delContent = cleanContent ? `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${cleanContent}</del>` : '';
+      const badgeNode = createProseBadgeElement('del', mc.label, null);
+      let delNode = null;
+      const cleanContent = mc.oldRaw ? mc.oldRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
+      if (cleanContent) {
+        delNode = el('del', { class: `${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}` });
+        appendHtmlChildren(delNode, cleanContent);
+      }
+      delDiv = el('div', null, badgeNode, ' ', delNode);
+      addDiv = el('div');
     } else {
-      const titleAttr = isCiteNote ? '' : ' title="Citation metadata modified"';
-      const modBadge = `<sup class="${CLASSES.REF_CONTAINER}"><a${badgeHref} class="${CLASSES.BADGE_MOD}"${titleAttr}>⟨~${mc.label}~⟩</a></sup> `;
-      delPrefix = modBadge;
-      addPrefix = modBadge;
+      const delBadge = createProseBadgeElement('mod', mc.label, badgeHref);
+      const addBadge = createProseBadgeElement('mod', mc.label, badgeHref);
+      delDiv = el('div', null, delBadge, ' ');
+      appendHtmlChildren(delDiv, mc.oldRaw);
+
+      addDiv = el('div', null, addBadge, ' ');
+      appendHtmlChildren(addDiv, mc.newRaw);
     }
 
-    citRow.innerHTML = `
-      <td class="diff-marker" data-marker="${mc.isAdd ? '' : '−'}"></td>
-      <td class="${mc.isAdd ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`}"><div>${delPrefix}${delContent}</div></td>
-      <td class="diff-marker" data-marker="${mc.isDel ? '' : '+'}"></td>
-      <td class="${mc.isDel ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`}"><div>${addPrefix}${addContent}</div></td>
-    `;
+    const tdMarkerDel = el('td', { class: 'diff-marker', 'data-marker': mc.isAdd ? '' : '−' });
+    const tdDel = el('td', {
+      class: mc.isAdd ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_DELETED_LINE} ${CLASSES.DIFF_SIDE_DELETED}`
+    }, delDiv);
+
+    const tdMarkerAdd = el('td', { class: 'diff-marker', 'data-marker': mc.isDel ? '' : '+' });
+    const tdAdd = el('td', {
+      class: mc.isDel ? CLASSES.CIT_CONTEXT : `${CLASSES.CIT_ADDED_LINE} ${CLASSES.DIFF_SIDE_ADDED}`
+    }, addDiv);
+
+    if (typeof citRow.appendChild === 'function') {
+      if (tdMarkerDel) citRow.appendChild(tdMarkerDel);
+      if (tdDel) citRow.appendChild(tdDel);
+      if (tdMarkerAdd) citRow.appendChild(tdMarkerAdd);
+      if (tdAdd) citRow.appendChild(tdAdd);
+    }
+
     return citRow;
   }
   /* === [END VIRTUAL FILE: src/renderer.js] === */
@@ -1739,28 +1896,39 @@
 
   /**
    * Creates the Inline modified refs toggle checkbox element.
+   * Constructed purely with DOM elements via el() (fixes M1).
    * @param {boolean} [isChecked]
-   * @returns {HTMLElement}
+   * @returns {HTMLElement|null}
    */
   function createInlineToggle(isChecked) {
     const isInline = typeof isChecked === 'boolean' ? isChecked : isInlineModifiedPreferred();
-    const container = document.createElement('span');
-    container.id = 'refdiff-inline-container';
-    container.className = 'refdiff-inline-container refdiff-decouple-container oo-ui-widget oo-ui-widget-enabled';
-    container.setAttribute('title', 'When checked, keeps modified references inline in prose with a prepended badge instead of decoupling them into separate rows below');
-    container.innerHTML = `
-      <label class="refdiff-inline-label refdiff-decouple-label">
-        <input type="checkbox" id="refdiff-inline-toggle" class="refdiff-inline-checkbox refdiff-decouple-checkbox"${isInline ? ' checked' : ''}>
-        <span class="refdiff-inline-text refdiff-decouple-text">Inline modified refs</span>
-      </label>
-    `;
-    return container;
+    const inputAttrs = {
+      type: 'checkbox',
+      id: 'refdiff-inline-toggle',
+      class: 'refdiff-inline-checkbox refdiff-decouple-checkbox'
+    };
+    if (isInline) {
+      inputAttrs.checked = 'checked';
+    }
+    const input = el('input', inputAttrs);
+    if (input && isInline) input.checked = true;
+
+    const label = el('label', { class: 'refdiff-inline-label refdiff-decouple-label' },
+      input,
+      el('span', { class: 'refdiff-inline-text refdiff-decouple-text' }, 'Inline modified refs')
+    );
+
+    return el('span', {
+      id: 'refdiff-inline-container',
+      class: 'refdiff-inline-container refdiff-decouple-container oo-ui-widget oo-ui-widget-enabled',
+      title: 'When checked, keeps modified references inline in prose with a prepended badge instead of decoupling them into separate rows below'
+    }, label);
   }
 
   /**
    * Backward-compatible alias for createInlineToggle.
    * @param {boolean} [isChecked]
-   * @returns {HTMLElement}
+   * @returns {HTMLElement|null}
    */
   function createDecoupleToggle(isChecked) {
     return createInlineToggle(isChecked);
@@ -1799,51 +1967,61 @@
 
   /**
    * Creates the OOUI RefDiff button element matching MediaWiki's ButtonOptionWidget.
+   * Constructed purely with DOM elements via el() (fixes M1).
    * @param {boolean} isSelect True if part of an OOUI ButtonSelectWidget
-   * @returns {HTMLElement}
+   * @returns {HTMLElement|null}
    */
   function createRefDiffButton(isSelect) {
-    const refBtn = document.createElement(isSelect ? 'div' : 'span');
-    refBtn.id = 'refdiff-ooui-btn';
-    refBtn.className = isSelect
-      ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
-      : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget';
-    refBtn.setAttribute('role', isSelect ? 'option' : 'button');
-    refBtn.setAttribute('title', 'RefDiff: Decoupled citation diff view');
-    refBtn.innerHTML = `
-      <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
-        <span class="oo-ui-iconElement-icon oo-ui-icon-diffs"></span>
-        <span class="oo-ui-labelElement-label">RefDiff</span>
-        <span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator"></span>
-      </a>
-    `;
-    return refBtn;
+    return el(isSelect ? 'div' : 'span', {
+      id: 'refdiff-ooui-btn',
+      class: isSelect
+        ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
+        : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget',
+      role: isSelect ? 'option' : 'button',
+      title: 'RefDiff: Decoupled citation diff view'
+    },
+      el('a', { class: 'oo-ui-buttonElement-button', role: 'button', tabindex: '0', rel: 'nofollow' },
+        el('span', { class: 'oo-ui-iconElement-icon oo-ui-icon-diffs' }),
+        el('span', { class: 'oo-ui-labelElement-label' }, 'RefDiff'),
+        el('span', { class: 'oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator' })
+      )
+    );
   }
 
   /**
    * Creates a fallback mode bar for MediaWiki skins lacking the OOUI diff mode switcher.
+   * Constructed purely with DOM elements via el() (fixes M1).
    * @param {boolean} shouldDecouple
    * @param {boolean} [inlineModified]
-   * @returns {HTMLDivElement}
+   * @returns {HTMLDivElement|null}
    */
   function createFallbackModeBar(shouldDecouple, inlineModified) {
     const isInline = typeof inlineModified === 'boolean' ? inlineModified : isInlineModifiedPreferred();
-    const modeBar = document.createElement('div');
-    modeBar.id = 'refdiff-mode-bar';
-    modeBar.className = 'refdiff-mode-bar';
-    modeBar.innerHTML = `
-      <span id="refdiff-inline-container" class="refdiff-inline-container refdiff-decouple-container">
-        <label class="refdiff-inline-label refdiff-decouple-label">
-          <input type="checkbox" id="refdiff-inline-toggle" class="refdiff-inline-checkbox refdiff-decouple-checkbox"${isInline ? ' checked' : ''}>
-          <span class="refdiff-inline-text refdiff-decouple-text">Inline modified refs</span>
-        </label>
-      </span>
-      <span class="refdiff-mode-separator">&bull;</span>
-      <strong>Diff view:</strong>
-      <a href="#" id="refdiff-btn-decoupled" class="${shouldDecouple ? 'active' : ''}">Decoupled (RefDiff)</a> &bull;
-      <a href="#" id="refdiff-btn-standard" class="${shouldDecouple ? '' : 'active'}">Standard Wikidiff</a>
-    `;
-    return modeBar;
+    const inputAttrs = {
+      type: 'checkbox',
+      id: 'refdiff-inline-toggle',
+      class: 'refdiff-inline-checkbox refdiff-decouple-checkbox'
+    };
+    if (isInline) {
+      inputAttrs.checked = 'checked';
+    }
+    const input = el('input', inputAttrs);
+    if (input && isInline) input.checked = true;
+
+    return el('div', { id: 'refdiff-mode-bar', class: 'refdiff-mode-bar' },
+      el('span', { id: 'refdiff-inline-container', class: 'refdiff-inline-container refdiff-decouple-container' },
+        el('label', { class: 'refdiff-inline-label refdiff-decouple-label' },
+          input,
+          el('span', { class: 'refdiff-inline-text refdiff-decouple-text' }, 'Inline modified refs')
+        )
+      ),
+      el('span', { class: 'refdiff-mode-separator' }, '•'),
+      el('strong', null, 'Diff view:'),
+      ' ',
+      el('a', { href: '#', id: 'refdiff-btn-decoupled', class: shouldDecouple ? 'active' : '' }, 'Decoupled (RefDiff)'),
+      ' • ',
+      el('a', { href: '#', id: 'refdiff-btn-standard', class: shouldDecouple ? '' : 'active' }, 'Standard Wikidiff')
+    );
   }
 
   /**
@@ -2062,6 +2240,8 @@
     pairReferences,
     sanitizeAnchor,
     findCiteNoteAnchor,
+    el,
+    createProseBadgeElement,
     createProseBadge,
     createCitRow,
     captureRowSnapshot,

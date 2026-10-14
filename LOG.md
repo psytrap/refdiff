@@ -465,6 +465,22 @@ This log records the rationale, architectural decisions, completed milestones, a
 * **Documentation Updates:**
   * Created [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md); updated [`README.md`](README.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), and [`TEST_PLAN.md`](TEST_PLAN.md).
 
+---
+
+### 2026-10-14: Security Hardening — Safe DOM Builder `el()` & Elimination of Template Strings (M1)
+
+* **Context & Motivation:**
+  * Addressed quality audit finding **[M1]** identified in the comparative review against [Ultraviolet](poc/ultraviolet/COMPARISON.md#L44) and documented in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#L48).
+  * Replaced dynamic HTML generation via string concatenation / `.innerHTML` with a safe, native DOM element builder to eliminate XSS injection risks and tag boundary corruption.
+* **Architectural & Code Changes:**
+  * **Native DOM Builder Helper (`el`):** Implemented `el(tag, attrs, ...children)` with native attribute sanitization and `ownerDocument.createTextNode` escaping for all user-supplied text values.
+  * **Badge Element Builder (`createProseBadgeElement`):** Constructs native `<sup class="reference refdiff-ref">` DOM elements with XSS-immune link and span children. Maintained backward-compatible `createProseBadge` serialization helper with robust headless Node fallback.
+  * **Safe Citation Row Generation (`createCitRow`):** Refactored `createCitRow` to build all table row elements (`<tr>`, `<td>`, `<div>`, `<ins>`, `<del>`) directly via DOM constructors, eliminating string interpolation into `citRow.innerHTML`.
+  * **Safe UI Component Builders:** Refactored `createInlineToggle`, `createRefDiffButton`, and `createFallbackModeBar` to construct elements natively without `.innerHTML`.
+  * **Exports & Testing:** Exported `el` and `createProseBadgeElement`; expanded test coverage in `tests/test_renderer.js` to verify attribute escaping, XSS immunity, and real DOM row construction. Suite expanded to **99/99 passing tests** in ~250ms with 0 ESLint warnings.
+* **Documentation Updates:**
+  * Marked M1 as **Resolved** in `AUDIT_STRATEGY.md` and `poc/ultraviolet/COMPARISON.md`. Updated test counts in `README.md`, `ARCHITECTURE.md`, `TEST_PLAN.md`, and `refdiff.wiki`.
+
 
 
 
