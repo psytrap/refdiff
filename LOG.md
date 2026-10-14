@@ -24,6 +24,29 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ## 2. Planned Steps & Action Items (Roadmap)
 
+### Roadmap Overview Checklist & Status Dashboard
+
+| Step | Phase & Milestone | Priority | Status | Primary Deliverable / Target |
+| :---: | :--- | :---: | :---: | :--- |
+| **1.1** | Phase 1: Wikimedia Phabricator Task | P1 | 🔲 Open | Draft submission tagged `#extension-cite`, `#Parsoid` |
+| **1.2** | Phase 1: Cite Discussion Pages | P1 | 🔲 Open | `mw:Extension talk:Cite` & `en:WT:Citing sources` |
+| **1.3** | Phase 1: Community Wishlist Submission | P2 | 🔲 Open | `meta:Community Wishlist` proposal |
+| **2.1** | Phase 2: Feedback Synthesis | P1 | 🔲 Open | Synthesize community input on syntax & VE/mobile |
+| **2.2** | Phase 2: Specification Refinement | P2 | 🔲 Open | Update [`CONCEPT.md`](proposal/CONCEPT.md) & [`PROPOSAL.md`](proposal/PROPOSAL.md) |
+| **3.1** | Phase 3: Python CLI Tool (`ref-scope`) | P2 | 🔲 Open | Standalone CLI prototype for wikitext AST re-scoping |
+| **3.2** | Phase 3: Re-Scoping Bot Prototype | P3 | 🔲 Open | Definition anchor migration algorithm |
+| **4.1** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Open | `{{#invoke:RefDef|...}}` on-wiki template prototype |
+| **4.2** | Phase 4: Upstream Extension:Cite Patch | P1 | 🔲 Open | Experimental Gerrit patch for MediaWiki core/Cite |
+| **5.1** | Phase 5: Fail-Open Crash Isolation | P0 | 🔲 Open | Top-level `try...catch` boundary; zero blast radius on `common.js` |
+| **5.2** | Phase 5: AJAX / SPA Re-entrancy | P0 | 🔲 Open | Multi-diff table swap tests & Memento leak prevention |
+| **5.3** | Phase 5: Patrol Tool Non-Interference | P1 | 🔲 Open | Byte-for-byte protection of diff headers & Twinkle nodes |
+| **5.4** | Phase 5: Client-Side Observability | P1 | 🔲 Open | Opt-in `?refdiff_debug=1` diagnostic logging mode |
+| **5.5** | Phase 5: Accessibility (WCAG 2.1 AA) | P1 | 🔲 Open | Semantic `aria-label`, keyboard navigation, contrast ratios |
+| **5.6** | Phase 5: Legacy Skins & Mobile Guard | P1 | 🔲 Open | Vector 2010 fallback bar & graceful Minerva mobile disable |
+| **5.7** | Phase 5: Production Governance Policy | P2 | 🔲 Open | Formalize 100-user readiness policy in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7 |
+
+---
+
 ### Phase 1: Community & Technical Outreach (Immediate Next Steps)
 - [ ] **Step 1.1: Submit Wikimedia Phabricator Task**
   * Submit draft to [phabricator.wikimedia.org](https://phabricator.wikimedia.org/maniphest/task/edit/form/1/) tagged with `#extension-cite`, `#Parsoid`, `#MediaWiki-Parser`.
