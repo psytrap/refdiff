@@ -107,8 +107,8 @@ Here is the exact same edit rendered with RefDiff. The sentence is freed from bu
 Add the following line to your local [[Special:MyPage/common.js|common.js]] page on English Wikipedia:
 
 <syntaxhighlight lang="javascript">
-// [[m:User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
-mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
 === Option 2: Global Cross-Wiki Installation (All Wikimedia Wikis) ===
