@@ -11,6 +11,7 @@
     "preflight": "npm run ci && node tests/test_deployment.js && npm run test:live && npm run test:bench",
     "check:deploy": "node scripts/check_live_deployment.js",
     "bump": "node scripts/bump_version.js",
+    "inspect": "python3 scripts/inspect_diff.py",
     "ci": "npm run lint && npm run test"
   },
   "repository": {
