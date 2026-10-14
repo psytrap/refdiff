@@ -17,4 +17,5 @@ coverage/
 # Scratch & preview files
 /*.html
 /scratch/
+/cvpi*.js
 

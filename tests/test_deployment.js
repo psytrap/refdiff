@@ -258,15 +258,21 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.strictEqual(/refdiff-canary/i.test(deployPlanContent), false, 'DEPLOYMENT_PLAN.md must not contain canary channel (policy: no canary, only uprev when ready)');
     assert.strictEqual(deployPlanContent.includes('no canary needed'), true, 'DEPLOYMENT_PLAN.md must explicitly document no canary needed policy');
 
-    // 3. Canonical lead script destination consistency
-    const canonicalScriptTarget = 'en:User:Powercycler/refdiff.js';
-    assert.strictEqual(deployPlanContent.includes(canonicalScriptTarget), true, `DEPLOYMENT_PLAN.md must list canonical script target ${canonicalScriptTarget}`);
-    assert.strictEqual(wikiContent.includes('en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 1 must load from canonical script target on en.wikipedia.org');
-    assert.strictEqual(deployPlanContent.includes('title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript'), true, 'DEPLOYMENT_PLAN.md dummy loader must point to canonical en.WP script');
+    // 3. Script lead (Meta), SHA pointer (en.WP), and early testing harness consistency
+    const metaLeadTarget = 'm:User:Powercycler/refdiff.js';
+    const enPointerTarget = 'en:User:Powercycler/refdiff.js';
+    const enCommonTarget = 'en:User:Powercycler/common.js';
+    assert.strictEqual(deployPlanContent.includes(metaLeadTarget), true, `DEPLOYMENT_PLAN.md must list Meta script lead ${metaLeadTarget}`);
+    assert.strictEqual(deployPlanContent.includes(enPointerTarget), true, `DEPLOYMENT_PLAN.md must list en.WP SHA pointer ${enPointerTarget}`);
+    assert.strictEqual(deployPlanContent.includes(enCommonTarget), true, `DEPLOYMENT_PLAN.md must list early testing harness ${enCommonTarget}`);
+    assert.strictEqual(wikiContent.includes('en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 1 must load from canonical script pointer on en.wikipedia.org');
+    assert.strictEqual(wikiContent.includes('meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 2 must load from Meta-Wiki lead script');
 
-    // 4. Documentation destination consistency
+    // 4. Documentation destination consistency (en.WP leads documentation)
     const canonicalDocTarget = 'en:User:Powercycler/RefDiff';
+    const metaDocTarget = 'm:User:Powercycler/RefDiff';
     assert.strictEqual(deployPlanContent.includes(canonicalDocTarget), true, `DEPLOYMENT_PLAN.md must list canonical doc target ${canonicalDocTarget}`);
+    assert.strictEqual(deployPlanContent.includes(metaDocTarget), true, `DEPLOYMENT_PLAN.md must list Meta soft redirect doc target ${metaDocTarget}`);
     assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox_enwiki.wiki must link to canonical doc target');
 
     // 5. Userbox template destination consistency

@@ -63,8 +63,14 @@ RefDiff operates a dual-engine DOM verification pipeline:
 
 To meet Wikimedia security policies for user scripts and gadgets:
 1. **No External CDNs:** Production deployments load strictly from Wikimedia servers (`en.wikipedia.org`, `meta.wikimedia.org`, or local wiki `Special:MyPage`).
-2. **Revision-Pinned Loader Pattern:** Users requiring immutable, tamper-proof versions can pin release revisions via MediaWiki's native revision ID (`&oldid=123456789`) rather than creating versioned filenames.
-3. **Wikitext Protection:** The script begins with `/* <nowiki> */` and ends with `/* </nowiki> */` to prevent template parsing and signature expansion.
+2. **Revision-Pinned Loader Pattern & No-Versioned-Filenames:** Users and downstream distributions requiring immutable versions pin release revisions via MediaWiki's native revision ID (`&oldid=123456789`) or commit SHA loader rather than creating versioned filenames (`refdiff-v1.js`).
+3. **Meta Script Lead & en.WP SHA Pointer Architecture:**
+   - **Script Lead (`m:User:Powercycler/refdiff.js`):** The primary unminified codebase payload lives canonically on Meta-Wiki to serve cross-wiki userbases.
+   - **SHA Pointer (`en:User:Powercycler/refdiff.js`):** English Wikipedia hosts an immutable/release-pinned loader forwarding to Meta-Wiki with target release SHA-1 metadata.
+   - **Early Testing Harness (`en:User:Powercycler/common.js`):** During deployment stages, maintainers smoke-test newly deployed Meta builds directly in personal `common.js` on live diffs before upreving the en.WP SHA pointer (eliminating the need for a separate canary page).
+   - **Documentation Lead (`en:User:Powercycler/RefDiff`):** English Wikipedia leads the authoritative documentation, while Meta-Wiki (`m:User:Powercycler/RefDiff`) acts as a soft redirect.
+4. **Wikitext Protection:** The script begins with `/* <nowiki> */` and ends with `/* </nowiki> */` to prevent template parsing and signature expansion.
+
 
 ---
 

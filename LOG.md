@@ -1219,6 +1219,28 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (added automated assertion for compatibility check tracking).
   * Updated [`tests/test_jsdom.js`](tests/test_jsdom.js) (added TODO comment for contract tests).
 
+---
+
+### 2026-10-14: Architecture Alignment — Meta Script Lead, en.WP SHA Pointer & Early Testing Harness
+
+* **Context & Architectural Decisions:**
+  * Re-architected on-wiki cross-project distribution pipeline based on clear role separation across Wikimedia projects:
+    1. **Script Lead (`m:User:Powercycler/refdiff.js`):** Meta-Wiki hosts the authoritative, unminified UserScript codebase (`refdiff.js`) to provide cross-wiki availability across all Wikimedia wikis.
+    2. **SHA Pointer (`en:User:Powercycler/refdiff.js`):** English Wikipedia hosts the immutable, release-pinned loader forwarding to Meta-Wiki with target release SHA-1 metadata (`597d52d9...`).
+    3. **Documentation Lead (`en:User:Powercycler/RefDiff`):** English Wikipedia leads the authoritative project documentation (published from `refdiff.wiki`), while Meta-Wiki (`m:User:Powercycler/RefDiff`) is maintained as a soft redirect.
+    4. **Early Testing Harness (`en:User:Powercycler/common.js`):** During deployment stages, maintainers smoke-test newly published Meta builds in personal `common.js` before upreving the en.WP SHA pointer. No separate canary page is needed.
+* **Streamlined Rollout Deployment Sequence:**
+  1. *Update Meta Script Lead:* Publish local `refdiff.js` to `m:User:Powercycler/refdiff.js`.
+  2. *Early Testing on en.WP:* Test via `en:User:Powercycler/common.js` across 5 live benchmark diffs.
+  3. *Update en.WP SHA Pointer:* Update `en:User:Powercycler/refdiff.js` with new SHA-1 pointer.
+  4. *Publish Lead Docs:* Publish `refdiff.wiki` to `en:User:Powercycler/RefDiff` and ensure Meta doc redirect.
+  5. *Publish Userbox & Audit:* Create `Template:User RefDiff` (+ `/doc`) and run `npm run check:deploy`.
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§1 Artifacts Table, §3 Rings 1–2, §5 Runbook; verified 91 lines < 100 limit).
+  * Updated [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js) (auditing Meta script lead, early testing harness, en.WP SHA pointer, and en.WP doc lead).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) (asserting destinations for Meta lead, en.WP pointer, early harness, and en.WP doc lead).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.4 On-Wiki Distribution Architecture).
+
 
 
 

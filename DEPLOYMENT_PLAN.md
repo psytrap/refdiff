@@ -1,19 +1,20 @@
 # RefDiff: Deployment Plan
 
 > **Version:** 1.3.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
-> **Lead Target:** English Wikipedia (`enwiki`) &bull; **Secondary / Dummy:** Meta-Wiki (`metawiki`) (redirect / loader stub)  
+> **Script Lead:** Meta-Wiki (`m.WM`) &bull; **Doc Lead:** English Wikipedia (`en.WP`) &bull; **en.WP Script:** SHA Pointer  
 > **CI Status:** 115/115 passing, 0 lint warnings
 
 ---
 
 ## 1. Artifacts & Target Destinations
 
-| Artifact | Source File | On-Wiki Destination (en.WP Lead & Meta Dummy) |
+| Artifact | Source File | On-Wiki Destination (Meta Script Lead & en.WP Doc Lead) |
 |:---|:---|:---|
-| **Production Script (Lead)** | [`refdiff.js`](refdiff.js) | `en:User:Powercycler/refdiff.js` (Canonical lead script) |
-| **Meta Loader (Dummy)** | Stub snippet | `m:User:Powercycler/refdiff.js` (1-line `mw.loader.load` forwarding to en.WP) |
-| **Documentation (Lead)** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` (Authoritative documentation) |
-| **Meta Docs (Dummy)** | Soft redirect | `m:User:Powercycler/RefDiff` (Soft redirect pointing to en.WP) |
+| **Script Lead (m.WM)** | [`refdiff.js`](refdiff.js) | `m:User:Powercycler/refdiff.js` (Canonical code lead on Meta-Wiki) |
+| **en.WP Script (SHA Pointer)** | Loader snippet | `en:User:Powercycler/refdiff.js` (SHA pointer / loader forwarding to Meta-Wiki) |
+| **Documentation Lead (en.WP)** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` (Authoritative documentation on en.WP) |
+| **Meta Docs (Soft Redirect)** | Soft redirect | `m:User:Powercycler/RefDiff` (Soft redirect pointing to en.WP documentation) |
+| **Early Testing Harness** | `common.js` snippet | `en:User:Powercycler/common.js` (Early live testing before SHA pointer uprev) |
 | **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` (Reference test diff) |
 | **Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) (§1, §2) | `en:Template:User RefDiff` &bull; `en:Template:User RefDiff/doc` |
 | **Outreach** | [`proposal/POST.md`](proposal/POST.md) | `en:User talk:Powercycler/RefDiff` (Dedicated feedback talk page) |
@@ -47,39 +48,32 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 - All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
-### Ring 1: Production Publishing (en.WP Lead & Meta Dummy)
-We only uprev `en:User:Powercycler/refdiff.js` once local pre-flight gates pass completely (no canary needed):
-1. **Lead Script (en.WP):** Copy [`refdiff.js`](refdiff.js) to `en:User:Powercycler/refdiff.js` (review on-wiki diff preview before saving).
-2. **Meta Loader (Dummy):** Set `m:User:Powercycler/refdiff.js` to 1-line loader forwarding to en.WP (`mw.loader.load('//en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');`).
-3. **Lead Docs (en.WP):** Copy [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (primary documentation).
-4. **Meta Docs (Dummy):** Set `m:User:Powercycler/RefDiff` as a soft redirect pointing to `en:User:Powercycler/RefDiff`.
-5. **Showcase:** Verify `m:User:Powercycler/RefDiff/Show_case`.
-6. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
-7. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
+### Ring 1: Update Meta-Wiki Script Lead (`m.WM refdiff.js`)
+1. **Script Lead (m.WM):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js).
+2. **Meta Docs:** Set `m:User:Powercycler/RefDiff` as soft redirect to `en:User:Powercycler/RefDiff`.
+3. **Showcase:** Verify `m:User:Powercycler/RefDiff/Show_case`.
 
-### Ring 2: Live Smoke Verification
-Immediately verify published script on 5 live benchmark diffs:
-1. `Bihar Legislative Assembly` (diff=1379207737) — apostrophe in attrs, underscore footnote anchors.
-2. `Odoacer` (diff=1379486498) — shortened footnotes (`{{sfn}}`) author-year badges, Popups preview.
-3. `Zagreb Airport` (diff=1379409916) — 114 references across split diffchange, sub-50ms execution.
-4. `Cosmic inflation` (diff=1379470949) — pure whitespace prose changes preserved.
-5. `Donnie Brasco` (diff=1380017400) — unclosed quote in attributes handled safely.
+### Ring 2: Early Testing on en.WP & SHA Pointer Uprev (No Canary Needed)
+During deployment stages, no canary needed: we early test via `en:User:Powercycler/common.js` and only uprev the SHA pointer in `en:User:Powercycler/refdiff.js` once verified:
+1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify 5 live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
+2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA-1 pointer (`597d52d9...`).
+3. **Lead Docs (en.WP):** Publish [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (lead documentation).
+4. **Userbox (en.WP):** Create `en:Template:User RefDiff` & `doc` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
+5. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
 
 ### Ring 3: Community Feedback & Gadget Candidacy
-- Post announcement and gather feedback on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
-- Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-pilot-50-user-gadget-milestone--beyond): Tier 1 pilot (10-user milestone) followed by Tier 2 gadget candidacy (50-user reviewer milestone over 60 days).
+- Post announcement on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
+- Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-pilot-50-user-gadget-milestone--beyond): Tier 1 pilot (10 users) followed by Tier 2 gadget candidacy (50-user reviewer milestone over 60 days).
 
 ---
 
 ## 4. Rollback & Incident Recovery
 
 - **P0 (Critical — Broken diff view, uncaught loop, table blanking):**
-  1. Revert `en:User:Powercycler/refdiff.js` via on-wiki page history to previous stable revision (< 1 min). The Meta dummy loader automatically forwards the reverted script without separate edits.
-  2. Purge page cache (`&action=purge`). Users bypass browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd>).
-  3. Defensive fallback: if script mounting fails, native wikitext diff remains untouched (guaranteed by automated pre-flight rollback check in `test_deployment.js`). In-place Memento (`restoreOriginal`) guarantees 100% byte-for-byte restoration and zero orphaned `.refdiff-cit-row` nodes.
-  4. Run `npm run check:deploy` to confirm reverted revision status on Wikimedia APIs.
-- **P1 (Non-critical — Syntax edge-case):**
-  Unparsed citation remains inline in prose (graceful degradation). Follow 6-stage diff verification lifecycle in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#4-real-world-diff-verification-lifecycle).
+  1. Revert `m:User:Powercycler/refdiff.js` or `en:User:Powercycler/refdiff.js` via page history (< 1 min). The SHA pointer guarantees reproducible rollback. Purge page cache (`&action=purge`); users bypass browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd>).
+  2. Defensive fallback: if script mounting fails, native diff remains untouched (in-place Memento `restoreOriginal` guarantees 100% byte-for-byte restoration and zero orphaned `.refdiff-cit-row` nodes).
+  3. Run `npm run check:deploy` to confirm reverted revision status on Wikimedia APIs.
+- **P1 (Non-critical — Syntax edge-case):** Unparsed citation remains inline in prose (graceful degradation). Follow 6-stage lifecycle in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md#4-real-world-diff-verification-lifecycle).
 
 ---
 
@@ -87,10 +81,11 @@ Immediately verify published script on 5 live benchmark diffs:
 
 - [ ] **Pre-Flight (Uprev Diff Audit):** Scoped small change; run uprev-triggered diff audit (`git diff --stat && git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
-- [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (we only uprev in en.WP when ready).
-- [ ] **Publish Meta Stub:** Ensure `m:User:Powercycler/refdiff.js` has dummy loader forwarding to en.WP.
-- [ ] **Publish Lead Docs:** Update `en:User:Powercycler/RefDiff` & verify Meta doc soft redirect.
+- [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
+- [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify 5 live benchmark diffs.
+- [ ] **Update en.WP SHA Pointer:** Update `en:User:Powercycler/refdiff.js` with new SHA pointer.
+- [ ] **Publish Lead Docs (en.WP):** Update `en:User:Powercycler/RefDiff` (en.WP leads docs) & Meta redirect.
 - [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
-- [ ] **Live Smoke Check:** `npm run check:deploy` passes; verify 5 live benchmark diffs on en.WP.
+- [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; verify diffs on en.WP.
 - [ ] **TODO (Tool Compatibility):** Check Twinkle and Ultraviolet compatibility on live en.WP diffs.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.
