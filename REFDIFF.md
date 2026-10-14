@@ -233,25 +233,34 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ## 9. Quick Start & Installation
 
-### Option A: English Wikipedia (Canonical Lead)
-Add the following line to your local **[`Special:MyPage/common.js`](https://en.wikipedia.org/wiki/Special:MyPage/common.js)** on English Wikipedia:
+### Option A: English Wikipedia (Canonical Stable Lead)
+Add the following line to your local **[`Special:MyPage/common.js`](https://en.wikipedia.org/wiki/Special:MyPage/common.js)** on English Wikipedia to load the verified, stable production release:
 
 ```javascript
-// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff (Stable)
 mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 ```
 
-### Option B: Global Cross-Wiki Installation (All Wikimedia Wikis at Once)
-Add the following line to your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)** to enable RefDiff automatically across all Wikimedia projects:
+### Option B: Meta-Wiki (`m.WM`) Beta Channel (Tracking Latest Changes)
+To beta test RefDiff and track the latest development changes, bleeding-edge improvements, and pre-release bug fixes across all Wikimedia projects at once, add the following line to your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)** (or your local `common.js`):
 
 ```javascript
-// [[m:User:Powercycler/refdiff.js]] - RefDiff cross-wiki loader
+// [[m:User:Powercycler/refdiff.js]] - RefDiff Beta: Tracking latest changes across all wikis (m.WM)
 mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 ```
 
-### Option C: Browser Extension (Tampermonkey / Violentmonkey)
-Install `refdiff.js` directly as a user script in Tampermonkey, Violentmonkey, or Greasemonkey using the raw script URL:
-`https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
+### Option C: Global Stable (All Wikimedia Wikis at Once)
+If you want the battle-tested stable release active across all Wikimedia wikis without tracking beta changes, load the canonical English Wikipedia release from your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)**:
+
+```javascript
+// [[User:Powercycler/refdiff.js]] - RefDiff Stable across all wikis
+mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+```
+
+### Option D: Browser Extension (Tampermonkey / Violentmonkey)
+Install `refdiff.js` directly as a user script in Tampermonkey, Violentmonkey, or Greasemonkey:
+* **Stable Release:** `https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
+* **Beta Channel (Latest Changes):** `https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
 
 
 

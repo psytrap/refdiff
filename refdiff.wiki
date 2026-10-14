@@ -103,23 +103,31 @@ Here is the exact same edit rendered with RefDiff. The sentence is freed from bu
 
 == Installation ==
 
-=== Option 1: English Wikipedia (Recommended) ===
-Add the following line to your local [[Special:MyPage/common.js|common.js]] page on English Wikipedia:
+=== Option 1: English Wikipedia (Stable Release — Recommended) ===
+Add the following line to your local [[Special:MyPage/common.js|common.js]] page on English Wikipedia to load the verified, stable production release:
 
 <syntaxhighlight lang="javascript">
-// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff
+// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff (Stable)
 mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
-=== Option 2: Global Cross-Wiki Installation (All Wikimedia Wikis) ===
-To enable RefDiff automatically across all language Wikipedias, Wikidata, and Wikimedia projects at once, add the exact same line to your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]**:
+=== Option 2: Meta-Wiki / Global Beta (Tracking Latest Changes) ===
+To beta test RefDiff and track the latest changes, features, and fixes across all Wikimedia projects at once, add the following line to your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]** (or local `common.js`):
 
 <syntaxhighlight lang="javascript">
-// [[m:User:Powercycler/refdiff.js]] - RefDiff across all wikis
+// [[m:User:Powercycler/refdiff.js]] - RefDiff Beta: Tracking latest changes across all wikis
 mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
-=== Option 3: Personal Copy / Developer Fork ===
+=== Option 3: Global Stable (All Wikimedia Wikis) ===
+To enable the battle-tested stable release across all Wikimedia projects without tracking beta changes, load the canonical English Wikipedia release from your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]**:
+
+<syntaxhighlight lang="javascript">
+// [[User:Powercycler/refdiff.js]] - RefDiff Stable across all wikis
+mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+</syntaxhighlight>
+
+=== Option 4: Personal Copy / Developer Fork ===
 If you maintain your own custom script fork at [[:m:Special:MyPage/refdiff.js|m:Special:MyPage/refdiff.js]], load it dynamically with:
 
 <syntaxhighlight lang="javascript">

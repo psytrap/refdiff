@@ -180,31 +180,40 @@ async function auditDeployment() {
     });
   }
 
-  // 5. Meta-Wiki - Dummy Loader
+  // 5. Meta-Wiki - Beta Script / Latest Changes Channel
   const metaScript = metawikiPages['User:Powercycler/refdiff.js'];
   if (!metaScript || metaScript.missing !== undefined) {
     reports.push({
-      target: 'm:User:Powercycler/refdiff.js (Meta Dummy Loader)',
+      target: 'm:User:Powercycler/refdiff.js (Meta Beta Channel)',
       status: 'NOT DEPLOYED (Missing)',
-      details: 'Page does not exist on meta.wikimedia.org. Action: Create 1-line dummy loader stub.',
+      details: 'Page does not exist on meta.wikimedia.org. Action: Publish latest refdiff.js as beta.',
       ok: false
     });
   } else {
     const rev = metaScript.revisions && metaScript.revisions[0];
+    const liveSha1 = rev ? rev.sha1 : '';
+    const isSync = liveSha1 === localJsSha1;
     const content = rev ? (rev['*'] || '') : '';
     const isDummy = content.trim().includes('mw.loader.load') && content.includes('en.wikipedia.org');
     if (isDummy) {
       reports.push({
         target: 'm:User:Powercycler/refdiff.js (Meta Dummy Loader)',
-        status: 'DEPLOYED & CONFIGURED AS DUMMY',
-        details: `Rev ${rev.revid}, forwards correctly to en.wikipedia.org canonical script.`,
+        status: 'DEPLOYED & CONFIGURED AS FORWARDER',
+        details: `Rev ${rev.revid}, forwards to en.wikipedia.org canonical script.`,
+        ok: true
+      });
+    } else if (isSync) {
+      reports.push({
+        target: 'm:User:Powercycler/refdiff.js (Meta Beta Channel)',
+        status: 'DEPLOYED & SYNCHRONIZED (Beta Channel)',
+        details: `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB. Tracks latest changes with 100% SHA-1 parity.`,
         ok: true
       });
     } else {
       reports.push({
-        target: 'm:User:Powercycler/refdiff.js (Meta Script)',
-        status: 'DEPLOYED (Legacy Monolithic Script - Needs Migration to Dummy Loader)',
-        details: `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB. Currently holds old v1.3.0 standalone script. Replace with 1-line dummy loader.`,
+        target: 'm:User:Powercycler/refdiff.js (Meta Beta Channel)',
+        status: 'DEPLOYED (Beta Channel - Outdated)',
+        details: `Rev ${rev.revid} (${rev.timestamp}), Size: ${(rev.size / 1024).toFixed(1)} KB, SHA-1: ${liveSha1}. Local: ${(localJs.length / 1024).toFixed(1)} KB, SHA-1: ${localJsSha1}. Update to latest build.`,
         ok: false
       });
     }
@@ -254,8 +263,9 @@ async function auditDeployment() {
     console.log('  1. Publish canonical lead script to en:User:Powercycler/refdiff.js');
     console.log(`     (Copy refdiff.js, ${ (localJs.length / 1024).toFixed(1) } KB)`);
     console.log('  2. Publish canary release to en:User:Powercycler/refdiff-v1.3.0.js');
-    console.log('  3. Update m:User:Powercycler/refdiff.js to the 1-line dummy loader:');
-    console.log(`     ${EXPECTED_META_LOADER}`);
+    console.log('  3. Update m:User:Powercycler/refdiff.js (Meta-Wiki Beta Channel tracking latest changes, or 1-line loader):');
+    console.log(`     Option Beta: Copy latest refdiff.js (${ (localJs.length / 1024).toFixed(1) } KB)`);
+    console.log(`     Option Dummy: ${EXPECTED_META_LOADER}`);
     console.log('  4. Publish documentation to en:User:Powercycler/RefDiff (refdiff.wiki)');
     console.log('  5. Publish userbox to en:Template:User RefDiff (userbox_enwiki.wiki)');
     console.log('------------------------------------------------------------------------\n');
