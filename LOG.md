@@ -65,6 +65,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.3** | Tool Non-Interference (Twinkle & Ultraviolet) | High | 🔮 Future | TODO: Check Twinkle rollback buttons and Ultraviolet CVPI overlay compatibility |
 | **R.10** | Regex Reevaluation & Parser Architecture | High | 🔮 Future | TODO: Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth and token scanner alternatives |
 | **R.11** | Default Mode Isolation (Visual Diff Bug) | High | 🔮 Future | TODO: Investigate bug making visual diff default unexpectedly |
+| **R.12** | Live On-Wiki Visual Testbed (No Local Visual Test) | High | 🔮 Future | TODO: Retire local HTTP visual inspection in favor of live on-wiki testing |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
 ##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
@@ -106,6 +107,10 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.11: Investigate Default Visual Diff Activation Bug (Tier 2 — High)**
   * **TODO:** Investigate bug making visual diff active/default unexpectedly.
   * Audit `isVisualDiffActive()` detection heuristics, `SELECTORS.VE_VISUAL_BUTTON`, button indices in `.ve-init-mw-diffPage-diffMode`, VisualEditor `diffModeWidget.on('select')` initial event firing, and user preference persistence across diff views.
+- [ ] **Step R.12: Live On-Wiki Visual Inspection Environment (Tier 2 — High)**
+  * **TODO:** Retire local visual test server (`http://127.0.0.1:8000/refdiff.js`) in favor of live on-wiki visual inspection.
+  * Eliminate local HTTP server dependencies to avoid browser mixed-content restrictions on HTTPS Wikipedia diffs.
+  * Establish a seamless live on-wiki testbed workflow (e.g. testing directly via `en:User:Powercycler/common.js` sandbox or authenticated user script test harness) so all visual reviews occur against authentic Wikipedia production CSS, gadgets, and ResourceLoader environments.
 
 ##### Tier 3 Action Items: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
 - [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 50 Users)**
@@ -1397,5 +1402,19 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2 Pre-Flight Quality Gates and §5 Checklist: integrated `npm run inspect`; verified at 96 lines `< 100`).
   * Updated [`package.json`](package.json) (registered `"inspect": "python3 scripts/inspect_diff.py"`).
+
+---
+
+### 2026-10-14: Tracked TODO for Live On-Wiki Visual Inspection (No Local Visual Testing)
+
+* **Context & Issue Description:**
+  * Recorded a formal tracking item and TODO to deprecate local HTTP visual test setups (`http://127.0.0.1:8000/refdiff.js`) in favor of live on-wiki visual inspection.
+  * Architectural rationale:
+    1. **Mixed-Content Incompatibility:** Modern browsers block HTTP script loading (`mw.loader.load('http://127.0.0.1:8000/refdiff.js')`) inside HTTPS production pages (`https://en.wikipedia.org/...`).
+    2. **Authentic Environment Parity:** Visual testing must be conducted against the live Wikipedia ResourceLoader environment, real CSS tokens, and active reviewer gadgets rather than artificial local harnesses.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.12).
+  * Maintained strict TODO encapsulation policy (no TODOs in `ROLLOUT_PLAN.md`, `TEST_PLAN.md`, or source code).
+
 
 
