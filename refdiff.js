@@ -56,7 +56,6 @@
                   CSS classes, MediaWiki hook names, and inline badge styles.
      ========================================================================== */
 
-  // TODO: Reevaluate regexes (REF_REGEX and TEMPLATE_REF_REGEX performance, nesting depth limits, ReDoS safety, and tokenizer alternatives).
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
    * Handles self-closing tags and opening/closing tags with attributes containing HTML entities.

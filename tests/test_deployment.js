@@ -248,6 +248,7 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     const rolloutPlanContent = fs.readFileSync(rolloutPlanPath, 'utf8');
     const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
     const userboxContent = fs.readFileSync(userboxEnwikiPath, 'utf8');
+    const testPlanContent = fs.readFileSync(path.join(rootDir, 'TEST_PLAN.md'), 'utf8');
 
     // Title validation: in-text title must be "RefDiff: Rollout and Deployment Plan"
     assert.strictEqual(
@@ -291,8 +292,8 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.strictEqual(rolloutPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'ROLLOUT_PLAN.md must enforce uprev cadence and diff audit policy');
     assert.strictEqual(rolloutPlanContent.includes('smaller, focused changes between uprevs'), true, 'ROLLOUT_PLAN.md must require small changes between uprevs');
 
-    // 8. Tool compatibility check (Twinkle & Ultraviolet)
-    assert.strictEqual(rolloutPlanContent.includes('Twinkle') && rolloutPlanContent.includes('Ultraviolet'), true, 'ROLLOUT_PLAN.md must track Twinkle and Ultraviolet compatibility');
+    // 8. Tool compatibility check (Twinkle & Ultraviolet tracked in TEST_PLAN.md)
+    assert.strictEqual(testPlanContent.includes('Twinkle') && testPlanContent.includes('Ultraviolet'), true, 'TEST_PLAN.md must track Twinkle and Ultraviolet compatibility');
 
     // 9. Mandatory CDP testing invariant before any update to refdiff.js
     assert.strictEqual(

@@ -64,6 +64,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.2** | Dynamic AJAX / SPA Re-entrancy | High | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
 | **R.3** | Tool Non-Interference (Twinkle & Ultraviolet) | High | 🔮 Future | TODO: Check Twinkle rollback buttons and Ultraviolet CVPI overlay compatibility |
 | **R.10** | Regex Reevaluation & Parser Architecture | High | 🔮 Future | TODO: Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth and token scanner alternatives |
+| **R.11** | Default Mode Isolation (Visual Diff Bug) | High | 🔮 Future | TODO: Investigate bug making visual diff default unexpectedly |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
 ##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
@@ -102,6 +103,9 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.10: Regex Reevaluation & Parser Architecture (Tier 2 — High)**
   * **TODO:** Reevaluate regexes across `refdiff.js` (`REF_REGEX` and `TEMPLATE_REF_REGEX`).
   * Audit lookahead bounds, nesting limits on footnote/citation templates, catastrophic backtracking resilience, and evaluate dedicated token-scanner or parser-generator alternatives.
+- [ ] **Step R.11: Investigate Default Visual Diff Activation Bug (Tier 2 — High)**
+  * **TODO:** Investigate bug making visual diff active/default unexpectedly.
+  * Audit `isVisualDiffActive()` detection heuristics, `SELECTORS.VE_VISUAL_BUTTON`, button indices in `.ve-init-mw-diffPage-diffMode`, VisualEditor `diffModeWidget.on('select')` initial event firing, and user preference persistence across diff views.
 
 ##### Tier 3 Action Items: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
 - [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 50 Users)**
@@ -1364,4 +1368,19 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§4 Real-World Diff Verification Lifecycle: expanded to 7-stage funnel with Stage 5 *User Visual Inspection via Monkey Patching* before Stage 6 *CDP Audit* and Stage 7 *Rollout*).
   * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2 Pre-Flight Quality Gates and §5 Checklist; verified at 96 lines `< 100`).
+
+---
+
+### 2026-10-14: Tracked TODO for Visual Diff Default Activation Bug
+
+* **Context & Issue Description:**
+  * Recorded a formal tracking item and TODO for reported behavior where Visual Diff activates as default unexpectedly instead of RefDiff or Wikitext.
+  * Architectural scope for investigation:
+    1. **Heuristic Detection Timing:** Audit `isVisualDiffActive()` and check if `.ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child` matches the visual button erroneously under certain skins, gadget configurations, or diff page contexts.
+    2. **Event Race Conditions:** Examine `diffModeWidget.on('select')` event timing to prevent initial auto-selection callbacks from prematurely overriding user preference.
+    3. **State Persistence:** Verify interaction between `window.mw.storage` and `localStorage` when user preference is initialized or refreshed.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.11).
+  * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§5 Future Test Expansion Roadmap).
+  * Ensured `ROLLOUT_PLAN.md` and `refdiff.js` remain clean of TODO items.
 
