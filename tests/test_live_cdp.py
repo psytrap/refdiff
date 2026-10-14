@@ -234,11 +234,19 @@ async def run_suite(args: argparse.Namespace) -> int:
             print("\n[Step 1] Reloading target page for clean baseline...")
             await client.send("Page.reload")
             await asyncio.sleep(args.wait_reload)
+            for _ in range(30):
+                try:
+                    is_ready = await client.evaluate("document.readyState === 'complete' && !!document.querySelector('table.diff')")
+                    if is_ready:
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(0.5)
 
             # 2. Inject refdiff.js
             print("[Step 2] Injecting refdiff.js...")
             await client.evaluate(refdiff_code)
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.0)
 
             # 3. Check Initial Wikitext Diff State
             print("[Step 3] Verifying initial state...")
@@ -259,7 +267,16 @@ async def run_suite(args: argparse.Namespace) -> int:
             has_ve = await client.evaluate(f"typeof ve !== 'undefined' && !!document.querySelector('{visual_btn}')")
             if has_ve:
                 await client.click(visual_btn)
-                await asyncio.sleep(args.wait_ve)
+                for _ in range(20):
+                    is_ready = await client.evaluate("""
+                        (() => {
+                            const veDiff = document.querySelector('.ve-ui-diffElement, .ve-init-mw-diffPage-diff');
+                            return veDiff ? (veDiff.offsetParent !== null && veDiff.closest('.oo-ui-element-hidden') === null) : false;
+                        })()
+                    """)
+                    if is_ready:
+                        break
+                    await asyncio.sleep(0.5)
 
                 state_visual = await client.evaluate("""
                     (() => {
