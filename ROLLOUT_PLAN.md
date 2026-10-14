@@ -38,6 +38,7 @@ npm run check:deploy                            # Post-shipment live audit acros
 - **Deployment Pre-Flight:** Automated release gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync across manifests, size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
 - **System Integration Fixtures:** Authentic MediaWiki tables (`comprehensive_test.html`, `stress_test_1379409916.html`), OOUI mounting, native inline toggle lock, and byte-for-byte Memento restoration (`test_jsdom.js`).
 - **Stress & Benchmark Budget:** < 50ms processing on high-density reference fixtures (`test_benchmarks.js`).
+- **User Visual Inspection via Monkey Patching:** Before executing automated CDP test suites and rollout, provide reviewer with monkey-patch snippet for interactive visual inspection directly in their browser.
 - **Mandatory Live CDP Invariant (Level 4):** We always run live browser CDP tests (`npm run test:live` via port 9222) before any update to `refdiff.js` to verify real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
 - **Live Benchmark Monkey Patching (`npm run test:bench`):** We test canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400) directly in Chromium via CDP monkey patching before on-wiki deployment (`test_live_benchmarks.py`).
 - **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Final verification step: audits remote SHA-1 & revision parity across Wikimedia APIs (`scripts/check_live_deployment.js`) once shipment is complete.
@@ -82,6 +83,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 ## 5. Deployment Runbook Checklist
 
 - [ ] **Pre-Flight Quality Gates:** Assure version uprev before deployment; execute patch bump only once during pre-flight (`node scripts/bump_version.js patch`); run diff audit (`git diff --stat && git diff`), and full pre-flight suite (`npm run preflight`).
+- [ ] **User Visual Inspection:** Conduct interactive visual inspection via browser console monkey patching before automated CDP and rollout.
 - [ ] **Git Release Tag (Ring 0):** Tag release candidate and push (`git tag -a v<version> -m "Release v<version>"`).
 - [ ] **Update m.WM Script Lead:** Copy `refdiff.js` to `m:User:Powercycler/refdiff.js`.
 - [ ] **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` and verify canonical live benchmark diffs.

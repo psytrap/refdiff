@@ -229,23 +229,25 @@ To ensure diff reviews remain fast, high-confidence, and zero-defect, all releas
 
 ## 4. Real-World Diff Verification Lifecycle
 
-Every real-world diff anomaly submitted to the audit queue follows a strict 6-stage funnel:
+Every real-world diff anomaly submitted to the audit queue follows a strict 7-stage funnel:
 
 ```mermaid
 flowchart LR
     Q1["1. Candidate Triage<br/>(TEST_PLAN.md)"] --> Q2["2. Raw HTML Capture<br/>(tests/fixtures/)"]
     Q2 --> Q3["3. JSDOM Reproduction<br/>(test_jsdom.js)"]
     Q3 --> Q4["4. Core Fix<br/>(refdiff.js)"]
-    Q4 --> Q5["5. CDP Audit<br/>(test_live_cdp.py)"]
-    Q5 --> Q6["6. Regression Lock<br/>(npm run ci)"]
+    Q4 --> Q5["5. User Visual Inspection<br/>(Monkey Patching)"]
+    Q5 --> Q6["6. CDP Audit<br/>(test_live_cdp.py)"]
+    Q6 --> Q7["7. Regression Lock & Rollout<br/>(npm run ci)"]
 ```
 
 1. **Candidate Triage:** Diff URL, revision ID, and anomaly logged in [`TEST_PLAN.md`](TEST_PLAN.md#51-real-world-diffs--verification-queue).
 2. **Raw HTML Capture:** Raw MediaWiki diff HTML saved into test fixtures.
 3. **JSDOM Reproduction:** Failing test added without mocks to `test_jsdom.js`.
 4. **Core Fix:** `refdiff.js` patched following modular standards.
-5. **CDP Browser Audit:** Live browser testing on port 9222 verifies switcher, themes, and popups.
-6. **Regression Lock:** Diff marked `Verified` in `TEST_PLAN.md` and recorded in `LOG.md` §3.3.
+5. **User Visual Inspection:** Interactive visual review by the user in a live browser using monkey patching before automated CDP runs and rollout.
+6. **CDP Browser Audit:** Live browser testing on port 9222 verifies switcher, themes, and popups.
+7. **Regression Lock & Rollout:** Diff marked `Verified` in `TEST_PLAN.md`, pre-flight CI locked, and phased rollout executed per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
 
 ---
 

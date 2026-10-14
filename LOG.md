@@ -1353,3 +1353,15 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§5 Future Test Expansion Roadmap).
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.10).
   * Removed operational TODOs from [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) to keep checklist strictly focused on rollout steps (verified at 93 lines `< 100`).
+
+---
+
+### 2026-10-14: Codified User Visual Inspection via Monkey Patching Before Rollout & Automated CDP
+
+* **Context & Architectural Protocol:**
+  * Codified the mandatory workflow invariant that prior to automated CDP test suite execution and phased on-wiki rollout, the **user conducts an interactive visual inspection** directly in their browser using monkey patching.
+  * Ensures ergonomic, aesthetic, and visual layout issues (e.g. badge truncations, line borders, diff margins) are caught and refined by human review before automated test locking and publishing.
+* **Artifacts Synchronized:**
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§4 Real-World Diff Verification Lifecycle: expanded to 7-stage funnel with Stage 5 *User Visual Inspection via Monkey Patching* before Stage 6 *CDP Audit* and Stage 7 *Rollout*).
+  * Updated [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) (§2 Pre-Flight Quality Gates and §5 Checklist; verified at 96 lines `< 100`).
+
