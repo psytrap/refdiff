@@ -60,6 +60,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.15** | On-Wiki Tool Documentation Cleanup | Normal | 🔮 Future | TODO: Clean up on-wiki documentation (userbox transclusion syntax, redlink pruning, test coverage count) |
 | **R.16** | Meta Documentation Sync / Soft Redirect | Normal | 🔮 Future | TODO: Update `m:User:Powercycler/RefDiff` (set soft redirect to en.WP lead docs or synchronize full content) |
 | **R.17** | Streamline Rollout & Version Bump Automation | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump automation, and on-wiki publishing scripts |
+| **R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -118,6 +119,12 @@ This log records the rationale, architectural decisions, completed milestones, a
     2. **Version Bump Automation:** Streamline `scripts/bump_version.js` to cleanly support the two-phase cadence (pre-flight patch bump vs post-shipment minor bump), automatic git tag movement, and manifest synchronization without manual tag drift.
     3. **Payload Generation & Staging:** Automate clipboard or staging file generation for on-wiki update targets (Meta script lead, en.WP SHA pointer snippet, doc lead wikitext, userbox wikitext), accounting for MediaWiki textarea newline-stripping behavior.
     4. **Post-Shipment Finalization:** Provide a 1-step post-shipment command that runs `check_live_deployment.js`, verifies 100% sync, prompts for minor version bump, and prepares the next development iteration.
+- [ ] **Step R.18: Automated Showcase Test in Rollout Protocol (Tier 1 — Normal)**
+  * **TODO:** Integrate formal showcase diff verification into the rollout protocol and deployment auditor:
+    1. **Leverage Canonical Test Fixtures:** Reconcile on-wiki showcase diff `m:User:Powercycler/RefDiff/Show_case` (`diff=31142550&oldid=31142549`) with its canonical local wikitext sources in [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki).
+    2. **Auditor Target Integration (`scripts/check_live_deployment.js`):** Add the Showcase diff page to `check_live_deployment.js` to automatically verify remote page availability, revision IDs (`31142550` vs `31142549`), and diff API health during post-shipment verification.
+    3. **Automated Live Smoke Test Gate:** Include a live CDP smoke test verifying that RefDiff boots and decouples citations across all 5 showcase change sections (modified, shortened footnote, pure add, pure del, template variations) as an automated gate in the rollout runbook.
+    4. **Documentation Parity:** Verify showcase diff links across `refdiff.wiki`, infoboxes, and English Wikipedia documentation resolve cleanly to the authoritative showcase diff revision.
 
 ##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
@@ -1607,6 +1614,21 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.17).
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Tracked TODO for Automated Showcase Test in Rollout Protocol
+
+* **Context & Issue Description:**
+  * Recorded a formal tracking item and TODO (Step R.18) for incorporating the reference Showcase diff (`m:User:Powercycler/RefDiff/Show_case` / `diff=31142550`) into automated rollout testing and the deployment auditor.
+  * The canonical wikitext for the showcase diff is already tracked locally in [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) (Rev 31142549) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki) (Rev 31142550), but the live on-wiki showcase verification was omitted from the automated rollout pipeline:
+    1. **Auditor Endpoint Integration:** Incorporate `m:User:Powercycler/RefDiff/Show_case` into `scripts/check_live_deployment.js` to audit page availability and diff revision integrity during post-shipment verification.
+    2. **Automated Rollout Pre-Flight Smoke Test:** Verify RefDiff boots and decouples citations cleanly on the live showcase diff as part of automated pre-flight quality gates.
+    3. **Cross-Wiki Link Integrity:** Ensure showcase diff links in documentation leads (`en:User:Powercycler/RefDiff`) resolve seamlessly.
+* **Artifacts Synchronized:**
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.18).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
 
 
 
