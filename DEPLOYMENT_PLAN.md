@@ -30,7 +30,7 @@ npm run ci && node tests/test_deployment.js  # Headless unit, real DOM & pre-fli
 npm run test:live                           # Level 4: Live browser CDP integration (port 9222)
 npm run check:deploy                        # Live on-wiki deployment audit across Wikimedia APIs
 ```
-- **Diff Review Hygiene:** Verified according to [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, synced metrics, concise hunks via `git diff --stat && git diff`).
+- **Uprev Cadence & Diff Audit:** Enforce smaller, focused changes between uprevs (no monolithic diffs); every uprev strictly triggers a formal diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
 - **Headless Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
 - **Deployment Pre-Flight:** 10 gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync (`1.3.0`), size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
@@ -44,7 +44,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 ## 3. Rollout Rings
 
 ### Ring 0: Local Verification (Cleared)
-- Clean working tree & version `1.3.0` sync; quick diff audit cleared per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, metric sync, concise hunks).
+- Clean working tree, small incremental scope & version `1.3.0` sync; uprev-triggered diff audit cleared per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene) (zero debris, complete cleanups, metric sync, concise hunks).
 - All 10 pre-flight gates and Level 2–4 verified per [`AUDIT_STRATEGY.md` (§5)](AUDIT_STRATEGY.md#5-continuous-quality-gates--enforcement) (JSDOM, sub-50ms benchmarks, live CDP suite).
 - Release tag: `git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`.
 
@@ -86,7 +86,7 @@ npm run check:deploy                        # Live on-wiki deployment audit acro
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight:** Quick diff review (`git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
+- [ ] **Pre-Flight (Uprev Diff Audit):** Scoped small change; run uprev-triggered diff audit (`git diff --stat && git diff`), `npm run ci && node tests/test_deployment.js` (115 tests, 10 gates) & `npm run test:live` (CDP suite).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
 - [ ] **Canary Verification:** Publish `refdiff-canary.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (canonical production release).

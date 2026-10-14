@@ -1164,6 +1164,22 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.7 Adoption & Scaling Policy).
   * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 3 Gadget Candidacy anchor & text).
 
+---
+
+### 2026-10-14: Enforced Incremental Uprev Cadence & Mandatory Uprev Diff Audit Trigger
+
+* **Context & Architectural Refinement:**
+  * Adopted policy requiring smaller, single-focus changes between version uprevs (no monolithic diffs) to prevent reviewer fatigue and ensure rapid, error-free diff verification.
+  * Formally established that every version uprev (`package.json`, `refdiff.js`, UserScript header) strictly triggers a mandatory diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.8 before any ring progression.
+* **Key Provisions & Invariants:**
+  * *Small Change Batches:* Increments between version bumps must maintain a small, auditable footprint.
+  * *Uprev Triggers Audit:* Every version bump automatically invokes the 4-point diff audit invariant checklist (zero debris, complete cleanups, synchronized metrics, concise hunks).
+* **Artifacts Synchronized:**
+  * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2 Pre-Flight Gates, §3 Ring 0, §5 Runbook Checklist).
+  * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.8 Uprev Cadence & Mandatory Diff Audit Trigger, §5 Quality Gates).
+  * Updated [`tests/test_deployment.js`](tests/test_deployment.js) with automated assertion verifying uprev policy enforcement.
+
+
 
 
 

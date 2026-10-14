@@ -276,6 +276,10 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     // 6. Outreach discussion destination consistency
     const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';
     assert.strictEqual(deployPlanContent.includes(canonicalTalkTarget), true, `DEPLOYMENT_PLAN.md must list ${canonicalTalkTarget}`);
+
+    // 7. Uprev cadence & diff audit trigger policy
+    assert.strictEqual(deployPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'DEPLOYMENT_PLAN.md must enforce uprev cadence and diff audit policy');
+    assert.strictEqual(deployPlanContent.includes('smaller, focused changes between uprevs'), true, 'DEPLOYMENT_PLAN.md must require small changes between uprevs');
   });
 });
 

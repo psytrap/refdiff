@@ -172,6 +172,12 @@ git status --short
 > [!TIP]
 > **Case Study in Incomplete Cleanups:** During the v1.3.0 audit, a quick `git diff` review revealed that while the `archive/` prototype directory was deleted, four documentation files still referenced dead `archive/python-prototype/` links, and two tables listed 113 instead of 115 tests. Running the `git diff` quick review protocol eliminated these discrepancies before release tagging.
 
+#### Uprev Cadence & Mandatory Diff Audit Trigger
+
+To ensure diff reviews remain fast, high-confidence, and zero-defect, all future releases enforce two core policies:
+1. **Smaller Changes Between Uprevs:** Version bumps (patch, minor) must be scoped to small, single-focus increments rather than massive, monolithic changesets. Small batches prevent reviewer fatigue, keep hunks immediately comprehensible, and make regressions straightforward to isolate.
+2. **Uprev Triggers Diff Audit:** Every version bump (`package.json`, `refdiff.js`, UserScript header) strictly triggers the mandatory `git diff --stat && git diff` audit before advancing through the rollout rings in [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md).
+
 ---
 
 ## 3. Pillar 2: Editorial Review & Source Auditing Playbook
@@ -244,7 +250,7 @@ All criteria must pass before merging or tagging releases:
 | **Clean Code & Test Smells** | **AAA pattern, descriptive assertions, 0 global leaks** | `npm test && npm run lint` |
 | **Deployment Pre-Flight** | **10 checks: zero BOM, nowiki, version sync, rollback, deployment consistency** | `node tests/test_deployment.js` |
 | **Live On-Wiki Deployment** | **All release targets verified & synchronized across Wikimedia APIs** | `npm run check:deploy` |
-| **Diff Review Hygiene** | **Zero debris, no orphaned references, concise hunks, synchronized metrics** | `git diff --stat && git diff` |
+| **Uprev Diff Audit Gate** | **Small changes between uprevs; zero debris, no orphaned references, concise hunks** | `git diff --stat && git diff` |
 | **CI Execution Budget** | **< 250 ms across all 15 test suites** | `npm run ci` |
 | **Stress Benchmark Budget** | **< 50 ms on 114-reference table** | `node tests/test_benchmarks.js` |
 | **DOM Memento Invariance** | **Byte-for-byte table restoration** | `node tests/test_jsdom.js` |
