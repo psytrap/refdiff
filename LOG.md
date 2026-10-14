@@ -14,6 +14,8 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 📝 **[POST.md](proposal/POST.md):** Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
   * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, real DOM test framework, and editorial review strategy.
   * 🧪 **[TEST_PLAN.md](TEST_PLAN.md):** Test pyramid, 1-to-1 modular suite architecture, and quality assurance framework.
+  * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
+  * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Wikipedia user pages.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
 ---
@@ -702,6 +704,28 @@ This register serves as the authoritative system of record for all real-world Wi
   * Added regression tests in `tests/test_parser.js` (embedded apostrophes in double quotes, embedded double quotes in single quotes), `tests/test_anchor.js` (space-to-underscore anchor discovery), and `tests/test_jsdom.js` (real DOM decoupling and byte-for-byte Memento restoration).
   * Test suite expanded from 99 to **103/103 passing tests** (0 warnings, ~250ms).
   * `Bihar Legislative Assembly` (`diff=1379207737`) marked as **Verified** in `TEST_PLAN.md` and `LOG.md`.
+
+---
+
+### 2026-10-14: Wikipedia Userbox Template (`userbox.wiki` & `refdiff.wiki`)
+
+* **Context & Motivation:**
+  * Provided an official Wikipedia userbox template (`{{User:Powercycler/User RefDiff}}`) enabling Wikipedia editors and patrollers to identify themselves on their user pages, declare that they use RefDiff to combat template camouflage, and spread awareness within the community.
+* **Architectural & Design Implementation:**
+  * **Userbox Template Definition (`userbox.wiki`):**
+    * Uses Wikipedia's standard meta-template `{{Userbox}}`.
+    * Default styling features RefDiff's signature amber modified citation badge `<span style="font-family: monospace; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px;">⟨~ref~⟩</span>` with warm ivory background (`#fffdf0`) and amber border (`#d4a017`).
+    * Configurable parameters: `|badge=` (or `|1=`), `|border-c=`, `|id-c=`, `|id-fc=`, `|info-c=`, `|info-fc=`, `|info=`, `|link=`, and `|nocat=`.
+    * Automatic categorization into `[[:Category:Wikipedians who use RefDiff]]` (suppressible via `|nocat=yes`).
+    * Standalone pure-HTML table fallback included for wikis lacking the `{{Userbox}}` meta-template.
+  * **On-Wiki Documentation Integration (`refdiff.wiki`):**
+    * Added `== Userbox ==` section immediately following `== Installation ==` with live visual previews, wikitext copy-paste snippets, and alternative badge configurations (Amber `⟨~ref~⟩`, Minimalist `⟨ref⟩`, Toolbar `⧉ RefDiff`).
+    * Cross-linked `User:Powercycler/User RefDiff` in the `== See Also ==` index.
+  * **Repository & Index Updates:**
+    * Documented userbox installation and linked `userbox.wiki` in `README.md` and `LOG.md` Core Artifacts.
+* **Verification & Results:**
+    * Ready for deployment on enwiki and Meta-Wiki. All 103 test cases pass with 0 ESLint warnings.
+
 
 
 

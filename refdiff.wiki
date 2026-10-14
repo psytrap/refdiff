@@ -129,6 +129,86 @@ mw.loader.load('//meta.wikimedia.org/w/index.php?title=User:' + encodeURICompone
 
 Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
 
+== Userbox ==
+
+Users of RefDiff can identify themselves and spread awareness by adding a userbox to their Wikipedia user page:
+
+=== Usage ===
+Add the following wikitext to your user page (e.g. inside a {{tlx|Userboxtop}} stack or standalone):
+
+<syntaxhighlight lang="wikitext">
+{{User:Powercycler/User RefDiff}}
+</syntaxhighlight>
+
+=== Visual Appearance ===
+
+{| class="wikitable" style="background: transparent; border: none; margin: 1em 0;"
+|-
+| {{Userbox
+| border-c = #d4a017
+| border-s = 1
+| id-c     = #fffdf0
+| id-fc    = #9a6700
+| id-s     = 11
+| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
+| info-c   = #ffffff
+| info-fc  = #202122
+| info-s   = 8
+| info-lh  = 1.25em
+| info     = This user reviews diffs and combats [[WP:CAMOUFLAGE|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
+| nocat    = yes
+}}
+|}
+
+=== Customization Options ===
+
+The userbox supports customizable badge symbols, color palettes, and parameters:
+
+{| class="wikitable"
+! Wikitext !! Rendered Userbox !! Description
+|-
+| {{mono|<nowiki>{{User:Powercycler/User RefDiff}}</nowiki>}}
+| {{Userbox
+| border-c = #d4a017
+| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #9a6700; background: rgba(255, 215, 0, 0.25); border: 1px solid rgba(218, 165, 32, 0.5); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
+| id-c     = #fffdf0
+| info     = This user reviews diffs and combats [[WP:CAMOUFLAGE|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
+| nocat    = yes
+}}
+| '''Default:''' Amber modified badge ({{mono|⟨~ref~⟩}}) representing citation decoupling in diffs.
+|-
+| {{mono|<nowiki>{{User:Powercycler/User RefDiff|badge=⟨ref⟩|border-c=#3366cc|id-c=#f0f4fc|id-fc=#3366cc}}</nowiki>}}
+| {{Userbox
+| border-c = #3366cc
+| id       = <span style="font-family: monospace, 'Courier New', Courier; font-size: 1.15em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 4px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
+| id-c     = #f0f4fc
+| info     = This user reviews diffs and combats [[WP:CAMOUFLAGE|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
+| nocat    = yes
+}}
+| '''Minimalist Prose Badge:''' Neutral blue angle bracket badge.
+|-
+| {{mono|<nowiki>{{User:Powercycler/User RefDiff|badge=⧉ RefDiff|border-c=#3366cc|id-c=#eaf3ff|id-fc=#3366cc}}</nowiki>}}
+| {{Userbox
+| border-c = #3366cc
+| id       = <span style="font-size: 1.05em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>
+| id-c     = #eaf3ff
+| info     = This user reviews diffs and combats [[WP:CAMOUFLAGE|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
+| nocat    = yes
+}}
+| '''Toolbar Mode Icon:''' Matches the OOUI diff toolbar button.
+|}
+
+* '''Parameters:'''
+** {{mono|badge}} (or {{mono|1}}): Badge icon/text in the left box (default: {{mono|⟨~ref~⟩}}).
+** {{mono|border-c}}: Outer border color (default: {{mono|#d4a017}}).
+** {{mono|id-c}}: Left icon box background color (default: {{mono|#fffdf0}}).
+** {{mono|id-fc}}: Left icon box text color (default: {{mono|#9a6700}}).
+** {{mono|info-c}}: Right info box background color (default: {{mono|#ffffff}}).
+** {{mono|info-fc}}: Right info box text color (default: {{mono|#202122}}).
+** {{mono|info}}: Custom message text.
+** {{mono|link}}: Target documentation page (default: {{mono|User:Powercycler/RefDiff}}).
+** {{mono|nocat}}: Set to {{mono|yes}} to prevent automatically adding your page to [[:Category:Wikipedians who use RefDiff]].
+
 == UI Controls & Mode Switching ==
 
 === Native OOUI Mode Switcher ===
@@ -270,6 +350,7 @@ RefDiff is part of a broader ecosystem for citation management:
 
 == See Also ==
 * [[/Show case|/Show case]] – Live showcase diff page
+* [[User:Powercycler/User RefDiff]] – Official userbox template for Wikipedian user pages
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
 * [[:en:User:Cacycle/wikEdDiff|User:Cacycle/wikEdDiff]] – Improved inline diff engine with syntax highlighting and moved-text detection
