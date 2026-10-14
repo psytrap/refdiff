@@ -1170,13 +1170,11 @@
 
     if (mc.isAdd) {
       const badgeNode = createProseBadgeElement('add', mc.label, badgeHref);
-      let insNode = null;
       const cleanContent = mc.newRaw ? mc.newRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
+      addDiv = el('div', null, badgeNode, ' ');
       if (cleanContent) {
-        insNode = el('ins', { class: `${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}` });
-        appendHtmlChildren(insNode, cleanContent);
+        appendHtmlChildren(addDiv, cleanContent);
       }
-      addDiv = el('div', null, badgeNode, ' ', insNode);
 
       const tdEmpty = el('td', { class: `${CLASSES.DIFF_EMPTY} ${CLASSES.DIFF_SIDE_DELETED}`, colspan: '2' });
       const tdMarkerAdd = el('td', { class: 'diff-marker', 'data-marker': '+' });
@@ -1191,13 +1189,11 @@
       }
     } else if (mc.isDel) {
       const badgeNode = createProseBadgeElement('del', mc.label, null);
-      let delNode = null;
       const cleanContent = mc.oldRaw ? mc.oldRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
+      delDiv = el('div', null, badgeNode, ' ');
       if (cleanContent) {
-        delNode = el('del', { class: `${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}` });
-        appendHtmlChildren(delNode, cleanContent);
+        appendHtmlChildren(delDiv, cleanContent);
       }
-      delDiv = el('div', null, badgeNode, ' ', delNode);
 
       const tdMarkerDel = el('td', { class: 'diff-marker', 'data-marker': '−' });
       const tdDel = el('td', {
