@@ -89,6 +89,6 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 - [ ] **Publish Lead Docs (en.WP):** Update `en:User:Powercycler/RefDiff` (en.WP leads docs) & Meta redirect.
 - [ ] **Publish Userbox:** Create `Template:User RefDiff` (+ `/doc`) on en.WP.
 - [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; verify diffs on en.WP.
-- [ ] **TODO (Tool Compatibility):** Check Twinkle and Ultraviolet compatibility on live en.WP diffs.
+- [ ] **Tool Compatibility:** Check Twinkle and Ultraviolet compatibility on live en.WP diffs.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.
 - [ ] **Post-Shipment Feature Uprev (Final Step):** Execute feature uprev bump (`node scripts/bump_version.js minor` or `major`) as the final step only when pre-flight was completed, shipment is verified live (`npm run check:deploy`), and feature work is completed with user review.

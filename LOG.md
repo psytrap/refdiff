@@ -63,6 +63,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **R.2** | Dynamic AJAX / SPA Re-entrancy | High | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
 | **R.3** | Tool Non-Interference (Twinkle & Ultraviolet) | High | 🔮 Future | TODO: Check Twinkle rollback buttons and Ultraviolet CVPI overlay compatibility |
+| **R.10** | Regex Reevaluation & Parser Architecture | High | 🔮 Future | TODO: Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth and token scanner alternatives |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 
 ##### Tier 3: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
@@ -98,6 +99,9 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.4: Client-Side Observability & Diagnostic Troubleshooting Mode (Tier 2 — Normal)**
   * Implement opt-in diagnostic logging enabled via URL parameter `?refdiff_debug=1` or `window.refdiffConfig = { debug: true }`.
   * Provide structured diagnostic output (`mw.log.warn` / `console.debug`) detailing revision ID, parsed reference count, paired slots, and execution timings without polluting standard production console.
+- [ ] **Step R.10: Regex Reevaluation & Parser Architecture (Tier 2 — High)**
+  * **TODO:** Reevaluate regexes across `refdiff.js` (`REF_REGEX` and `TEMPLATE_REF_REGEX`).
+  * Audit lookahead bounds, nesting limits on footnote/citation templates, catastrophic backtracking resilience, and evaluate dedicated token-scanner or parser-generator alternatives.
 
 ##### Tier 3 Action Items: Beyond 50-User Goal (Mass Scale, Default Gadget & Multi-Platform)
 - [ ] **Step R.5: Accessibility (WCAG 2.1 AA) & Keyboard Navigation (Tier 3 — Beyond 50 Users)**
@@ -1334,12 +1338,18 @@ This register serves as the authoritative system of record for all real-world Wi
   * Updated [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) (§2.8 Two-Phase Version Strategy).
   * Maintained 115/115 passing tests and 10/10 deployment pre-flight gates with 0 lint warnings.
 
+---
 
+### 2026-10-14: Tracked TODO for Regex Reevaluation and Parser Architecture Hardening
 
-
-
-
-
-
-
-
+* **Context & Architectural Scope:**
+  * Added formal tracking item and roadmap entry to reevaluate the core regular expressions in [`refdiff.js`](refdiff.js) (`REF_REGEX` and `TEMPLATE_REF_REGEX`).
+  * Addressed future scalability and robustness concerns regarding:
+    1. **Nesting Depth & Recursion:** Handling arbitrarily nested templates (e.g. `{{efn}}` wrapping complex `{{cite web}}` and `{{cite book}}` transclusions).
+    2. **Catastrophic Backtracking Resilience:** Guarding against ReDoS edge-cases in user-supplied or malicious wikitext diffs.
+    3. **Token Scanner Alternative:** Benchmarking current regex-based parsing against a lightweight, linear-time tokenizer / scanner architecture.
+* **Artifacts Synchronized:**
+  * Updated [`refdiff.js`](refdiff.js) (added TODO comment at regex definitions).
+  * Updated [`TEST_PLAN.md`](TEST_PLAN.md) (§5 Future Test Expansion Roadmap).
+  * Updated [`LOG.md`](LOG.md) (§2.1 Dashboard & Action Item Step R.10).
+  * Removed operational TODOs from [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) to keep checklist strictly focused on rollout steps (verified at 93 lines `< 100`).
