@@ -1,7 +1,7 @@
 # RefDiff: Deployment Plan
 
 > **Version:** 1.3.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
-> **Target:** English Wikipedia (`enwiki`), Meta-Wiki (`metawiki`) &bull; **CI Status:** 111/111 passing, 0 lint warnings
+> **Target:** English Wikipedia (`enwiki`), Meta-Wiki (`metawiki`) &bull; **CI Status:** 113/113 passing, 0 lint warnings
 
 ---
 
@@ -26,7 +26,7 @@ All checks must pass before release:
 npm run ci && node tests/test_deployment.js
 ```
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
-- **Test Suite:** 111/111 passing tests across 15 modular suites in < 250ms (`npm test`).
+- **Test Suite:** 113/113 passing tests across 15 modular suites in < 250ms (`npm test`).
 - **Deployment Pre-Flight:** 8 automated checks (`node tests/test_deployment.js`):
   Zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM compilation, version sync (`1.3.0`), bundle size < 120 KB, balanced userbox wikitext tags.
 - **Performance Budget:** < 50ms processing on 114-reference diffs (`test_benchmarks.js`).

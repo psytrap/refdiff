@@ -155,6 +155,19 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     assert.strictEqual(refs.length, 1, 'Only <ref> should be parsed, not {{rp}}');
     assert.strictEqual(refs[0].name, 'book', 'Parsed citation name should be book');
   });
+
+  test('parseRefs ignores unclosed <ref> tags and protects subsequent valid citations from being swallowed', () => {
+    const textWithUnclosed = 'Intro &lt;ref&gt;This citation is unclosed and has no end tag. Sentence two &lt;ref name="valid"&gt;Valid cite&lt;/ref&gt; trailing text.';
+    const refs = parseRefs(textWithUnclosed);
+
+    assert.strictEqual(refs.length, 1, 'Only the subsequent valid reference should be extracted');
+    assert.strictEqual(refs[0].name, 'valid', 'Extracted reference should be the valid citation');
+    assert.strictEqual(refs[0].content, 'Valid cite', 'Content should match the valid citation');
+
+    const pureUnclosed = 'Pure unclosed &lt;ref name="broken"&gt;no closing tag anywhere in line';
+    const noRefs = parseRefs(pureUnclosed);
+    assert.strictEqual(noRefs.length, 0, 'Unclosed reference without closing tag must return zero parsed refs');
+  });
 });
 
 if (require.main === module) {

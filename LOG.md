@@ -853,6 +853,24 @@ This register serves as the authoritative system of record for all real-world Wi
   * *Graduation Gate:* 7 days with zero P0/P1 defects across $\ge 50$ real diff reviews required to promote beta to production.
   * *Checklist Synchronization:* Added beta channel publishing step to the Operator Deployment Runbook.
 
+---
+
+### 2026-10-14: Verification of Unclosed `<ref>` Tag Invariance (Suite Expanded to 113 Tests)
+
+* **Context & Audit Query:**
+  * Analyzed whether malformed/unclosed `<ref>` tags (e.g. `&lt;ref&gt;unclosed text...` without matching closing tag) are safely handled and whether they could inadvertently swallow subsequent valid citations.
+* **Architectural Mechanics & Verification:**
+  1. *Parser Invariant:* `REF_REGEX` requires either `\/&gt;` or `&gt;((?:(?!&lt;ref\b)[\s\S])*?)&lt;\/ref&gt;`. An unclosed `<ref>` tag fails the regex match and is safely bypassed by `parseRefs()`.
+  2. *Swallow Prevention:* The negative lookahead `(?:(?!&lt;ref\b)[\s\S])*?` ensures that an unclosed `<ref>` tag cannot cross over and swallow subsequent `<ref>` tags on the same line.
+  3. *In-Situ Prose Retention:* In `transformProseCells()`, unmatched wikitext is never modified or removed. Unclosed `<ref>` tags gracefully remain in-situ in the prose diff cell with native MediaWiki highlights.
+* **Automated Regression Locking:**
+  * Added test in `tests/test_parser.js`: `parseRefs ignores unclosed <ref> tags and protects subsequent valid citations from being swallowed`.
+  * Added test in `tests/test_pipeline.js`: `transformProseCells leaves unclosed <ref> tags gracefully in-situ in prose`.
+* **Metrics Synchronization:**
+  * Test suite expanded from 111 to **113/113 passing tests** across **15 modular test files** (0 ESLint warnings, ~250ms).
+  * Synchronized metrics across `ARCHITECTURE.md`, `AUDIT_STRATEGY.md`, `DEPLOYMENT_PLAN.md`, `README.md`, `TEST_PLAN.md`, and `refdiff.wiki`.
+
+
 
 
 

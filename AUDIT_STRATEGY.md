@@ -181,7 +181,7 @@ All criteria must pass before merging or tagging releases:
 
 | Quality Gate | Invariant / Threshold | Verification Command |
 |:---|:---|:---|
-| **Test Suite Pass Rate** | **111 / 111 passing tests across 15 suites** | `npm test` |
+| **Test Suite Pass Rate** | **113 / 113 passing tests across 15 suites** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 ESLint warnings** | `npm run lint` |
 | **Clean Code & Test Smells** | **AAA pattern, descriptive assertions, 0 global leaks** | `npm test && npm run lint` |
 | **Deployment Pre-Flight** | **Zero BOM, nowiki boundaries, version sync, API surface** | `node tests/test_deployment.js` |

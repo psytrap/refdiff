@@ -407,7 +407,7 @@ While RefDiff addresses citation camouflage during **revision diff review** (`Sp
 RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification and [**AUDIT_STRATEGY.md**](AUDIT_STRATEGY.md) for the quality taxonomy and editorial audit strategy):
 
 1. **Modular Unit, Component & Real DOM Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **111 tests** (100% headless function & DOM integration coverage) across **15 modular test files** covering virtual modules, real DOM integration, and deployment pre-flight checks.
+   * **113 tests** (100% headless function & DOM integration coverage) across **15 modular test files** covering virtual modules, real DOM integration, and deployment pre-flight checks.
    * Fast execution budget: entire suite executes in **~250 ms** via `node tests/runner.js` (`npm test`).
    * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js`, `node tests/test_pairing.js`, or `node tests/test_jsdom.js`).
    * **Mock & JSDOM Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures, supplemented by `tests/test_jsdom.js` running against real MediaWiki diff fixtures.

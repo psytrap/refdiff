@@ -452,6 +452,25 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     assert.strictEqual(result.newAddHtml.includes('~546~'), false, 'Must not contain spurious 546 modified badge');
     assert.strictEqual(result.modifiedCits.length, 0, 'No spurious modified citation rows should be created');
   });
+
+  test('transformProseCells leaves unclosed <ref> tags gracefully in-situ in prose', () => {
+    const delHtml = 'Line with &lt;ref&gt;unclosed citation in old prose';
+    const addHtml = 'Line with &lt;ref&gt;unclosed citation in new prose &lt;ref name="cite1"&gt;Valid new cite&lt;/ref&gt;';
+    const delRefs = parseRefs(delHtml);
+    const addRefs = parseRefs(addHtml);
+
+    assert.strictEqual(delRefs.length, 0, 'Unclosed ref in deleted line should produce 0 parsed refs');
+    assert.strictEqual(addRefs.length, 1, 'Only valid ref in added line should be parsed');
+
+    const pairs = pairReferences(delRefs, addRefs);
+    const result = transformProseCells(delHtml, addHtml, pairs, 1);
+
+    assert.strictEqual(result.newDelHtml.includes('&lt;ref&gt;unclosed citation in old prose'), true, 'Unclosed ref must remain in-situ in deleted line');
+    assert.strictEqual(result.newAddHtml.includes('&lt;ref&gt;unclosed citation in new prose'), true, 'Unclosed ref must remain in-situ in added line');
+    assert.strictEqual(result.newAddHtml.includes('⟨+cite1+⟩'), true, 'Valid reference must receive added badge');
+    assert.strictEqual(result.modifiedCits.length, 1, 'Only the valid added reference should produce a citation row');
+    assert.strictEqual(result.modifiedCits[0].label, 'cite1');
+  });
 });
 
 if (require.main === module) {
