@@ -26,7 +26,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 ### 2.1 RefDiff Tool Roadmap (Active In-Browser Gadget)
 
-*Focus: Immediate client-side diff enhancement on `Special:Diff`, 100-user production readiness, patrol tool non-interference, and on-wiki rollout.*
+*Focus: Immediate client-side diff enhancement on `Special:Diff`, 10-user adoption goal, patrol tool non-interference, and on-wiki rollout.*
 
 #### RefDiff Checklist & Status Dashboard
 
@@ -36,7 +36,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **R.8** | On-Wiki Phased Deployment (Rings 0–3) | **P0** | 🚀 **In Progress** | Execute [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (Ring 0 cleared, Ring 1 Canary next) |
 
-##### Optional / Future Enhancements (Post-v1.3.0 / 100-User Scale)
+##### Optional / Future Enhancements (Post-v1.3.0 / 10-User Goal)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
@@ -46,7 +46,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.4** | Client-Side Observability Mode | Optional | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
 | **R.5** | Accessibility (WCAG 2.1 AA) | Optional | 🔮 Future | Semantic `aria-label`, keyboard focus navigation, contrast ratio validation |
 | **R.6** | Legacy Skins & Mobile Guard | Optional | 🔮 Future | Vector 2010 fallback bar & graceful Minerva mobile auto-disable |
-| **R.7** | Production Governance Policy | Optional | 🔮 Future | Formalize 100-user readiness policy in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7 |
+| **R.7** | Production Governance Policy | Optional | 🔮 Future | Formalize 10-user adoption & stability policy in [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md) §2.7 |
 
 #### RefDiff Action Items (Detail)
 
@@ -54,7 +54,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
   * Follow [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) through Ring 0 (cleared), Ring 1 (Pinned Canary `refdiff-v1.3.0.js` on en.WP), Ring 2 (Production publish to `en:User:Powercycler/refdiff.js`), and Ring 3 (Community feedback).
 
-##### Optional / Future Action Items (Post-v1.3.0 / 100-User Scale)
+##### Optional / Future Action Items (Post-v1.3.0 / 10-User Goal)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Optional / Future)**
   * Wrap `init()` and table mutators in a top-level fail-open `try...catch` block.
   * Guarantee that unhandled runtime exceptions in RefDiff cleanly restore the native diff table and never bubble to `window.onerror` or abort subsequent scripts in `common.js` (e.g. Twinkle, HotCat).
@@ -75,7 +75,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * Add automated JSDOM test for legacy skins lacking OOUI button containers, verifying fallback mode bar (`#refdiff-mode-bar`) mounting.
   * Add graceful self-disablement invariant for single-column mobile viewports (`MinervaNeue`).
 - [ ] **Step R.7: Governance Policy in AUDIT_STRATEGY.md (Optional / Future)**
-  * Formalize these requirements in `AUDIT_STRATEGY.md` under §2.7 ("100-User Production Readiness & Fault-Tolerance Policy").
+  * Formalize these requirements in `AUDIT_STRATEGY.md` under §2.7 ("10-User Adoption & Stability Policy").
 
 ---
 
@@ -1032,3 +1032,20 @@ This register serves as the authoritative system of record for all real-world Wi
 * **Artifacts Synchronized:**
   * Updated [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§1 Table 1, §3 Rings 1–2, §4 Rollback, §5 Runbook Checklist).
   * Updated [`refdiff.wiki`](refdiff.wiki) to load directly from `en.wikipedia.org` in primary installation snippet.
+
+---
+
+### 2026-10-14: Automated Deployment Consistency Quality Gate & 10-User Adoption Goal
+
+* **Context & Motivation:**
+  * Adopted a realistic **10-user adoption goal** for the post-v1.3.0 roadmap (monitoring active transclusions of `Template:User RefDiff`), replacing premature 100-user scaling targets.
+  * Added an automated pre-flight quality check directly verifying **Deployment Consistency** across all repository release artifacts, target destinations, and script loader URLs.
+* **Automated Invariant Assertions (`tests/test_deployment.js`):**
+  * *Artifact Inventory Existence:* Asserts all 5 release artifacts (`refdiff.js`, `refdiff.wiki`, `userbox_enwiki.wiki`, `DEPLOYMENT_PLAN.md`, `proposal/POST.md`) exist on disk and are non-empty.
+  * *Version Consistency:* Asserts release version (`1.3.0`) matches across `package.json`, `DEPLOYMENT_PLAN.md`, canary filename (`refdiff-v1.3.0.js`), `refdiff.js`, and `refdiff.wiki`.
+  * *Destination & URL Consistency:* Asserts canonical script target (`en:User:Powercycler/refdiff.js`), documentation (`en:User:Powercycler/RefDiff`), userbox (`en:Template:User RefDiff`), and talk page (`en:User talk:Powercycler/RefDiff`) are identically and consistently cross-referenced across all release docs and loader stubs.
+* **Metrics & Ledger Synchronization:**
+  * Pre-flight deployment gates expanded from 9 to **10 automated checks** (`node tests/test_deployment.js`).
+  * Test suite expanded from 114 to **115/115 passing tests** across 15 modular test files (0 ESLint warnings, ~250ms).
+  * Synchronized [`DEPLOYMENT_PLAN.md`](DEPLOYMENT_PLAN.md) (§2, §5), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`README.md`](README.md), [`refdiff.wiki`](refdiff.wiki), and [`LOG.md`](LOG.md).
+

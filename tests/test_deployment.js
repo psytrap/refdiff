@@ -9,6 +9,7 @@
  *  - Public API contract and global namespace hygiene
  *  - On-wiki template syntax integrity (userbox.wiki, userbox_enwiki.wiki)
  *  - Automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual nodes, fail-open safety)
+ *  - Deployment consistency across all release artifacts, destinations, and loader URLs
  */
 
 const fs = require('fs');
@@ -223,6 +224,59 @@ suite('Deployment & Release Pre-Flight Checks', () => {
       global.window = origWindow;
       global.document = origDoc;
     }
+  });
+
+  test('validates deployment consistency: all artifacts, destinations, and loader URLs are synchronized', () => {
+    const deploymentPlanPath = path.join(rootDir, 'DEPLOYMENT_PLAN.md');
+    const postMdPath = path.join(rootDir, 'proposal', 'POST.md');
+
+    // 1. All deployment artifacts mapped in DEPLOYMENT_PLAN.md must exist on disk and be non-empty
+    const requiredArtifacts = [
+      { path: refdiffPath, name: 'refdiff.js' },
+      { path: refdiffWikiPath, name: 'refdiff.wiki' },
+      { path: userboxEnwikiPath, name: 'userbox_enwiki.wiki' },
+      { path: deploymentPlanPath, name: 'DEPLOYMENT_PLAN.md' },
+      { path: postMdPath, name: 'proposal/POST.md' }
+    ];
+
+    for (const art of requiredArtifacts) {
+      assert.strictEqual(fs.existsSync(art.path), true, `${art.name} must exist on disk`);
+      const stat = fs.statSync(art.path);
+      assert.ok(stat.size > 0, `${art.name} must not be empty`);
+    }
+
+    const deployPlanContent = fs.readFileSync(deploymentPlanPath, 'utf8');
+    const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
+    const userboxContent = fs.readFileSync(userboxEnwikiPath, 'utf8');
+
+    // 2. Version consistency across all release artifacts
+    const planVersionMatch = deployPlanContent.match(/\*\*Version:\*\*\s*([0-9]+\.[0-9]+\.[0-9]+)/);
+    assert.ok(planVersionMatch, 'DEPLOYMENT_PLAN.md must declare Version');
+    assert.strictEqual(planVersionMatch[1], pkg.version, 'DEPLOYMENT_PLAN.md version must match package.json');
+
+    const canaryMatch = deployPlanContent.match(/refdiff-v([0-9]+\.[0-9]+\.[0-9]+)\.js/);
+    assert.ok(canaryMatch, 'DEPLOYMENT_PLAN.md must declare canary script matching release version');
+    assert.strictEqual(canaryMatch[1], pkg.version, 'Canary script version must match package.json');
+
+    // 3. Canonical lead script destination consistency
+    const canonicalScriptTarget = 'en:User:Powercycler/refdiff.js';
+    assert.strictEqual(deployPlanContent.includes(canonicalScriptTarget), true, `DEPLOYMENT_PLAN.md must list canonical script target ${canonicalScriptTarget}`);
+    assert.strictEqual(wikiContent.includes('en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 1 must load from canonical script target on en.wikipedia.org');
+    assert.strictEqual(deployPlanContent.includes('title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript'), true, 'DEPLOYMENT_PLAN.md dummy loader must point to canonical en.WP script');
+
+    // 4. Documentation destination consistency
+    const canonicalDocTarget = 'en:User:Powercycler/RefDiff';
+    assert.strictEqual(deployPlanContent.includes(canonicalDocTarget), true, `DEPLOYMENT_PLAN.md must list canonical doc target ${canonicalDocTarget}`);
+    assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox_enwiki.wiki must link to canonical doc target');
+
+    // 5. Userbox template destination consistency
+    assert.strictEqual(deployPlanContent.includes('en:Template:User RefDiff'), true, 'DEPLOYMENT_PLAN.md must list en:Template:User RefDiff');
+    assert.strictEqual(userboxContent.includes('Template:User RefDiff'), true, 'userbox_enwiki.wiki doc must reference Template:User RefDiff');
+    assert.strictEqual(userboxContent.includes('{{User RefDiff}}'), true, 'userbox_enwiki.wiki doc must reference {{User RefDiff}}');
+
+    // 6. Outreach discussion destination consistency
+    const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';
+    assert.strictEqual(deployPlanContent.includes(canonicalTalkTarget), true, `DEPLOYMENT_PLAN.md must list ${canonicalTalkTarget}`);
   });
 });
 

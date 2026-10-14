@@ -2,7 +2,7 @@
 
 > **Version:** 1.3.0 &bull; **Status:** Ready for Release (Ring 0 Cleared)  
 > **Lead Target:** English Wikipedia (`enwiki`) &bull; **Secondary / Dummy:** Meta-Wiki (`metawiki`) (redirect / loader stub)  
-> **CI Status:** 114/114 passing, 0 lint warnings
+> **CI Status:** 115/115 passing, 0 lint warnings
 
 ---
 
@@ -28,9 +28,9 @@ All checks must pass before release:
 npm run ci && node tests/test_deployment.js
 ```
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
-- **Test Suite:** 114/114 passing tests across 15 modular suites in < 250ms (`npm test`).
-- **Deployment Pre-Flight:** 9 automated checks (`node tests/test_deployment.js`):
-  Zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM compilation, version sync (`1.3.0`), bundle size < 120 KB, balanced userbox wikitext tags, automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual citation rows, fail-open crash safety).
+- **Test Suite:** 115/115 passing tests across 15 modular suites in < 250ms (`npm test`).
+- **Deployment Pre-Flight:** 10 automated checks (`node tests/test_deployment.js`):
+  Zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM compilation, version sync (`1.3.0`), bundle size < 120 KB, balanced userbox wikitext tags, automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual citation rows, fail-open crash safety), and deployment consistency (artifacts, destinations, and loader URLs synchronized).
 - **Performance Budget:** < 50ms processing on 114-reference diffs (`test_benchmarks.js`).
 - **DOM Fidelity:** Byte-for-byte Memento restoration on authentic fixtures (`test_jsdom.js`).
 
@@ -78,7 +78,7 @@ npm run ci && node tests/test_deployment.js
 
 ## 5. Deployment Runbook Checklist
 
-- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` passes (9/9 pre-flight gates, 114/114 tests).
+- [ ] **Pre-Flight:** `npm run ci && node tests/test_deployment.js` passes (10/10 pre-flight gates, 115/115 tests).
 - [ ] **Git:** Tag release `v1.3.0` and push (`git tag -a v1.3.0 -m "Release v1.3.0" && git push origin v1.3.0`).
 - [ ] **Canary Verification:** Publish `refdiff-v1.3.0.js` on en.WP and verify 5 live benchmark diffs (Ring 1).
 - [ ] **Publish Lead Script:** Update `en:User:Powercycler/refdiff.js` (canonical production release).
