@@ -27,9 +27,9 @@ All checks must pass before release:
 node scripts/bump_version.js patch                # Patch uprev for pre-flight testing (feature uprev only after shipment)
 git diff --stat && git diff                       # Quick diff audit: zero debris & clean hunks (AUDIT_STRATEGY §2.8)
 npm run preflight                                 # Full pre-flight: CI, deployment gates, live CDP & benchmarks
-npm run check:deploy                            # Live on-wiki deployment audit across Wikimedia APIs
+npm run check:deploy                            # Post-shipment live audit across Wikimedia APIs (final verification)
 ```
-- **Two-Phase Version Strategy, Uprev Cadence & Diff Audit:** Versioning follows a strict two-phase cadence: (1) *Pre-Flight Testing:* execute a patch uprev (`node scripts/bump_version.js patch`) **only once during pre-flight** to validate the release candidate—feature uprevs are never performed during pre-flight; (2) *Post-Shipment:* execute a feature uprev (`node scripts/bump_version.js minor` or `major`) **then only after shipment** is verified live on Wikimedia (`npm run check:deploy`). Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); and ensure every uprev triggers a diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
+- **Two-Phase Version Strategy, Uprev Cadence & Diff Audit:** Versioning follows a strict two-phase cadence: (1) *Pre-Flight Testing:* execute a patch uprev (`node scripts/bump_version.js patch`) **only once during pre-flight** to validate the release candidate—feature uprevs are never performed during pre-flight; (2) *Post-Shipment Final Step:* execute the feature uprev bump (`node scripts/bump_version.js minor` or `major`) as the final step only when pre-flight was completed, on-wiki shipment is verified live (`npm run check:deploy`), and work on the feature is completed with user review. Before any deployment, assure a formal version uprev is executed across manifests; enforce smaller, focused changes between uprevs (no monolithic diffs); and ensure every uprev triggers a diff audit (`git diff --stat && git diff`) per [`AUDIT_STRATEGY.md` (§2.8)](AUDIT_STRATEGY.md#28-git-diff-as-quick-review-protocol-clean--complete-codebase-hygiene).
 - **Syntax & Style:** 0 ESLint errors/warnings (`npm run lint`).
 - **Headless Test Suite:** Complete unit & DOM test suite passing in < 250ms (`npm test`).
 - **Deployment Pre-Flight:** Automated release gates (`test_deployment.js`): zero BOM, strict `/* <nowiki> */`, zero `~~~~`/`{{subst:}}`, zero `console.log`, valid VM syntax, version sync across manifests, size < 120 KB, userbox tags, rollback Memento fidelity, and deployment consistency.
@@ -37,7 +37,7 @@ npm run check:deploy                            # Live on-wiki deployment audit 
 - **Stress & Benchmark Budget:** < 50ms processing on high-density reference fixtures (`test_benchmarks.js`).
 - **Mandatory Live CDP Invariant (Level 4):** We always run live browser CDP tests (`npm run test:live` via port 9222) before any update to `refdiff.js` to verify real DOM decoupling, OOUI mode switcher, Vector 2022 light/dark tokens, and `Extension:Popups` hovercards (`test_live_cdp.py`).
 - **Live Benchmark Monkey Patching (`npm run test:bench`):** We test canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400) directly in Chromium via CDP monkey patching before on-wiki deployment (`test_live_benchmarks.py`).
-- **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Remote SHA-1 & revision verification across Wikimedia APIs (`scripts/check_live_deployment.js`).
+- **Live On-Wiki Deployment Auditor (`npm run check:deploy`):** Final verification step: audits remote SHA-1 & revision parity across Wikimedia APIs (`scripts/check_live_deployment.js`) once shipment is complete.
 
 ---
 
@@ -62,7 +62,7 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 ### Ring 3: Community Feedback, Gadget Candidacy & Post-Shipment Feature Uprev
 - Post announcement on `en:User talk:Powercycler/RefDiff` using [`proposal/POST.md`](proposal/POST.md).
 - Follow scaling policy per [`AUDIT_STRATEGY.md` (§2.7)](AUDIT_STRATEGY.md#27-adoption--scaling-policy-10-user-pilot-50-user-gadget-milestone--beyond): Tier 1 pilot (10 users) followed by Tier 2 gadget candidacy (50-user reviewer milestone over 60 days).
-- **Post-Shipment Feature Uprev:** Once on-wiki rollout is completed and verified across all Wikimedia targets (`npm run check:deploy` passes), execute feature uprev bump (`node scripts/bump_version.js minor`, or `major`) to stamp the deployed milestone.
+- **Post-Shipment Feature Uprev (Final Step):** Executed as the final step only when pre-flight was completed, live on-wiki rollout is verified across all Wikimedia targets (`npm run check:deploy` passes), and work on the feature is completed with user review: execute feature uprev bump (`node scripts/bump_version.js minor` or `major`) to stamp the deployed milestone.
 
 ---
 
@@ -88,4 +88,4 @@ During deployment stages, no canary needed: we early test via `en:User:Powercycl
 - [ ] **Live Audit & Smoke Check:** `npm run check:deploy` passes; verify diffs on en.WP.
 - [ ] **TODO (Tool Compatibility):** Check Twinkle and Ultraviolet compatibility on live en.WP diffs.
 - [ ] **Outreach:** Post announcement and monitor feedback on `en:User talk:Powercycler/RefDiff`.
-- [ ] **Post-Shipment Feature Uprev (Ring 3):** Execute feature uprev bump (`node scripts/bump_version.js minor`, or `major`) then only after shipment across Wikimedia targets.
+- [ ] **Post-Shipment Feature Uprev (Final Step):** Execute feature uprev bump (`node scripts/bump_version.js minor` or `major`) as the final step only when pre-flight was completed, shipment is verified live (`npm run check:deploy`), and feature work is completed with user review.
