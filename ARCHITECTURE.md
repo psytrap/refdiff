@@ -137,17 +137,16 @@ RefDiff operates alongside MediaWiki's native Wikitext Diff and VisualEditor Vis
 ```mermaid
 stateDiagram-v2
     [*] --> Initializing: Page Loaded (table.diff detected)
-    Initializing --> WikitextMode: User Preference = false
-    Initializing --> RefDiffMode: User Preference = true (default)
+    Initializing --> VisualMode: isVisualDiffActive() == true (VE diff active)
+    Initializing --> WikitextMode: !isVisualDiffActive() && !isRefDiffPreferred()
+    Initializing --> RefDiffMode: !isVisualDiffActive() && isRefDiffPreferred()
 
-    WikitextMode --> RefDiffMode: User clicks [ ⧉ RefDiff ]
-    RefDiffMode --> WikitextMode: User clicks [ [[]] Wikitext ]
+    WikitextMode --> RefDiffMode: User clicks [ ⧉ RefDiff ] (Save: true)
+    RefDiffMode --> WikitextMode: User clicks [ [[]] Wikitext ] (Save: false)
     
-    RefDiffMode --> VisualMode: User clicks [ 👁 Visual ]
-    VisualMode --> RefDiffMode: User clicks [ ⧉ RefDiff ]
-    
-    WikitextMode --> VisualMode: User clicks [ 👁 Visual ]
-    VisualMode --> WikitextMode: User clicks [ [[]] Wikitext ]
+    RefDiffMode --> VisualMode: User clicks [ 👁 Visual ] (Save: false; Button disabled)
+    WikitextMode --> VisualMode: User clicks [ 👁 Visual ] (Save: false; Button disabled)
+    VisualMode --> WikitextMode: User clicks [ [[]] Wikitext ] (Save: false; Button enabled)
 
     state RefDiffMode {
         [*] --> CaptureSnapshots: Backup live row properties
@@ -165,13 +164,51 @@ stateDiagram-v2
     }
 
     state VisualMode {
-        [*] --> RestoreOriginal: Restore wikitext table
-        RestoreOriginal --> HideBodyRows: Add .oo-ui-element-hidden
-        HideBodyRows --> DelegateToVE: VisualEditor renders diff
+        [*] --> RestoreOriginal: Restore wikitext table cleanly (Memento)
+        RestoreOriginal --> VEDormant: RefDiff completely dormant (0 interference)
+        VEDormant --> DimButton: RefDiff button set to oo-ui-widget-disabled
+        DimButton --> VERender: VisualEditor renders Parsoid visual diff natively
     }
 ```
 
-### 3.2 Sequence: Transitioning from Wikitext to RefDiff and Back
+### 3.2 Visual Diff Isolation & Wikitext-First Activation Protocol
+
+To guarantee zero interference with VisualEditor while providing a predictable user experience, RefDiff enforces five core architectural principles:
+
+* **Wikitext-Only Scope:** RefDiff operates exclusively as a wikitext diff enhancer (`!isVisualDiffActive()`). In Visual Diff mode, RefDiff remains dormant with zero DOM mutations.
+* **Disabled in Visual Mode:** When Visual Diff mode is active, the RefDiff button is visually dimmed and made inert (`oo-ui-widget-disabled`, `aria-disabled="true"`, `tabindex="-1"`). Direct clicks on the disabled RefDiff button are halted with `stopPropagation()` and ignored.
+* **Predictable Two-Step Transition (Visual → Wikitext → RefDiff):** Reviewers wishing to inspect decoupled citations from Visual mode switch to native Wikitext diff first, which un-dims the RefDiff button and restores interactive decoupling.
+* **Deterministic Mode Memory:** Explicitly choosing Visual or Wikitext diff persists `refdiff-active: false` in user preferences and storage to prevent unexpected overrides on reload. Choosing RefDiff persists `true`.
+* **Clean Event Delegation:** Native VisualEditor controls bubble unhindered in standard event propagation; RefDiff isolates event interception strictly to `#refdiff-ooui-btn` in the capture phase.
+
+### 3.3 Sequence: Wikitext-First Transition from Visual to RefDiff
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Reviewer
+    participant VEBtn as OOUI [ [[]] Wikitext ]
+    participant RefBtn as OOUI [ ⧉ RefDiff ]
+    participant Coordinator as Mode Coordinator
+    participant VE as MediaWiki VisualEditor
+    participant Pipeline as RefDiff Pipeline
+    participant DOM as table.diff (DOM)
+
+    Note over Reviewer,DOM: Initial State: Visual Diff Active (.ve-ui-diffElement), RefDiff Dimmed & Disabled
+    Reviewer->>VEBtn: Click [ [[]] Wikitext ]
+    VEBtn->>VE: Switch to source diff mode
+    VE->>DOM: Hide .ve-ui-diffElement, display table.diff
+    Coordinator->>RefBtn: setRefDiffButtonDisabled(false) (Enabled, tabindex="0")
+    Note over Reviewer,DOM: State: Native Wikitext Active, RefDiff Ready
+    Reviewer->>RefBtn: Click [ ⧉ RefDiff ]
+    RefBtn->>Coordinator: selectMode('refdiff')
+    Coordinator->>Pipeline: applyDecoupling(table)
+    Pipeline->>DOM: Transform prose badges & insert citation rows
+    Coordinator->>DOM: Set [ ⧉ RefDiff ] active, [ [[]] Wikitext ] inactive
+    Note over Reviewer,DOM: Decoupled RefDiff active on wikitext table
+```
+
+### 3.4 Sequence: Transitioning between Wikitext and RefDiff
 
 ```mermaid
 sequenceDiagram
@@ -338,22 +375,44 @@ In earlier prototypes, unchanged reference badges were colored blue. Reviewers r
 
 ### 6.3 Interactive Reference Badges & Native Extension:Popups Integration
 
-RefDiff seamlessly bridges the diff table with Wikipedia's native reading infrastructure:
+RefDiff seamlessly bridges the diff table with Wikipedia's native reading infrastructure via a two-tier preview architecture:
 
 1. **Native Reference Previews (`Extension:Popups`):**
-   * Badges in the diff prose are wrapped in standard MediaWiki footnote markup:
+   * Badges with resolved live anchors are wrapped in standard MediaWiki footnote markup:
      ```html
      <sup class="reference refdiff-ref"><a href="#cite_note-name-num" class="ref-badge ...">⟨label⟩</a></sup>
      ```
    * RefDiff fires `mw.hook('wikipage.content').fire($(table))` upon rendering.
-   * As a result, hovering over any reference badge triggers Wikipedia's standard **Reference Preview hovercard (`ext.popups`)** completely out-of-the-box, displaying the full formatted citation card without requiring custom popup logic.
+   * As a result, hovering over any reference badge triggers Wikipedia's standard **Reference Preview hovercard (`ext.popups`)** completely out-of-the-box, displaying the full formatted citation card from Read mode. Native `title` tooltips are suppressed to eliminate visual collision.
 
 2. **Anchor Discovery Engine (`findCiteNoteAnchor`):**
-   * **Named Citations:** Automatically queries the live article preview below the diff for `[id^="cite_note-${name}-"]` or `[id="cite_note-${name}"]`.
+   * **Named Citations:** Queries the live article preview for `[id^="cite_note-${name}-"]` or `[id="cite_note-${name}"]`.
    * **Shortened Footnotes (`{{sfn}}`):** Queries synthesized `cite_note-FOOTNOTE*` anchor IDs or text matching author-year strings across `.references li`.
-   * **Anonymous Citations:** Extracts the URL from the citation template (e.g. `|url=https://...`) and queries matching external links in `.references a[href*="${url}"]`, discovering the parent `cite_note-*` list item.
+   * **Anonymous / Unnamed Citations (DOM Identifier Matching):** Scans the citation wikitext for persistent global identifiers and directly queries MediaWiki's rendered links in `.references a[href*="..."]`:
+     * **DOI:** `10.\d{4,9}/[^\s|}<>"]+` (e.g. `10.1183/20734735.0310-2019` $\to$ `#cite_note-31`)
+     * **PMID:** `pmid\s*=\s*(\d+)`
+     * **PMC:** `pmc\s*=\s*(?:PMC)?(\d+)`
+     * **ISBN:** `isbn\s*=\s*([0-9Xx-]+)` (matching `Special:BookSources/...`)
+     * **URL:** `https?://[^\s|}<>"]+`
+   * Completely immune to Vancouver-style author syntax (`vauthors = ...`), unescaped quotes, or author/title template variations without custom bibliographic parsing.
 
-3. **In-Table Citation Row Jumping:**
+3. **List-Format Preview Fallback for Unmatched & Added Citations:**
+   * When `findCiteNoteAnchor()` yields no hit (e.g. newly added citations in partial diffs `⟨+ref1+⟩` that do not exist on the rendered revision):
+   * `parseTemplateList(rawContent)` parses citation templates (`{{cite journal}}`, `{{cite web}}`, `{{sfn}}`) respecting nested brackets into structured key-value pairs:
+     ```text
+     Added citation: ⟨+ref1+⟩
+     {{cite journal}}
+     • vauthors: Shakespeare J, Fletcher J
+     • title: The Two Noble Kinsmen
+     • journal: Stationers' Register
+     • date: 1634
+     • doi: 10.1183/20734735.0310-2019
+     ```
+   * **Multi-Line Tooltip:** Exposed via the native `title` attribute with Unicode bullets (`•`) for browser tooltips and accessibility.
+   * **Floating Preview Card (`.refdiff-preview-card`):** On hover, renders a floating preview card with `<ul><li>` list items matching Wikipedia's Popups aesthetic (dark-mode ready via `skin-theme-clientpref-night`).
+   * **Collision Suppression:** Temporarily stashes the native `title` attribute while the preview card is visible to prevent black browser OS tooltips from obscuring the card.
+
+4. **In-Table Citation Row Jumping:**
    * For modified, added, or deleted citations, the badge links to its injected citation diff row (`#refdiff-cit-${label}-${index}`).
    * Clicking the badge smoothly scrolls the diff table to the row and triggers a subtle `@keyframes refdiff-flash` highlight animation.
 

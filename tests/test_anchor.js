@@ -70,6 +70,102 @@ suite('src/anchor.js - Footnote Anchor Discovery', () => {
     });
   });
 
+  test('findCiteNoteAnchor discovers anonymous journal references by matching DOI in DOM (Respiratory therapist diff=1380407169 / ref7)', () => {
+    const targetDoi = '10.1183/20734735.0310-2019';
+    const rawContent = "{{cite journal | vauthors = Shakespeare J, Parkes E, Bryce M, Hull JH | title = Advanced roles in respiratory healthcare science: it's not just spirometry | journal = Breathe | volume = 15 | issue = 4 | pages = 267–269 | date = December 2019 | pmid = 31803258 | pmc = 6885340 | doi = 10.1183/20734735.0310-2019 }}";
+
+    withMockEnvironment({
+      document: {
+        querySelector: (sel) => {
+          if (sel.includes(targetDoi)) {
+            return {
+              closest: (parentSel) => {
+                if (parentSel.includes('cite_note-')) return { id: 'cite_note-31' };
+                return null;
+              }
+            };
+          }
+          return null;
+        }
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-31', 'Should resolve cite_note-31 via DOI query without custom ref parsing');
+    });
+  });
+
+  test('findCiteNoteAnchor discovers anonymous references by matching PMID in DOM', () => {
+    const targetPmid = '31803258';
+    const rawContent = '{{cite journal | title = Clinical Trial | pmid = 31803258 }}';
+
+    withMockEnvironment({
+      document: {
+        querySelector: (sel) => {
+          if (sel.includes(targetPmid)) {
+            return {
+              closest: (parentSel) => {
+                if (parentSel.includes('cite_note-')) return { id: 'cite_note-42' };
+                return null;
+              }
+            };
+          }
+          return null;
+        }
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-42', 'Should resolve cite_note-42 via PMID query');
+    });
+  });
+
+  test('findCiteNoteAnchor discovers anonymous references by matching PMC in DOM', () => {
+    const targetPmc = '6885340';
+    const rawContent = '{{cite journal | title = Open Access Study | pmc = 6885340 }}';
+
+    withMockEnvironment({
+      document: {
+        querySelector: (sel) => {
+          if (sel.includes(targetPmc)) {
+            return {
+              closest: (parentSel) => {
+                if (parentSel.includes('cite_note-')) return { id: 'cite_note-18' };
+                return null;
+              }
+            };
+          }
+          return null;
+        }
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-18', 'Should resolve cite_note-18 via PMC query');
+    });
+  });
+
+  test('findCiteNoteAnchor discovers anonymous book references by matching ISBN in DOM', () => {
+    const rawContent = '{{cite book | title = Historical Computing | isbn = 978-0-12-345678-9 }}';
+    const cleanIsbn = '9780123456789';
+
+    withMockEnvironment({
+      document: {
+        querySelector: (sel) => {
+          if (sel.includes(cleanIsbn)) {
+            return {
+              closest: (parentSel) => {
+                if (parentSel.includes('cite_note-')) return { id: 'cite_note-25' };
+                return null;
+              }
+            };
+          }
+          return null;
+        }
+      }
+    }, () => {
+      const anchor = findCiteNoteAnchor(null, rawContent);
+      assert.strictEqual(anchor, 'cite_note-25', 'Should resolve cite_note-25 via ISBN Special:BookSources link query');
+    });
+  });
+
   test('findCiteNoteAnchor discovers cite_note-FOOTNOTE anchors for shortened footnotes in DOM', () => {
     const mockElement = { id: 'cite_note-FOOTNOTEReichertWolfram2010574-1' };
 

@@ -35,10 +35,38 @@ suite('src/mode_coordinator.js - Mode Switching & Locks', () => {
       selectMode('refdiff', mockTable);
       assert.strictEqual(isRefDiffPreferred(), true);
 
-      selectMode('wikitext', mockTable);
+      // Direct switch from refdiff to visual must set preference to false
+      selectMode('visual', mockTable);
       assert.strictEqual(isRefDiffPreferred(), false);
 
-      selectMode('visual', mockTable);
+      // Direct switch from visual back to refdiff (programmatic API invocation)
+      selectMode('refdiff', mockTable);
+      assert.strictEqual(isRefDiffPreferred(), true);
+
+      // Direct switch from refdiff to wikitext must set preference to false
+      selectMode('wikitext', mockTable);
+      assert.strictEqual(isRefDiffPreferred(), false);
+    });
+  });
+
+  test('selectMode ignores refdiff activation when button is disabled', () => {
+    const { mockWindow } = setupMockStorage('localStorage');
+    mockWindow.localStorage.setItem('refdiff-active', 'false');
+    const mockBtn = {
+      id: 'refdiff-ooui-btn',
+      classList: {
+        contains: (cls) => cls === 'oo-ui-widget-disabled'
+      },
+      getAttribute: (attr) => (attr === 'aria-disabled' ? 'true' : null)
+    };
+    mockWindow.document = {
+      getElementById: (id) => (id === 'refdiff-ooui-btn' ? mockBtn : null),
+      querySelector: () => null
+    };
+    withMockEnvironment({ window: mockWindow, document: mockWindow.document }, () => {
+      const mockTable = { innerHTML: '<tr><td>diff</td></tr>' };
+      assert.strictEqual(isRefDiffPreferred(), false);
+      selectMode('refdiff', mockTable);
       assert.strictEqual(isRefDiffPreferred(), false);
     });
   });

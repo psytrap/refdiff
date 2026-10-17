@@ -1,10 +1,10 @@
-{{Caution|'''RefDiff is currently in active Beta testing.''' Please report any unexpected diff rendering behavior or formatting issues at [[User talk:Powercycler/RefDiff|the discussion page]].}}
+{{ai-generated|userscript page|reason=[[Special:AbuseLog/45390145|AbuseLog/45390145]]|date=October 2026}}
 {{Infobox user script
 | name        = RefDiff
-| desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 diff])
+| desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443 diff])
 | author      = [[User:Powercycler|Powercycler]]
 | status      = Beta
-| version     = 1.5.0
+| version     = 1.5.3
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
 | browsers    = Chromium, Firefox, Safari, Edge
@@ -38,10 +38,11 @@ When an article uses standard inline citations ({{tag|ref|content={{tlx|cite boo
 RefDiff runs client-side in the browser and transforms the diff table in-place:
 
 # '''Zero Loss:''' Fully preserves Wikipedia's native diff table (line numbers, revision headers, context rows, and the native {{mono|Inline}} checkbox).
+
 # '''Clean Prose Diffs:''' Inline {{tag|ref}} tags and footnote templates (such as {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and {{tlx|harvnb}}) are replaced with clean, unobtrusive mathematical angle-bracket badges (e.g. {{mono|⟨ref1⟩}}, {{mono|⟨~ref2~⟩}}, or scholarly author-year badges like {{mono|⟨Reichert & Wolfram 2010⟩}}).
 # '''Dedicated Citation Rows:''' If a citation was modified, added, or removed, RefDiff inserts an isolated citation diff row directly underneath the sentence.
 # '''Automatic Context Conversion:''' If an edit ''only'' touched citation metadata, the prose line automatically converts to context appearance (calm gray, no diff markers). Patrollers instantly know the text itself was not altered.
-# '''Interactive Reference Links & Hover Previews:''' Badges are rendered as standard footnote links ({{tag|sup|params=class="reference"|content=&lt;a href="..."&gt;}}). Hovering over any badge displays Wikipedia's standard '''Reference Preview hovercard''' (from Read mode), and clicking modified/added citations jumps directly to their citation diff row below.
+# '''Interactive Reference Links & Hover Previews:''' Badges are rendered as standard footnote links ({{tag|sup|params=class="reference"|content=&lt;a href="..."&gt;}}). Hovering over any badge with an existing footnote displays Wikipedia's standard '''Reference Preview hovercard''' (from Read mode) via automatic identifier matching (DOI, PMID, PMC, ISBN, URL). For newly added citations without an article footnote, hovering displays the citation template parameters formatted in a clean list (e.g. {{mono|• author: ...}}, {{mono|• title: ...}}). Clicking modified/added citations jumps directly to their citation diff row below.
 
 == Visual Guide & Badge Legend ==
 
@@ -83,7 +84,7 @@ For shortened footnotes, RefDiff automatically synthesizes author names and publ
 
 === Decoupled Diff Example ===
 
-A live interactive demonstration showing all badge categories (unmodified, modified, added, removed) is available at [[/Show case|/Show case]] ([https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549 live diff]).
+A live interactive demonstration showing all badge categories (unmodified, modified, added, removed, and {{tlx|citation needed}} replacement) is available at [[/Show case|/Show case]] ([https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443 live diff]).
 
 Here is the exact same edit rendered with RefDiff. The sentence is freed from bulky template syntax, with <span style="font-family: monospace; background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref1~⟩</span> signaling that citation metadata was modified and linking directly to the isolated citation diff row underneath:
 
@@ -104,31 +105,25 @@ Here is the exact same edit rendered with RefDiff. The sentence is freed from bu
 
 == Installation ==
 
-=== Option 1: English Wikipedia (Stable Release — Recommended) ===
-Add the following line to your local [[Special:MyPage/common.js|common.js]] page on English Wikipedia to load the verified, stable production release:
+To install with one click, enable [[User:Enterprisey/script-installer|Script Installer]] in [[Special:Preferences#mw-prefsection-gadgets|Special:Preferences → Gadgets]] by checking ''"Install scripts without having to manually edit JavaScript files"'' in the Advanced section. An '''Install''' button will appear in the infobox above.
+
+=== Option 1: Global Installation (All Wikimedia Projects — Recommended) ===
+To enable RefDiff across all Wikimedia projects (English Wikipedia, Commons, Wikidata, and other language editions), add the following line to your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]**:
 
 <syntaxhighlight lang="javascript">
-// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff (Stable)
-mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
-</syntaxhighlight>
-
-=== Option 2: Meta-Wiki / Global Beta (Tracking Latest Changes) ===
-To beta test RefDiff and track the latest changes, features, and fixes across all Wikimedia projects at once, add the following line to your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]** (or local `common.js`):
-
-<syntaxhighlight lang="javascript">
-// [[m:User:Powercycler/refdiff.js]] - RefDiff Beta: Tracking latest changes across all wikis
+// [[m:User:Powercycler/refdiff.js]] - Decouple citation templates on Special:Diff across all wikis
 mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
-=== Option 3: Global Stable (All Wikimedia Wikis) ===
-To enable the battle-tested stable release across all Wikimedia projects without tracking beta changes, load the canonical English Wikipedia release from your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]**:
+=== Option 2: Local Installation (English Wikipedia Only) ===
+If you prefer to load RefDiff only on English Wikipedia, add the following line to your local [[Special:MyPage/common.js|common.js]] page:
 
 <syntaxhighlight lang="javascript">
-// [[User:Powercycler/refdiff.js]] - RefDiff Stable across all wikis
-mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+// [[m:User:Powercycler/refdiff.js]] - RefDiff loaded from Meta-Wiki CDN
+mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 </syntaxhighlight>
 
-=== Option 4: Personal Copy / Developer Fork ===
+=== Option 3: Personal Copy / Developer Fork ===
 If you maintain your own custom script fork at [[:m:Special:MyPage/refdiff.js|m:Special:MyPage/refdiff.js]], load it dynamically with:
 
 <syntaxhighlight lang="javascript">
@@ -140,23 +135,13 @@ Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, 
 
 == Userbox ==
 
-Users of RefDiff can identify themselves and spread awareness by adding a userbox to their Wikipedia user page:
+You can display your support on your user page by adding:
 
-=== Usage ===
-* '''On English Wikipedia:'''
-  <syntaxhighlight lang="wikitext">
-  {{User:Powercycler/Userbox RefDiff}}
-  </syntaxhighlight>
-* '''Across all Wikimedia wikis (Meta-Wiki, Commons, etc.):'''
-  <syntaxhighlight lang="wikitext">
-  {{User:Powercycler/Userbox RefDiff}}
-  </syntaxhighlight>
+<syntaxhighlight lang="wikitext">
+{{User:Powercycler/Userbox RefDiff}}
+</syntaxhighlight>
 
-=== Visual Appearance ===
-
-{| class="wikitable" style="background: transparent; border: none; margin: 1em 0;"
-|-
-| {{Userbox
+{{Userbox
 | border-c = #d4a017
 | border-s = 1
 | id-s     = 8
@@ -165,49 +150,8 @@ Users of RefDiff can identify themselves and spread awareness by adding a userbo
 | info-lh  = 1.25em
 | info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
 }}
-|}
 
-=== Customization Options ===
-
-The userbox supports customizable badge symbols, color palettes, and parameters:
-
-{| class="wikitable"
-! Wikitext !! Rendered Userbox !! Description
-|-
-| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff}}</nowiki>}}
-| {{Userbox
-| border-c = #d4a017
-| id       = <span style="font-family: monospace, Courier, monospace; font-size: 0.75em; font-weight: bold; color: #c98a0c; background: rgba(218, 165, 32, 0.18); border: 1px solid rgba(218, 165, 32, 0.45); padding: 1px 2px; border-radius: 3px; display: inline-block;">⟨~ref~⟩</span>
-| info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-}}
-| '''Default:''' Amber modified badge ({{mono|⟨~ref~⟩}}) representing citation decoupling in diffs.
-|-
-| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⟨ref⟩|border-c=#3366cc}}</nowiki>}}
-| {{Userbox
-| border-c = #3366cc
-| id       = <span style="font-family: monospace, Courier, monospace; font-size: 0.75em; font-weight: bold; color: #3366cc; background: rgba(51, 102, 204, 0.1); border: 1px solid rgba(51, 102, 204, 0.4); padding: 1px 2px; border-radius: 3px; display: inline-block;">⟨ref⟩</span>
-| info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-}}
-| '''Minimalist Prose Badge:''' Neutral blue angle bracket badge.
-|-
-| {{mono|<nowiki>{{User:Powercycler/Userbox RefDiff|badge=⧉ RefDiff|border-c=#3366cc}}</nowiki>}}
-| {{Userbox
-| border-c = #3366cc
-| id       = <span style="font-size: 0.9em; font-weight: bold; color: #3366cc;">⧉ RefDiff</span>
-| info     = This user reviews diffs and combats [[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]] with '''[[User:Powercycler/RefDiff|RefDiff]]'''.
-}}
-| '''Toolbar Mode Icon:''' Matches the OOUI diff toolbar button.
-|}
-
-* '''Parameters:'''
-** {{mono|badge}} (or {{mono|1}}): Badge icon/text in the left box (default: {{mono|⟨~ref~⟩}}).
-** {{mono|border-c}}: Outer border color (default: {{mono|#d4a017}}).
-** {{mono|id-c}}: Left icon box background color (omit for native dark mode support).
-** {{mono|id-fc}}: Left icon box text color (omit for native theme inheritance).
-** {{mono|info-c}}: Right info box background color (omit for native dark mode support).
-** {{mono|info-fc}}: Right info box text color (omit for native theme inheritance).
-** {{mono|info}}: Custom message text.
-** {{mono|link}}: Target documentation page (default: {{mono|User:Powercycler/RefDiff}}).
+<div style="clear: both;"></div>
 
 == UI Controls & Mode Switching ==
 
@@ -269,15 +213,20 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 * '''OS Dark Mode:''' Automatically responds to operating system dark mode settings.
 * '''Vector legacy (2010), Timeless, Monobook, Minerva:''' Fully compatible.
 
-== Quality Assurance & Automated Testing ==
+== Quality Assurance & Testing ==
 
-RefDiff is backed by a rigorous four-level test pyramid and quality assurance framework (specified in detail in {{mono|TEST_PLAN.md}} in the project repository):
+RefDiff is developed through '''agentic coding''' (specification-driven human–AI pair programming). To ensure high reliability and eliminate regressions during rapid automated iteration, development is governed by formal architectural contracts, strict clean-code standards, and continuous multi-tier automated verification:
 
-* '''100% Headless Function Coverage:''' All 71 functions across {{mono|refdiff.js}} are verified with 100% function coverage across 15 modular unit, component, deployment, and JSDOM test suites in headless Node.js (121 tests executing in ~250&nbsp;ms).
-* '''In-Place DOM Memento Invariance:''' Rigorously tests that DOM mutations adhere to the Memento pattern—retaining live DOM element closures, event listeners (such as {{mono|inlineFormatToggle.js}} and VisualEditor), and restoring native MediaWiki diff tables byte-for-byte upon mode toggling.
-* '''Shortened Footnotes & Citation Templates:''' Extensively validates tokenization, parameter parsing, entity decoding, and anchor discovery across {{tlx|sfn}}, {{tlx|r}}, {{tlx|efn}}, and complex nested {{tag|ref}} tags.
-* '''High-Density Stress Benchmarking:''' Benchmarked on real-world extreme diffs (e.g. airport destination tables with 114 references and split {{mono|diffchange}} boundaries) to guarantee execution under 50&nbsp;ms without browser lag.
-* '''Live Browser Automation (CDP):''' End-to-end browser automation tests verify real MediaWiki DOM integration, three-way OOUI mode transitions, dark mode theming, and native {{mono|Extension:Popups}} Reference Preview hovercards on live Wikipedia revisions (e.g. [[Special:Diff/1379486498|Odoacer]], [[Special:Diff/1379409916|Zagreb Airport]], [[Special:Diff/1379548357|Zipf's law]], [[Special:Diff/1380017400|Donnie Brasco]], and [[Special:Diff/1379207737|Bihar Legislative Assembly]]).
+* '''Architecture ({{mono|ARCHITECTURE.md}}):''' Modular design with fail-open error handling and byte-for-byte Memento rollback so diff viewing is never broken.
+* '''Audit Strategy ({{mono|AUDIT_STRATEGY.md}}):''' Enforces gadget security (XSS-safe DOM creation, no {{mono|.innerHTML}} concatenation) and review workflows to eliminate template camouflage.
+* '''Rollout Plan ({{mono|ROLLOUT_PLAN.md}}):''' Governs version synchronization, file size limits (< 120&nbsp;KB), zero console logging, and automated live API checks before release.
+* '''Automated Testing ({{mono|TEST_PLAN.md}}):''' Backed by a four-level test pyramid:
+** ''100% Function Coverage:'' All functions verified across 15 test suites in Node.js (129 tests in ~250&nbsp;ms).
+** ''Memento Rollback:'' Verifies native MediaWiki diff tables restore byte-for-byte on mode toggles without losing event listeners.
+** ''Citation Parsing:'' Validates standard {{tag|ref}} tags, shortened footnotes ({{tlx|sfn}}), explanatory notes ({{tlx|efn}}), and Harvard citations.
+** ''Stress Benchmarking:'' Tested on complex diffs (e.g. 114 references) with execution under 50&nbsp;ms.
+** ''Browser Automation (CDP):'' End-to-end testing in Chromium on real Wikipedia diffs (OOUI switcher, Dark Mode tokens, and reference hovercards).
+
 
 === What Is Not Covered (Known Limitations & Gaps) ===
 
@@ -290,6 +239,8 @@ While 100% of internal codebase functions are verified, several external edge ca
 * '''Mobile Diff Layouts (MinervaNeue):''' Responsive single-column stacked diff tables on Wikipedia's mobile view are not currently part of the automated layout test suite (RefDiff is optimized primarily for desktop two-column diffs).
 * '''Dynamic AJAX Diff Pagination:''' Successive rapid diff updates fired by live script reloads or interactive history navigation without a full page refresh.
 
+<!--
+TODO: Review and update Complementary Tools & Proposals section
 == Complementary Tools & Proposals ==
 
 RefDiff is part of a broader ecosystem for citation management:
@@ -347,6 +298,13 @@ RefDiff is part of a broader ecosystem for citation management:
 | Proposed Wikitext syntax
 | Concepts for section-scoped reference definitions in raw wikitext.
 |}
+-->
+
+== Feedback & Bug Reports ==
+
+RefDiff is in active Beta testing. If you encounter any unexpected diff rendering, formatting issues, or browser incompatibilities, please leave a message on the talk page:
+
+: '''[[User talk:Powercycler/RefDiff|→ Leave feedback or report a bug on User talk:Powercycler/RefDiff]]'''
 
 == See Also ==
 * [[/Show case|/Show case]] – Live showcase diff page
@@ -359,7 +317,3 @@ RefDiff is part of a broader ecosystem for citation management:
 * [[:en:User:Guywan/Scripts/RefCruncher|User:Guywan/Scripts/RefCruncher]] – Wikitext editor script that collapses inline citations into compact chips
 * [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
 * [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]] – Automated source discovery and verification tool
-* {{mono|TEST_PLAN.md}} – Formal test plan and quality assurance specification
-
-[[Category:Wikipedia scripts]]
-[[Category:JavaScript]]

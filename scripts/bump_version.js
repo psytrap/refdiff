@@ -87,10 +87,15 @@ function bumpVersion(bumpType, dryRun = false) {
   let jsSha1 = '';
   if (fs.existsSync(refdiffJsPath)) {
     const jsRaw = fs.readFileSync(refdiffJsPath, 'utf8');
-    const updatedJsRaw = jsRaw.replace(
-      /(\/\/\s*@version\s+)[0-9]+\.[0-9]+\.[0-9]+/,
-      `$1${nextVersion}`
-    );
+    const updatedJsRaw = jsRaw
+      .replace(
+        /(\/\/\s*@version\s+)[0-9]+\.[0-9]+\.[0-9]+/,
+        `$1${nextVersion}`
+      )
+      .replace(
+        /(const\s+VERSION\s*=\s*['"])[0-9]+\.[0-9]+\.[0-9]+(['"];)/,
+        `$1${nextVersion}$2`
+      );
     if (!dryRun) fs.writeFileSync(refdiffJsPath, updatedJsRaw, 'utf8');
     jsSha1 = crypto.createHash('sha1').update(updatedJsRaw, 'utf8').digest('hex');
     console.log(`  [✓] refdiff.js                 -> @version ${nextVersion} (SHA-1: ${jsSha1.slice(0, 8)})`);

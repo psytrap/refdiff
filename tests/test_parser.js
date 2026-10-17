@@ -168,6 +168,19 @@ suite('src/parser.js - Tag & Footnote Template Parsing', () => {
     const noRefs = parseRefs(pureUnclosed);
     assert.strictEqual(noRefs.length, 0, 'Unclosed reference without closing tag must return zero parsed refs');
   });
+
+  test('parseRefs parses references replacing {{citation needed|...}} in Dwight D. Eisenhower diff=1380014667', () => {
+    const delHtml = 'He was promoted to lieutenant general on July 7.{{<del class="diffchange diffchange-inline">citation</del> <del class="diffchange diffchange-inline">needed</del>|date=<del class="diffchange diffchange-inline">August</del> <del class="diffchange diffchange-inline">2025</del>}}';
+    const addHtml = 'He was promoted to lieutenant general on July 7.<ins class="diffchange diffchange-inline">&lt;ref&gt;</ins>{{<ins class="diffchange diffchange-inline">cite book |title=Steven Zaloga Eisenhower The Background, Strategies, Tactics And |url=https://archive.org/details/steven-zaloga-eisenhower-the-background-strategies-tactics-and_202111 |via=Internet Archive}}&lt;/ref&gt;&lt;ref&gt;{{Cite book |last=Zaloga |first=Steve |title=Dwight Eisenhower: leadership, strategy, conflict |last2=Noon |first2=Steve</ins> |date=<ins class="diffchange diffchange-inline">2011</ins> <ins class="diffchange diffchange-inline">|publisher=Osprey |isbn=978-1-84908-359-1 |series=Command |location=Botley, Oxford ; Long Island City, NY|page=15</ins>}}<ins class="diffchange diffchange-inline">&lt;/ref&gt;</ins>';
+
+    const refs = parseRefs(addHtml, delHtml);
+
+    assert.strictEqual(refs.length, 2, 'Should extract both newly added references');
+    assert.strictEqual(refs[0].isTemplate, false);
+    assert.strictEqual(refs[1].isTemplate, false);
+    assert.strictEqual(refs[0].content.includes('Steven Zaloga'), true, 'First citation should contain Zaloga background book');
+    assert.strictEqual(refs[1].content.includes('Dwight Eisenhower: leadership, strategy, conflict'), true, 'Second citation should contain Zaloga Osprey book');
+  });
 });
 
 if (require.main === module) {

@@ -203,6 +203,7 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
       const btn = document.getElementById('refdiff-ooui-btn');
       assert.strictEqual(!!btn, true, 'RefDiff OOUI button should be mounted');
       assert.strictEqual(btn.textContent.includes('RefDiff'), true, 'Button text should include RefDiff');
+      assert.strictEqual(btn.getAttribute('title'), `RefDiff v${RefDiff.VERSION}: Decoupled citation diff view`);
 
       const inlineToggle = document.getElementById('refdiff-inline-toggle');
       assert.strictEqual(!!inlineToggle, true, 'Inline toggle checkbox should be mounted');
@@ -251,6 +252,7 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
       const refdiffLink = fallbackBar.querySelector('#refdiff-btn-decoupled');
       assert.strictEqual(!!refdiffLink, true, 'Decoupled link should be present');
       assert.strictEqual(refdiffLink.textContent.includes('RefDiff'), true);
+      assert.strictEqual(refdiffLink.getAttribute('title'), `RefDiff v${RefDiff.VERSION}: Decoupled citation diff view`);
 
       const standardLink = fallbackBar.querySelector('#refdiff-btn-standard');
       assert.strictEqual(!!standardLink, true, 'Standard link should be present');
@@ -374,6 +376,36 @@ suite('tests/test_jsdom.js - Real DOM Testing in JSDOM', () => {
       // Verify byte-for-byte Memento restoration
       RefDiff.restoreOriginal(table);
       assert.strictEqual(table.innerHTML, initialTableHtml, 'Table should be restored byte-for-byte');
+    });
+  });
+
+  test('decouples Dwight D. Eisenhower diff=1380014667 and restores byte-for-byte in real DOM', () => {
+    const deletedHtml = '<div>At the end of May 1942, Eisenhower accompanied Lt. Gen. [[Henry H. Arnold]]... He was promoted to lieutenant general on July 7.{{<del class="diffchange diffchange-inline">citation</del> <del class="diffchange diffchange-inline">needed</del>|date=<del class="diffchange diffchange-inline">August</del> <del class="diffchange diffchange-inline">2025</del>}}</div>';
+    const addedHtml = '<div>At the end of May 1942, Eisenhower accompanied Lt. Gen. [[Henry H. Arnold]]... He was promoted to lieutenant general on July 7.<ins class="diffchange diffchange-inline">&lt;ref&gt;</ins>{{<ins class="diffchange diffchange-inline">cite book |title=Steven Zaloga Eisenhower The Background, Strategies, Tactics And |url=https://archive.org/details/steven-zaloga-eisenhower-the-background-strategies-tactics-and_202111 |via=Internet Archive}}&lt;/ref&gt;&lt;ref&gt;{{Cite book |last=Zaloga |first=Steve |title=Dwight Eisenhower: leadership, strategy, conflict |last2=Noon |first2=Steve</ins> |date=<ins class="diffchange diffchange-inline">2011</ins> <ins class="diffchange diffchange-inline">|publisher=Osprey |isbn=978-1-84908-359-1 |series=Command |location=Botley, Oxford ; Long Island City, NY|page=15</ins>}}<ins class="diffchange diffchange-inline">&lt;/ref&gt;</ins></div>';
+
+    const rowHtml = `<!DOCTYPE html><html><body><table class="diff"><colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody><tr><td class="diff-marker" data-marker="−"></td><td class="diff-deletedline diff-side-deleted">${deletedHtml}</td><td class="diff-marker" data-marker="+"></td><td class="diff-addedline diff-side-added">${addedHtml}</td></tr></tbody></table></body></html>`;
+
+    withJsdom(rowHtml, 'https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667', ({ document, RefDiff }) => {
+      const table = document.querySelector('table.diff');
+      const initialHtml = table.innerHTML;
+
+      RefDiff.applyDecoupling(table);
+
+      // Verify that 2 citation rows are inserted
+      const citRows = table.querySelectorAll('.refdiff-cit-row');
+      assert.strictEqual(citRows.length, 2, 'Should insert 2 citation diff rows for the two added citations');
+
+      // Verify that badges are added in added prose
+      const addBadges = table.querySelectorAll('.diff-addedline .ref-badge-add');
+      assert.strictEqual(addBadges.length, 2, 'Should render 2 added reference badges in prose');
+
+      // Verify that deleted line has cleanly formatted deletion
+      const delCell = table.querySelector('.diff-deletedline');
+      assert.strictEqual(delCell.innerHTML.includes('<del class="diffchange diffchange-inline">{{citation needed|date=August 2025}}</del>'), true);
+
+      // Verify byte-for-byte Memento restoration
+      RefDiff.restoreOriginal(table);
+      assert.strictEqual(table.innerHTML, initialHtml, 'Table must restore byte-for-byte upon restoreOriginal');
     });
   });
 

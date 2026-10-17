@@ -50,7 +50,7 @@ While [`refdiff.js`](file:///home/mik/Documents/Bastel/2023-/einzelnachweise/ref
 ```mermaid
 flowchart TD
     subgraph Level_5["Level 5: Visual Capture & User Acknowledgment (Rollout Default)"]
-        L5["scripts/capture_full_audit.py (npm run capture)<br/>Meta Showcase (diff=31142550) & Bihar (diff=1379207737)<br/>Pure Adds • Pure Dels • Mods • Light/Dark Modes • User Sign-off"]
+        L5["scripts/capture_full_audit.py (npm run capture)<br/>en.WP Showcase (diff=1380240829) & Bihar (diff=1379207737)<br/>Pure Adds • Pure Dels • Mods • Light/Dark Modes • User Sign-off"]
     end
 
     subgraph Level_4["Level 4: Live Browser CDP Integration (~15s)"]
@@ -102,7 +102,7 @@ flowchart TD
 * **Goal:** Mandatory pre-rollout gate: capture comprehensive visual evidence across all change cases (pure additions, pure deletions, intra-line modifications, template refs) in both Vector 2022 Light and Dark themes, and obtain explicit user acknowledgment before rollout.
 * **Runner:** `npm run capture` (`python3 scripts/capture_full_audit.py`).
 * **Requirements:**
-  1. Automated capture across all 5 sections of Meta Showcase diff (`31142550`) and Bihar diff (`1379207737`).
+  1. Automated capture across all 5 sections of en.WP Showcase diff (`1380240829`) and Bihar diff (`1379207737`).
   2. Verified rendering: pure adds/dels have zero `<ins>`/`<del>` wrappers; modifications retain native diffchange highlights on changed words.
   3. Presentation of image gallery to the user and receipt of explicit user sign-off prior to advancing to deployment rings.
 
@@ -151,7 +151,7 @@ npm run capture
 | **P2** | Ecosystem Interoperability (Twinkle & Ultraviolet) | Check compatibility and non-interference with WP:Twinkle (diff header rollback/vandalism links) and WP:Ultraviolet (CVPI floating overlays) to ensure zero DOM clashing or event interception. |
 | **P2** | Regex Reevaluation & Parser Hardening | Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth, ReDoS resilience, and benchmark against a dedicated token scanner. |
 | **P2** | Malformed Wikitext | Test unclosed `<ref>` tags at line end, self-closing tags without slash, and unescaped HTML entities. |
-| **P3** | Nested Transclusions | Test citations wrapped inside `{{refn|...}}`, `{{sfnp}}`, and infobox template parameters. |
+| **P3** | Nested Transclusions | Test citations wrapped inside `{{refn&#124;...}}`, `{{sfnp}}`, and infobox template parameters. |
 | **P4** | Mobile Diff Layout | Test table mutation on MinervaNeue mobile skin where side-by-side diff rows are stacked. |
 | **P5** | Live Editor Hooks | Test multiple sequential diff updates fired by `mw.hook('wikipage.diff')` during live AJAX previewing. |
 

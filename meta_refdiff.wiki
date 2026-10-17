@@ -1,0 +1,34 @@
+{{Notice|'''RefDiff''' is primarily maintained and documented on the English Wikipedia. For the comprehensive user manual, interactive test diffs, and issue tracking, please visit '''[[:en:User:Powercycler/RefDiff|User:Powercycler/RefDiff on English Wikipedia]]'''.}}
+
+== RefDiff ==
+
+'''RefDiff''' is a MediaWiki user script designed to eliminate ''template camouflage'' in diff views ({{mono|Special:Diff}}).
+
+When Wikipedia articles undergo substantial revisions, inline reference templates—such as {{tlx|cite web}}, {{tlx|cite journal}}, {{tlx|cite book}}, and {{tlx|sfn}}—often clutter diff comparisons with hundreds of characters of citation markup. This obscures genuine prose edits, making it difficult for reviewers and patrol editors to spot subtle vandalism, typos, or copyedits.
+
+RefDiff automatically decouples inline citations from prose rows, replacing them with lightweight mathematical angle bracket badges (e.g. {{mono|⟨ref1⟩}}, {{mono|⟨~ref2~⟩}}, {{mono|⟨+ref3+⟩}}, {{mono|⟨−ref4−⟩}}) and isolating modified, added, or deleted references into dedicated comparison rows positioned directly beneath the affected sentence.
+
+== Meta-Wiki CDN & Global Distribution ==
+
+Meta-Wiki acts as the primary global distribution hub (CDN) for RefDiff across all Wikimedia wikis. The production script lead is hosted at:
+
+: '''[[User:Powercycler/refdiff.js|User:Powercycler/refdiff.js]]'''
+
+This central hosting allows editors across all language Wikipedias, Wikimedia Commons, Wikidata, and other sister projects to load and run RefDiff globally from a single configuration.
+
+== Global Installation ==
+
+To enable RefDiff on all Wikimedia projects, add the following line to your '''[[Special:MyPage/global.js|global.js]]''' page on Meta-Wiki:
+
+<syntaxhighlight lang="javascript">
+// [[m:User:Powercycler/refdiff.js]] - Decouples inline citation templates in diff views across all Wikimedia projects
+mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
+</syntaxhighlight>
+
+Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS) and navigate to any diff page.
+
+== See Also ==
+
+* '''[[:en:User talk:Powercycler/RefDiff|Feedback & Bug Reports]]''' – Discussion page on English Wikipedia
+* '''[[User:Powercycler/refdiff.js|refdiff.js on Meta-Wiki]]''' – Production script distribution point
+

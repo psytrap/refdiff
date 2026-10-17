@@ -12,10 +12,10 @@
 | **Script Lead (m.WM)** | [`refdiff.js`](refdiff.js) | `m:User:Powercycler/refdiff.js` (Canonical code lead on Meta-Wiki) |
 | **en.WP Script (SHA Pointer)** | Loader snippet | `en:User:Powercycler/refdiff.js` (SHA pointer / loader forwarding to Meta-Wiki) |
 | **Documentation Lead (en.WP)** | [`refdiff.wiki`](refdiff.wiki) | `en:User:Powercycler/RefDiff` (Authoritative documentation on en.WP) |
-| **Meta Docs (Soft Redirect)** | Soft redirect | `m:User:Powercycler/RefDiff` (Soft redirect pointing to en.WP documentation) |
+| **Meta Docs (CDN Tools Page)** | [`meta_refdiff.wiki`](meta_refdiff.wiki) | `m:User:Powercycler/RefDiff` (Meta-Wiki tools page & CDN hub pointing to en.WP) |
 | **Early Testing Harness** | `common.js` snippet | `en:User:Powercycler/common.js` (Early live testing before SHA pointer uprev) |
-| **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `m:User:Powercycler/RefDiff/Show_case` (Reference test diff) |
-| **Userbox** | [`userbox_enwiki.wiki`](userbox_enwiki.wiki) | `en:User:Powercycler/Userbox RefDiff` (User space userbox on en.WP) |
+| **Showcase Diff** | [`refdiff.wiki`](refdiff.wiki) (§Showcase) | `en:User:Powercycler/RefDiff/Show_case` (Reference test diff: `diff=1380240829`) |
+| **Userbox** | [`userbox.wiki`](userbox.wiki) | `en:User:Powercycler/Userbox RefDiff` (User space userbox on en.WP) |
 | **Outreach** | [`proposal/POST.md`](proposal/POST.md) | `en:User talk:Powercycler/RefDiff` (Dedicated feedback talk page) |
 
 ---
@@ -54,14 +54,14 @@ npm run check:deploy                            # Post-shipment live audit acros
 ### Ring 1: Update Meta-Wiki Script Lead (`m.WM refdiff.js`)
 1. **Script Lead (m.WM):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js).
 2. **Meta Docs:** Set `m:User:Powercycler/RefDiff` as soft redirect to `en:User:Powercycler/RefDiff`.
-3. **Showcase:** Verify `m:User:Powercycler/RefDiff/Show_case`.
+3. **Showcase:** Exclusively on English Wikipedia (`en:User:Powercycler/RefDiff/Show_case`, `diff=1380240829`); Meta showcase retired.
 
 ### Ring 2: Early Testing on en.WP & SHA Pointer Uprev (No Canary Needed)
 During deployment stages, no canary needed: we early test via `en:User:Powercycler/common.js` and only uprev the SHA pointer in `en:User:Powercycler/refdiff.js` once verified:
 1. **Early Testing (en.WP common.js):** Update `en:User:Powercycler/common.js` to load Meta script; verify canonical live benchmark diffs (`Bihar` 1379207737, `Odoacer` 1379486498, `Zagreb` 1379409916, `Inflation` 1379470949, `Brasco` 1380017400).
-2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with new SHA pointer (`// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: <sha1>)`).
+2. **en.WP Script (SHA Pointer):** Update `en:User:Powercycler/refdiff.js` with revision-pinned SHA pointer (`// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: <sha1>, oldid: <revid>)` loading `...&oldid=<revid>&action=raw...`).
 3. **Lead Docs (en.WP):** Publish [`refdiff.wiki`](refdiff.wiki) to `en:User:Powercycler/RefDiff` (lead documentation).
-4. **Userbox (en.WP):** Create `en:User:Powercycler/Userbox RefDiff` from [`userbox_enwiki.wiki`](userbox_enwiki.wiki).
+4. **Userbox (en.WP):** Create `en:User:Powercycler/Userbox RefDiff` from [`userbox.wiki`](userbox.wiki).
 5. **Audit:** Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia targets.
 
 ### Ring 3: Community Feedback, Gadget Candidacy & Post-Shipment Feature Uprev

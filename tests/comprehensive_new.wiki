@@ -1,3 +1,5 @@
+{{AI-generated|userscript test page|reason=Simulated LLM text and hallucinated citations for diff decoupling verification|date=October 2026}}
+
 == Planetary Science Test Page ==
 
 === 1. Sequential Anonymous References ===
@@ -7,10 +9,16 @@ Venus has an orbital period of 224.7 days.<ref>{{Cite web |title=Venus Orbital D
 The surface is dominated by volcanic plains.<ref name="schmidt2020">{{Cite book |author=Schmidt, Rainer |title=Volcanism on Terrestrial Planets |year=2020 |pages=45–60 |publisher=Springer}}</ref>
 
 === 3. New Prose Text and Reference Added ===
-The atmosphere consists of 96.5% carbon dioxide, producing an extreme greenhouse effect across the entire globe.<ref name="esa2022">{{Cite journal |author=Müller, H. et al. |title=Venus Density Profiles |journal=Planetary Science Review |year=2022 |doi=10.1016/j.pss.2022.105412}}</ref>
+The atmosphere consists of 96.5% carbon dioxide, producing an extreme greenhouse effect across the entire globe.<ref name="esa2022">{{Cite journal |author=Müller, H. |display-authors=etal |title=Venus Density Profiles |journal=Planetary Science Review |year=2022 |doi=10.1016/j.pss.2022.105412}}</ref>
 
 === 4. Reference Added to Existing Text (No Prose Change) ===
 Surface atmospheric pressure is ninety times that of Earth.<ref name="esa-press">{{Cite book |author=ESA |title=Venus Surface Conditions |year=2015 |publisher=ESA Publications}}</ref>
 
 === 5. Reference Removed ===
 Early radar measurements were conducted by Soviet Venera landers.
+
+=== 6. Citation Needed Replaced with Citations (CNfirmed / Eisenhower diff=1380014667) ===
+He was promoted to lieutenant general on July 7.<ref>{{cite book |title=Steven Zaloga Eisenhower The Background, Strategies, Tactics And |url=https://archive.org/details/steven-zaloga-eisenhower-the-background-strategies-tactics-and_202111 |via=Internet Archive}}</ref><ref>{{Cite book |last=Zaloga |first=Steve |title=Dwight Eisenhower: leadership, strategy, conflict |last2=Noon |first2=Steve |date=2011 |publisher=Osprey |isbn=978-1-84908-359-1 |series=Command |location=Botley, Oxford ; Long Island City, NY|page=15}}</ref>
+
+== References ==
+{{reflist}}

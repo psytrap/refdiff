@@ -506,6 +506,26 @@ suite('src/pipeline.js - Transformation Pipeline & Roundtrip', () => {
     assert.strictEqual(result3.modifiedCits[0].oldRaw.includes('<del class="diffchange'), true);
     assert.strictEqual(result3.modifiedCits[0].newRaw.includes('<ins class="diffchange'), true);
   });
+
+  test('transformProseCells decouples references replacing {{citation needed|...}} in Dwight D. Eisenhower diff=1380014667', () => {
+    const delHtml = '<div>He was promoted to lieutenant general on July 7.{{<del class="diffchange diffchange-inline">citation</del> <del class="diffchange diffchange-inline">needed</del>|date=<del class="diffchange diffchange-inline">August</del> <del class="diffchange diffchange-inline">2025</del>}}</div>';
+    const addHtml = '<div>He was promoted to lieutenant general on July 7.<ins class="diffchange diffchange-inline">&lt;ref&gt;</ins>{{<ins class="diffchange diffchange-inline">cite book |title=Steven Zaloga Eisenhower The Background, Strategies, Tactics And |url=https://archive.org/details/steven-zaloga-eisenhower-the-background-strategies-tactics-and_202111 |via=Internet Archive}}&lt;/ref&gt;&lt;ref&gt;{{Cite book |last=Zaloga |first=Steve |title=Dwight Eisenhower: leadership, strategy, conflict |last2=Noon |first2=Steve</ins> |date=<ins class="diffchange diffchange-inline">2011</ins> <ins class="diffchange diffchange-inline">|publisher=Osprey |isbn=978-1-84908-359-1 |series=Command |location=Botley, Oxford ; Long Island City, NY|page=15</ins>}}<ins class="diffchange diffchange-inline">&lt;/ref&gt;</ins></div>';
+
+    const delRefs = parseRefs(delHtml);
+    const addRefs = parseRefs(addHtml, delHtml);
+    assert.strictEqual(delRefs.length, 0);
+    assert.strictEqual(addRefs.length, 2);
+
+    const pairs = pairReferences(delRefs, addRefs);
+    const result = transformProseCells(delHtml, addHtml, pairs, 1);
+
+    assert.strictEqual(result.modifiedCits.length, 2, 'Must separate both newly added citations into citation rows');
+    assert.strictEqual(result.modifiedCits[0].isAdd, true);
+    assert.strictEqual(result.modifiedCits[1].isAdd, true);
+    assert.strictEqual(result.newDelHtml.includes('<del class="diffchange diffchange-inline">{{citation needed|date=August 2025}}</del>'), true, 'Deleted prose must cleanly strike out the citation needed template');
+    assert.strictEqual(result.newAddHtml.includes('ref-badge-add'), true, 'Added prose must contain badge elements');
+    assert.strictEqual(result.newAddHtml.includes('&lt;ref&gt;'), false, 'Added prose must not leak raw <ref> tags');
+  });
 });
 
 if (require.main === module) {

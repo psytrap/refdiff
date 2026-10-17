@@ -5,7 +5,16 @@
  */
 
 const { assert, suite, test, finishStandalone } = require('./harness.js');
-const { stripHtml, normalizeDiffTags, hasBalancedDiffTags, sanitizeAnchor, escapeRegex, formatBadgeDisplayLabel } = require('../refdiff.js');
+const {
+  stripHtml,
+  normalizeDiffTags,
+  hasBalancedDiffTags,
+  hasDeletedCn,
+  normalizeCnDiffPair,
+  sanitizeAnchor,
+  escapeRegex,
+  formatBadgeDisplayLabel
+} = require('../refdiff.js');
 
 suite('src/utils.js - Text Utilities & Normalization', () => {
   test('stripHtml removes all HTML tags and leaves text intact', () => {
@@ -74,6 +83,100 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
       formatBadgeDisplayLabel("From teen in RSS shakha to Speaker's Chair: Bihar BJP leader Prem Kumar's long journey"),
       'From teen in RSS shakha…'
     );
+  });
+
+  test('hasDeletedCn detects deleted citation needed and cn variations while ignoring unrelated templates', () => {
+    assert.strictEqual(
+      hasDeletedCn('He was promoted.{{<del class="diffchange diffchange-inline">citation</del> <del class="diffchange diffchange-inline">needed</del>|date=<del class="diffchange diffchange-inline">August</del> <del class="diffchange diffchange-inline">2025</del>}}'),
+      true,
+      'Should detect parameterized {{citation needed|...}} with internal del tags'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Sentence.<del class="diffchange diffchange-inline">{{citation needed}}</del>'),
+      true,
+      'Should detect fully wrapped {{citation needed}}'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Claim.{{<del class="diffchange diffchange-inline">cn</del>}}'),
+      true,
+      'Should detect bare {{cn}}'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Claim.{{<del class="diffchange diffchange-inline">cn</del>|date=<del class="diffchange diffchange-inline">May 2024</del>}}'),
+      true,
+      'Should detect parameterized {{cn|date=...}}'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Claim.{{<del class="diffchange diffchange-inline">Citation needed</del>|reason=<del class="diffchange diffchange-inline">unclear</del>}}'),
+      true,
+      'Should detect {{Citation needed|reason=...}}'
+    );
+    // Negative tests
+    assert.strictEqual(
+      hasDeletedCn('Claim.{{citation needed|date=August 2025}}'),
+      false,
+      'Should return false when template is unchanged (no del tags)'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Claim.{{<del class="diffchange diffchange-inline">clarification needed</del>}}'),
+      false,
+      'Should return false for unrelated maintenance template'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Claim.{{<del class="diffchange diffchange-inline">who</del>}}'),
+      false,
+      'Should return false for {{who}} template'
+    );
+    assert.strictEqual(
+      hasDeletedCn('Normal text with no templates.'),
+      false,
+      'Should return false for plain text'
+    );
+  });
+
+  test('normalizeCnDiffPair aligns split diffchange boundaries for Dwight D. Eisenhower diff=1380014667', () => {
+    const deletedHtml = 'At the end of May 1942... He was promoted to lieutenant general on July 7.{{<del class="diffchange diffchange-inline">citation</del> <del class="diffchange diffchange-inline">needed</del>|date=<del class="diffchange diffchange-inline">August</del> <del class="diffchange diffchange-inline">2025</del>}}';
+    const addedHtml = 'At the end of May 1942... He was promoted to lieutenant general on July 7.<ins class="diffchange diffchange-inline">&lt;ref&gt;</ins>{{<ins class="diffchange diffchange-inline">cite book |title=Steven Zaloga Eisenhower The Background, Strategies, Tactics And |url=https://archive.org/details/steven-zaloga-eisenhower-the-background-strategies-tactics-and_202111 |via=Internet Archive}}&lt;/ref&gt;&lt;ref&gt;{{Cite book |last=Zaloga |first=Steve |title=Dwight Eisenhower: leadership, strategy, conflict |last2=Noon |first2=Steve</ins> |date=<ins class="diffchange diffchange-inline">2011</ins> <ins class="diffchange diffchange-inline">|publisher=Osprey |isbn=978-1-84908-359-1 |series=Command |location=Botley, Oxford ; Long Island City, NY|page=15</ins>}}<ins class="diffchange diffchange-inline">&lt;/ref&gt;</ins>';
+
+    const aligned = normalizeCnDiffPair(deletedHtml, addedHtml);
+
+    assert.strictEqual(
+      aligned.delHtml,
+      'At the end of May 1942... He was promoted to lieutenant general on July 7.<del class="diffchange diffchange-inline">{{citation needed|date=August 2025}}</del>',
+      'Should unify deleted template into a single cohesive <del> span'
+    );
+    assert.strictEqual(
+      aligned.addHtml.includes('<ins class="diffchange diffchange-inline">&lt;ref&gt;{{cite book'),
+      true,
+      'Should unify opening <ref> and cite template into cohesive <ins> span'
+    );
+    assert.strictEqual(
+      aligned.addHtml.includes('NY|page=15}}&lt;/ref&gt;</ins>'),
+      true,
+      'Should close final </ref> cleanly inside <ins> span'
+    );
+    assert.strictEqual(
+      aligned.addHtml.includes('&lt;ref&gt;</ins>'),
+      false,
+      'Should have zero isolated opening <ref> tags'
+    );
+  });
+
+  test('normalizeCnDiffPair aligns bare {{cn}} replaced by single reference', () => {
+    const delHtml = 'Claim.{{<del class="diffchange diffchange-inline">cn</del>}}';
+    const addHtml = 'Claim.<ins class="diffchange diffchange-inline">&lt;ref&gt;</ins>{{<ins class="diffchange diffchange-inline">cite web |title=Source</ins>}}<ins class="diffchange diffchange-inline">&lt;/ref&gt;</ins>';
+
+    const aligned = normalizeCnDiffPair(delHtml, addHtml);
+    assert.strictEqual(aligned.delHtml, 'Claim.<del class="diffchange diffchange-inline">{{cn}}</del>');
+    assert.strictEqual(aligned.addHtml, 'Claim.<ins class="diffchange diffchange-inline">&lt;ref&gt;{{cite web |title=Source}}&lt;/ref&gt;</ins>');
+  });
+
+  test('normalizeCnDiffPair leaves non-cn diffs completely untouched', () => {
+    const delHtml = 'Plain deleted text.';
+    const addHtml = 'Plain added text.<ins class="diffchange diffchange-inline">&lt;ref&gt;new ref&lt;/ref&gt;</ins>';
+    const aligned = normalizeCnDiffPair(delHtml, addHtml);
+    assert.strictEqual(aligned.delHtml, delHtml);
+    assert.strictEqual(aligned.addHtml, addHtml);
   });
 });
 

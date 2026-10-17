@@ -14,11 +14,10 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📄 **[CONCEPT.md](proposal/CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
 * 🏛️ **[ARCHITECTURE.md](ARCHITECTURE.md)** – Technical architecture and design document (subsystems, state machine, Memento pattern, algorithms).
 * 🔍 **[REFDIFF.md](REFDIFF.md)** – Tool design specification for **RefDiff** (*The Ref-Differentiator*), the diff-decoupling engine for reviewers (`Special:Diff` gadget).
-* 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md)** – Comprehensive two-pillar audit & review strategy: codebase/security audit (K1/M1/M6 taxonomy, clean code & anti-test-smell governance, JSDOM real DOM harness, ResourceLoader compliance) and editorial review playbook (anti-template-camouflage, anti-AI-slop fact-checking, 3-way triage).
+* 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md)** – Comprehensive audit & review strategy: specification-driven agentic coding governance, codebase/security audit (K1/M1/M6 taxonomy, clean code & anti-test-smell rules, JSDOM real DOM harness, ResourceLoader compliance), and editorial review playbook (anti-template-camouflage, anti-AI-slop fact-checking, 3-way triage).
 * 🧪 **[TEST_PLAN.md](TEST_PLAN.md)** – Comprehensive test plan, coverage evaluation (100% headless / 100% browser runtime), test pyramid, and modular test suite architecture.
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
-* 🗃️ **[userbox.wiki](userbox.wiki)** – Generic / Meta-Wiki userbox template (`{{User:Powercycler/User RefDiff}}`).
-* 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki)** – English Wikipedia dedicated userbox template and documentation (`Template:User RefDiff`).
+* 🗃️ **[userbox.wiki](userbox.wiki)** – Userbox template and documentation (`{{User:Powercycler/Userbox RefDiff}}`).
 * 🚀 **[ROLLOUT_PLAN.md](ROLLOUT_PLAN.md)** – Multi-ring rollout plan, pre-flight quality gates, rollback protocol, and operator runbook.
 * 📝 **[POST.md](proposal/POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 * 📋 **[LOG.md](LOG.md)** – Chronological decision register, activity log, and planned roadmap.
@@ -42,7 +41,7 @@ A zero-loss in-place diff-decoupling gadget for MediaWiki `Special:Diff`. It ope
   mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
   ```
 * Also compatible with Tampermonkey, Violentmonkey, and Greasemonkey. Full native support for Vector 2022 Light and Dark modes.
-* **Userbox:** Display your usage on English Wikipedia with `{{User RefDiff}}` (or cross-wiki with `{{User:Powercycler/User RefDiff}}`, see [**userbox_enwiki.wiki**](userbox_enwiki.wiki) and [**userbox.wiki**](userbox.wiki)).
+* **Userbox:** Display your usage on English Wikipedia with `{{User:Powercycler/Userbox RefDiff}}` (see [**userbox.wiki**](userbox.wiki)).
 
 ### 2. Supplementing Tools & Ecosystem Compatibility
 

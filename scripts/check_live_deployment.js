@@ -26,11 +26,13 @@ const rootDir = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
 const localJs = fs.readFileSync(path.join(rootDir, 'refdiff.js'), 'utf8');
 const localWiki = fs.readFileSync(path.join(rootDir, 'refdiff.wiki'), 'utf8');
-const localUserbox = fs.readFileSync(path.join(rootDir, 'userbox_enwiki.wiki'), 'utf8');
+const localMetaWiki = fs.readFileSync(path.join(rootDir, 'meta_refdiff.wiki'), 'utf8');
+const localUserbox = fs.readFileSync(path.join(rootDir, 'userbox.wiki'), 'utf8');
 
 const localJsSha1 = crypto.createHash('sha1').update(localJs, 'utf8').digest('hex');
 const localJsTrimmedSha1 = crypto.createHash('sha1').update(localJs.trimEnd(), 'utf8').digest('hex');
 const localWikiSha1 = crypto.createHash('sha1').update(localWiki, 'utf8').digest('hex');
+const localMetaWikiSha1 = crypto.createHash('sha1').update(localMetaWiki, 'utf8').digest('hex');
 
 function getGitReleaseInfo() {
   try {
@@ -63,8 +65,22 @@ function getGitReleaseInfo() {
 const USER_AGENT = `RefDiffLiveDeployAudit/${pkg.version} (https://en.wikipedia.org/wiki/User:Powercycler/RefDiff; contact: User:Powercycler)`;
 
 function fetchApi(apiBase, titles) {
+  const url = `${apiBase}?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=info|revisions&rvprop=ids|timestamp|sha1|size|content&format=json`;
+  const proxy = process.env.https_proxy || process.env.http_proxy || process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+  if (proxy) {
+    try {
+      const output = execSync(`curl -s -A "${USER_AGENT}" "${url}"`, {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      return Promise.resolve(JSON.parse(output));
+    } catch (_) {
+      // Fall through to native https.get
+    }
+  }
+
   return new Promise((resolve, reject) => {
-    const url = `${apiBase}?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=info|revisions&rvprop=ids|timestamp|sha1|size|content&format=json`;
     const req = https.get(url, { headers: { 'User-Agent': USER_AGENT } }, (res) => {
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
@@ -80,6 +96,7 @@ function fetchApi(apiBase, titles) {
     req.on('error', reject);
   });
 }
+
 
 async function auditDeployment() {
   const gitRelease = getGitReleaseInfo();
@@ -100,7 +117,8 @@ async function auditDeployment() {
     console.log(`  - refdiff.js (Release ${gitRelease.tag}):   ${gitRelease.sizeKb} KB (SHA-1: ${gitRelease.jsSha1})`);
   }
   console.log(`  - refdiff.wiki (Doc Lead):     ${(localWiki.length / 1024).toFixed(1)} KB (SHA-1: ${localWikiSha1})`);
-  console.log(`  - userbox_enwiki.wiki:         ${(localUserbox.length / 1024).toFixed(1)} KB\n`);
+  console.log(`  - meta_refdiff.wiki (CDN Hub): ${(localMetaWiki.length / 1024).toFixed(1)} KB (SHA-1: ${localMetaWikiSha1})`);
+  console.log(`  - userbox.wiki:                ${(localUserbox.length / 1024).toFixed(1)} KB\n`);
 
   console.log('Querying live Wikimedia APIs...\n');
 
@@ -227,6 +245,7 @@ async function auditDeployment() {
     const rev = enPointer.revisions && enPointer.revisions[0];
     const content = rev ? (rev['*'] || '') : '';
     const isForwarder = content.includes('mw.loader.load') && (content.includes('meta.wikimedia.org') || content.includes('User:Powercycler/refdiff.js'));
+    const isPinned = content.includes('oldid=');
     const referencesTree = content.includes(localJsSha1.slice(0, 8)) || content.includes(localJsSha1) ||
       content.includes(localJsTrimmedSha1.slice(0, 8)) || content.includes(localJsTrimmedSha1) ||
       content.includes(`v${pkg.version}`);
@@ -242,8 +261,8 @@ async function auditDeployment() {
     if (isForwarder && referencesRelease) {
       reports.push({
         target: 'en:User:Powercycler/refdiff.js (en.WP SHA Pointer)',
-        status: `DEPLOYED & POINTING TO RELEASE (${matchedTag})`,
-        details: `Rev ${rev.revid} (${rev.timestamp}). Forwards to Meta-Wiki script lead referencing release SHA-1 (${matchedSha}).`,
+        status: `DEPLOYED & POINTING TO RELEASE (${matchedTag}${isPinned ? ' - Pinned Rev' : ''})`,
+        details: `Rev ${rev.revid} (${rev.timestamp}). Forwards to Meta-Wiki script lead referencing release SHA-1 (${matchedSha})${isPinned ? ' with immutable revision pin' : ''}.`,
         ok: true
       });
     } else if (isForwarder) {
@@ -288,7 +307,7 @@ async function auditDeployment() {
     reports.push({
       target: 'm:User:Powercycler/RefDiff (Meta Docs Redirect)',
       status: 'NOT DEPLOYED (Missing)',
-      details: 'Page does not exist on meta.wikimedia.org. Action: Create soft redirect to en:User:Powercycler/RefDiff.',
+      details: 'Page does not exist on meta.wikimedia.org. Action: Publish meta_refdiff.wiki tools page pointing to en:User:Powercycler/RefDiff.',
       ok: false
     });
   } else {
@@ -311,7 +330,7 @@ async function auditDeployment() {
     reports.push({
       target: 'en:User:Powercycler/Userbox RefDiff (Userbox)',
       status: 'NOT DEPLOYED (Missing)',
-      details: 'Page does not exist on en.wikipedia.org yet. Action: Publish userbox_enwiki.wiki to user space (e.g. User:Powercycler/Userbox RefDiff).',
+      details: 'Page does not exist on en.wikipedia.org yet. Action: Publish userbox.wiki to user space (e.g. User:Powercycler/Userbox RefDiff).',
       ok: false
     });
   } else {
@@ -343,7 +362,10 @@ async function auditDeployment() {
     process.exit(0);
   } else {
     const targetTagLabel = gitRelease ? gitRelease.tag : `v${pkg.version}`;
-    const pointerCode = `// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: ${targetJsSha1.slice(0, 8)})\nmw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');`;
+    const metaRevId = (metaLead && metaLead.revisions && metaLead.revisions[0]) ? metaLead.revisions[0].revid : null;
+    const oldidParam = metaRevId ? `&oldid=${metaRevId}` : '';
+    const oldidComment = metaRevId ? `, oldid: ${metaRevId}` : '';
+    const pointerCode = `// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: ${targetJsSha1.slice(0, 8)}${oldidComment})\nmw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js${oldidParam}&action=raw&ctype=text/javascript');`;
     console.log('⚠️ DEPLOYMENT ACTION REQUIRED:');
     console.log(' To complete the rollout according to ROLLOUT_PLAN.md (Rollout and Deployment Plan):');
     console.log(`  1. Update m:User:Powercycler/refdiff.js (Meta-Wiki Script Lead):`);
@@ -354,8 +376,8 @@ async function auditDeployment() {
     console.log(`     Publish pointer forwarding to Meta script lead with release SHA-1 (${targetJsSha1.slice(0, 8)}):`);
     console.log(`     ${pointerCode.replace(/\n/g, '\n     ')}`);
     console.log('  4. Publish documentation to en:User:Powercycler/RefDiff (refdiff.wiki - Doc Lead)');
-    console.log('  5. Ensure m:User:Powercycler/RefDiff is configured as soft redirect to en.WP');
-    console.log('  6. Publish userbox to en:Template:User RefDiff (userbox_enwiki.wiki)');
+    console.log('  5. Publish CDN tools page to m:User:Powercycler/RefDiff (meta_refdiff.wiki)');
+    console.log('  6. Publish userbox to en:Template:User RefDiff (userbox.wiki)');
     console.log('------------------------------------------------------------------------\n');
     process.exit(1);
   }

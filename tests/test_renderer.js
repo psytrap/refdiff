@@ -6,7 +6,16 @@
 
 const { assert, suite, test, withMockEnvironment, finishStandalone } = require('./harness.js');
 const { JSDOM } = require('jsdom');
-const { createProseBadge, createProseBadgeElement, createCitRow, replaceRefInHtml, el } = require('../refdiff.js');
+const {
+  createProseBadge,
+  createProseBadgeElement,
+  createCitRow,
+  replaceRefInHtml,
+  el,
+  parseTemplateList,
+  showBadgePreview,
+  hideBadgePreview
+} = require('../refdiff.js');
 
 const getDoc = () => (new JSDOM()).window.document;
 
@@ -252,6 +261,103 @@ suite('src/renderer.js - Badge & Citation Row Rendering', () => {
       assert.strictEqual(modCells[2].getAttribute('data-marker'), '+');
       assert.strictEqual(modCells[2].className, 'diff-marker');
       assert.strictEqual(modCells[3].className, 'refdiff-cit-addedline diff-side-added');
+    });
+  });
+
+  test('parseTemplateList parses citation templates into key-value list format', () => {
+    const raw = '<ref>{{cite journal |vauthors = Shakespeare J, Fletcher J |title = The Two Noble Kinsmen |journal = Stationers\' Register |date = 1634 |doi = 10.1183/20734735.0310-2019}}</ref>';
+    const parsed = parseTemplateList(raw);
+    assert.ok(parsed, 'Parsed object should not be null');
+    assert.strictEqual(parsed.data.length, 1);
+    assert.strictEqual(parsed.data[0].name, 'cite journal');
+    assert.strictEqual(parsed.data[0].params.length, 5);
+
+    assert.ok(parsed.text.includes('{{cite journal}}'));
+    assert.ok(parsed.text.includes('• vauthors: Shakespeare J, Fletcher J'));
+    assert.ok(parsed.text.includes('• title: The Two Noble Kinsmen'));
+    assert.ok(parsed.text.includes('• journal: Stationers\' Register'));
+    assert.ok(parsed.text.includes('• date: 1634'));
+    assert.ok(parsed.text.includes('• doi: 10.1183/20734735.0310-2019'));
+  });
+
+  test('parseTemplateList handles {{sfn}} with positional and named arguments', () => {
+    const parsed = parseTemplateList('{{sfn|Smith|2020|p=45}}');
+    assert.ok(parsed);
+    assert.strictEqual(parsed.data[0].name, 'sfn');
+    assert.ok(parsed.text.includes('{{sfn}}'));
+    assert.ok(parsed.text.includes('• 1: Smith'));
+    assert.ok(parsed.text.includes('• 2: 2020'));
+    assert.ok(parsed.text.includes('• p: 45'));
+  });
+
+  test('createProseBadgeElement formats template as list in title and data-preview-json when no cite_note anchor exists', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      const raw = '<ref>{{cite web |url = https://example.com |title = Test Page |author = Alice}}</ref>';
+      const badge = createProseBadgeElement('add', 'ref1', '#refdiff-cit-1', raw);
+      const a = badge.querySelector('a');
+
+      const titleAttr = a.getAttribute('title');
+      assert.ok(titleAttr.includes('Added citation: ⟨+ref1+⟩'));
+      assert.ok(titleAttr.includes('{{cite web}}'));
+      assert.ok(titleAttr.includes('• url: https://example.com'));
+      assert.ok(titleAttr.includes('• title: Test Page'));
+      assert.ok(titleAttr.includes('• author: Alice'));
+
+      const jsonAttr = a.getAttribute('data-preview-json');
+      assert.ok(jsonAttr, 'data-preview-json attribute should be present');
+      const data = JSON.parse(jsonAttr);
+      assert.strictEqual(data.data[0].name, 'cite web');
+      assert.strictEqual(data.data[0].params.length, 3);
+    });
+  });
+
+  test('createProseBadgeElement omits title and preview data when anchor points to #cite_note-*', () => {
+    withMockEnvironment({ document: getDoc() }, () => {
+      const raw = '<ref>{{cite web |url = https://example.com |title = Test Page}}</ref>';
+      const badge = createProseBadgeElement('norm', 'ref1', '#cite_note-31', raw);
+      const a = badge.querySelector('a');
+
+      assert.strictEqual(a.getAttribute('href'), '#cite_note-31');
+      assert.strictEqual(a.hasAttribute('title'), false, 'Must omit title attribute for native Extension:Popups compatibility');
+      assert.strictEqual(a.hasAttribute('data-preview-json'), false, 'Must omit custom preview data for native Extension:Popups compatibility');
+    });
+  });
+
+  test('showBadgePreview and hideBadgePreview mount and toggle floating preview card in list format', () => {
+    const doc = getDoc();
+    withMockEnvironment({ document: doc, window: doc.defaultView }, () => {
+      const raw = '<ref>{{cite journal |vauthors = Shakespeare J |title = Kinsmen |journal = SR}}</ref>';
+      const badge = createProseBadgeElement('add', 'ref1', '#refdiff-cit-1', raw);
+      doc.body.appendChild(badge);
+
+      const a = badge.querySelector('a');
+      assert.ok(a.hasAttribute('title'));
+
+      showBadgePreview(a);
+
+      const card = doc.getElementById('refdiff-preview-card');
+      assert.ok(card, 'Preview card should be mounted in document.body');
+      assert.strictEqual(card.style.display, 'block');
+      assert.strictEqual(card.getAttribute('role'), 'tooltip');
+
+      const titleEl = card.querySelector('.refdiff-preview-title');
+      assert.ok(titleEl && titleEl.textContent.includes('Added citation: ⟨+ref1+⟩'));
+
+      const tplEl = card.querySelector('.refdiff-preview-tpl');
+      assert.ok(tplEl && tplEl.textContent.includes('{{cite journal}}'));
+
+      const listItems = Array.from(card.querySelectorAll('.refdiff-preview-list li'));
+      assert.strictEqual(listItems.length, 3);
+      assert.ok(listItems[0].textContent.includes('vauthors: Shakespeare J'));
+      assert.ok(listItems[1].textContent.includes('title: Kinsmen'));
+      assert.ok(listItems[2].textContent.includes('journal: SR'));
+
+      assert.strictEqual(a.hasAttribute('title'), false);
+      assert.ok(a.dataset.refdiffOrigTitle);
+
+      hideBadgePreview(a);
+      assert.strictEqual(card.style.display, 'none');
+      assert.strictEqual(a.hasAttribute('title'), true, 'Title attribute must be restored after hide');
     });
   });
 });

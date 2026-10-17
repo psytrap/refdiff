@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         RefDiff
 // @namespace    https://github.com/m-k/einzelnachweise
-// @version      1.5.0
+// @version      1.5.3
 // @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
 // @author       RefDiff Contributors
 // @match        https://*.wikipedia.org/*diff=*
@@ -57,6 +57,11 @@
      ========================================================================== */
 
   /**
+   * Current RefDiff semantic version.
+   */
+  const VERSION = '1.5.3';
+
+  /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
    * Handles self-closing tags and opening/closing tags with attributes containing HTML entities.
    */
@@ -91,9 +96,9 @@
     INLINE_SWITCH: '#mw-diffPage-inline-toggle-switch, .oo-ui-toggleSwitchWidget, input[name="diff-type"]',
     VE_DIFF_CONTAINER: '.ve-init-mw-diffPage-diffMode',
     VE_BUTTON_GROUP: '.ve-init-mw-diffPage-diffMode .oo-ui-buttonGroupWidget, .ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget, .ve-init-mw-diffPage-diffMode > *',
-    VE_OPTION_WIDGET: '.ve-init-mw-diffPage-diffMode .oo-ui-optionWidget',
+    VE_OPTION_WIDGET: '.ve-init-mw-diffPage-diffMode .oo-ui-optionWidget:not(#refdiff-ooui-btn)',
     VE_DIFF_ELEMENT: '.ve-ui-diffElement, .ve-init-mw-diffPage-diff',
-    VE_VISUAL_BUTTON: '.ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child',
+    VE_VISUAL_BUTTON: '.ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:first-child, .ve-init-mw-diffPage-diffMode .oo-ui-buttonElement:first-child',
     REFDIFF_BTN_OOUI: '#refdiff-ooui-btn',
     REFDIFF_MODE_BAR: '#refdiff-mode-bar',
     REFDIFF_BTN_DECOUPLED: '#refdiff-btn-decoupled',
@@ -116,6 +121,11 @@
     REF_CONTAINER: 'reference refdiff-ref',
     FLASH_CIT: 'refdiff-cit-flash',
     FLASH_TARGET: 'refdiff-target-flash',
+    PREVIEW_CARD: 'refdiff-preview-card',
+    PREVIEW_TITLE: 'refdiff-preview-title',
+    PREVIEW_TPL: 'refdiff-preview-tpl',
+    PREVIEW_LIST: 'refdiff-preview-list',
+    PREVIEW_KEY: 'refdiff-preview-key',
     DIFF_CONTEXT: 'diff-context',
     DELETED_LINE: 'diff-deletedline',
     ADDED_LINE: 'diff-addedline',
@@ -262,6 +272,93 @@
         background: rgba(255, 110, 110, 0.2);
       }
     }
+    .refdiff-preview-card {
+      position: absolute;
+      z-index: 1000;
+      max-width: 420px;
+      min-width: 240px;
+      background: #ffffff;
+      color: #202122;
+      border: 1px solid #a2a9b1;
+      border-radius: 4px;
+      padding: 8px 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+      font-size: 13px;
+      line-height: 1.45;
+      font-family: sans-serif;
+      pointer-events: none;
+      display: none;
+      box-sizing: border-box;
+    }
+    .refdiff-preview-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #54595d;
+      font-size: 12px;
+      border-bottom: 1px solid #eaecf0;
+      padding-bottom: 3px;
+    }
+    .refdiff-preview-tpl {
+      font-family: monospace, monospace;
+      font-size: 12px;
+      color: #101418;
+      margin-bottom: 4px;
+    }
+    .refdiff-preview-list {
+      margin: 0;
+      padding-left: 18px;
+      list-style-type: disc;
+    }
+    .refdiff-preview-list li {
+      margin: 2px 0;
+      word-break: break-word;
+    }
+    .refdiff-preview-key {
+      font-weight: bold;
+      color: #404244;
+    }
+    html.skin-theme-clientpref-night .refdiff-preview-card,
+    body.skin-theme-clientpref-night .refdiff-preview-card {
+      background: #202122;
+      color: #eaecf0;
+      border-color: #54595d;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+    }
+    html.skin-theme-clientpref-night .refdiff-preview-title,
+    body.skin-theme-clientpref-night .refdiff-preview-title {
+      color: #a2a9b1;
+      border-bottom-color: #404244;
+    }
+    html.skin-theme-clientpref-night .refdiff-preview-tpl,
+    body.skin-theme-clientpref-night .refdiff-preview-tpl {
+      color: #ffffff;
+    }
+    html.skin-theme-clientpref-night .refdiff-preview-key,
+    body.skin-theme-clientpref-night .refdiff-preview-key {
+      color: #c8ccd1;
+    }
+    @media (prefers-color-scheme: dark) {
+      html.skin-theme-clientpref-os .refdiff-preview-card,
+      body.skin-theme-clientpref-os .refdiff-preview-card {
+        background: #202122;
+        color: #eaecf0;
+        border-color: #54595d;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+      }
+      html.skin-theme-clientpref-os .refdiff-preview-title,
+      body.skin-theme-clientpref-os .refdiff-preview-title {
+        color: #a2a9b1;
+        border-bottom-color: #404244;
+      }
+      html.skin-theme-clientpref-os .refdiff-preview-tpl,
+      body.skin-theme-clientpref-os .refdiff-preview-tpl {
+        color: #ffffff;
+      }
+      html.skin-theme-clientpref-os .refdiff-preview-key,
+      body.skin-theme-clientpref-os .refdiff-preview-key {
+        color: #c8ccd1;
+      }
+    }
     .refdiff-mode-bar {
       margin: 8px 0 10px 0;
       font-size: 13px;
@@ -277,7 +374,7 @@
     .refdiff-decouple-container {
       display: inline-flex;
       align-items: center;
-      margin-right: 12px;
+      margin: 0 12px 0 8px;
       vertical-align: middle;
       font-size: 0.85em;
       color: #54595d;
@@ -329,6 +426,14 @@
         color: #a2a9b1;
         color: var(--color-subtle, #a2a9b1);
       }
+    }
+    #refdiff-ooui-btn.oo-ui-widget-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    #refdiff-ooui-btn.oo-ui-widget-disabled > a {
+      pointer-events: none;
+      cursor: not-allowed;
     }
     /* Citation row cell styling mirroring MediaWiki diff lines */
     .refdiff-cit-row td.refdiff-cit-addedline,
@@ -417,6 +522,9 @@
     initRetries: 0,
     diffTypeSwitchWidget: null,
     onTableClickHandler: null,
+    onTableHoverHandler: false,
+    onTableMouseOver: null,
+    onTableMouseOut: null,
     modifiedRows: []
   };
   /* === [END VIRTUAL FILE: src/state.js] === */
@@ -471,6 +579,68 @@
     return val !== undefined ? val.trim() : null;
   }
 
+  const RAW_CN_REGEX = /\{\{(?:<\/?(?:del|ins|span)\b[^>]*>|\s)*(?:citation(?:<\/?(?:del|ins|span)\b[^>]*>|\s)+needed|cn)\b(?:[^{}]|<[^>]+>)*?\}\}/gi;
+  const CN_REF_BLOCK_REGEX = /<(?:ins|span)\b[^>]*>(&lt;ref\b(?:(?!&gt;)[\s\S])*?&gt;)<\/(?:ins|span)>\s*\{\{[\s\S]*?\}\}\s*<(?:ins|span)\b[^>]*>(&lt;\/ref&gt;)<\/(?:ins|span)>/gi;
+
+  /**
+   * Detects whether a deleted cell HTML string contains a deleted or modified
+   * {{citation needed|...}} or {{cn|...}} maintenance template.
+   * Strictly scoped to avoid unnecessary transformations on unrelated templates.
+   * @param {string} [delHtml]
+   * @returns {boolean}
+   */
+  function hasDeletedCn(delHtml) {
+    if (!delHtml || typeof delHtml !== 'string' || !delHtml.includes('<del')) return false;
+    const stripped = stripHtml(delHtml);
+    return /\{\{\s*(?:citation\s+needed|cn)\b/i.test(stripped);
+  }
+
+  /**
+   * Verifies that an HTML-stripped string consists strictly of one or more
+   * valid <ref>...</ref> citations (with optional punctuation/whitespace between).
+   * Ensures boundary normalization never swallows adjacent prose.
+   * @param {string} stripped
+   * @returns {boolean}
+   */
+  function isPureRefSequence(stripped) {
+    if (!stripped || typeof stripped !== 'string') return false;
+    const remainder = stripped.replace(REF_REGEX, '').trim();
+    return remainder === '' || /^[,.;:!?'"'\s]+$/.test(remainder);
+  }
+
+  /**
+   * Normalizes diffchange tag boundaries specifically when an unreferenced claim
+   * marked with {{citation needed|...}} or {{cn|...}} is replaced by full <ref> citations.
+   * When MediaWiki's wikidiff2 aligns shared tokens ({{, |date=, }}), it leaves
+   * opening/closing <ref> tags isolated in <ins> wrappers, breaking diff-tag balance.
+   * This aligns deleted {{citation needed}} and added <ref> blocks as cohesive diff units.
+   *
+   * @param {string} [delHtml]
+   * @param {string} [addHtml]
+   * @returns {{ delHtml: string, addHtml: string }}
+   */
+  function normalizeCnDiffPair(delHtml, addHtml) {
+    const safeDel = (delHtml && typeof delHtml === 'string') ? delHtml : '';
+    const safeAdd = (addHtml && typeof addHtml === 'string') ? addHtml : '';
+    if (!hasDeletedCn(safeDel)) {
+      return { delHtml: safeDel, addHtml: safeAdd };
+    }
+
+    const normDel = safeDel.replace(RAW_CN_REGEX, (m) => {
+      if (!m.includes('<del')) return m;
+      const clean = m.replace(/<\/?(?:del|ins|span)\b[^>]*>/gi, '');
+      return `<del class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${clean}</del>`;
+    });
+
+    const normAdd = safeAdd ? safeAdd.replace(CN_REF_BLOCK_REGEX, (match) => {
+      const stripped = match.replace(/<\/?(?:del|ins|span)\b[^>]*>/gi, '');
+      if (!isPureRefSequence(stripped)) return match;
+      return `<ins class="${CLASSES.DIFFCHANGE} ${CLASSES.DIFFCHANGE_INLINE}">${stripped}</ins>`;
+    }) : safeAdd;
+
+    return { delHtml: normDel, addHtml: normAdd };
+  }
+
   /**
    * Normalizes diffchange tag boundaries that cross HTML-escaped <ref> syntax markers.
    * MediaWiki's wikidiff2 tokenizes at word/character level, which can place <del> or <ins>
@@ -478,11 +648,15 @@
    * This aligns diff markers cleanly with reference tag boundaries.
    *
    * @param {string} [str] Raw cell HTML with diffchange tags
+   * @param {string} [delStr] Optional deleted cell HTML for scoped inter-template alignment
    * @returns {string} Normalized cell HTML
    */
-  function normalizeDiffTags(str) {
+  function normalizeDiffTags(str, delStr) {
     if (!str || typeof str !== 'string') return str || '';
     let res = str;
+    if (delStr && hasDeletedCn(delStr)) {
+      res = normalizeCnDiffPair(delStr, res).addHtml;
+    }
     // 1. Closing tag: &lt;/ref<del...>&gt; -> &lt;/ref&gt;<del...>
     res = res.replace(/(&lt;\/(?:ref|references)\b[^&]*?)<(del|ins)([^>]*)>&gt;/gi, '$1&gt;<$2$3>');
     // 2. Self-closing tag where </del> or </ins> splits / and &gt;: /</del>&gt; -> /&gt;</del>
@@ -594,6 +768,106 @@
     const anchorToken = authors.length || year ? 'FOOTNOTE' + authors.join('') + year : null;
     return { label, anchorToken, authors, year };
   }
+
+  /**
+   * Parses wikitext citation templates into a structured list format for preview tooltips and hovercards.
+   * Extracts top-level parameters respecting nested brackets, formatting as:
+   *   {{template_name}}
+   *   • key1: value1
+   *   • key2: value2
+   * For plain-text references, returns the cleaned text.
+   * @param {string} [rawContent]
+   * @returns {{ text: string, data: Array<{ name: string, params: Array<{ key: string, val: string }> }> }|null}
+   */
+  function parseTemplateList(rawContent) {
+    if (!rawContent || typeof rawContent !== 'string') return null;
+    const cleanSource = rawContent
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<\/?(?:ins|del|span)\b[^>]*>/gi, '');
+
+    const templates = [];
+    let i = 0;
+    while (i < cleanSource.length) {
+      const start = cleanSource.indexOf('{{', i);
+      if (start === -1) break;
+      let depth = 2;
+      let j = start + 2;
+      while (j < cleanSource.length && depth > 0) {
+        if (cleanSource[j] === '{') depth++;
+        else if (cleanSource[j] === '}') depth--;
+        j++;
+      }
+      if (depth === 0) {
+        templates.push(cleanSource.slice(start + 2, j - 2));
+        i = j;
+      } else {
+        i = start + 2;
+      }
+    }
+
+    if (templates.length === 0) {
+      const cleanText = cleanSource.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+      if (!cleanText) return null;
+      return { text: cleanText, data: [] };
+    }
+
+    const data = [];
+    const textBlocks = [];
+
+    for (const tpl of templates) {
+      const parts = [];
+      let cur = '';
+      let tDepth = 0;
+      let lDepth = 0;
+      for (let k = 0; k < tpl.length; k++) {
+        const c = tpl[k];
+        const next = tpl[k + 1];
+        if (c === '{' && next === '{') { tDepth += 2; k++; cur += '{{'; continue; }
+        if (c === '}' && next === '}') { tDepth -= 2; k++; cur += '}}'; continue; }
+        if (c === '[' && next === '[') { lDepth += 2; k++; cur += '[['; continue; }
+        if (c === ']' && next === ']') { lDepth -= 2; k++; cur += ']]'; continue; }
+        if (c === '|' && tDepth === 0 && lDepth === 0) {
+          parts.push(cur.trim());
+          cur = '';
+        } else {
+          cur += c;
+        }
+      }
+      parts.push(cur.trim());
+
+      const tplName = parts[0].trim();
+      const params = [];
+      let posIdx = 1;
+
+      for (let p = 1; p < parts.length; p++) {
+        const param = parts[p];
+        if (!param) continue;
+        const eqIdx = param.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = param.slice(0, eqIdx).trim();
+          const val = param.slice(eqIdx + 1).trim();
+          if (key && val) {
+            params.push({ key, val });
+          }
+        } else {
+          params.push({ key: String(posIdx++), val: param });
+        }
+      }
+
+      data.push({ name: tplName, params });
+
+      let blockText = `{{${tplName}}}`;
+      if (params.length > 0) {
+        blockText += '\n' + params.map(p => `• ${p.key}: ${p.val}`).join('\n');
+      }
+      textBlocks.push(blockText);
+    }
+
+    return {
+      text: textBlocks.join('\n\n'),
+      data
+    };
+  }
   /* === [END VIRTUAL FILE: src/utils.js] === */
 
   /* ==========================================================================
@@ -607,11 +881,16 @@
    * Parses all HTML-escaped <ref> tags and footnote templates ({{sfn}}, {{r}}, {{efn}})
    * from a diff table cell HTML string, returning them sorted by document position.
    * @param {string} [html]
+   * @param {string} [delHtml] Optional deleted cell HTML for scoped inter-template alignment
    * @returns {Array<{ raw: string, attrs: string, content: string|undefined, hasChange: boolean, isTemplate: boolean, templateName?: string, label?: string, name?: string|null, index: number }>}
    */
-  function parseRefs(html) {
+  function parseRefs(html, delHtml) {
     if (!html) return [];
-    const normalized = normalizeDiffTags(html);
+    let sourceHtml = html;
+    if (delHtml && hasDeletedCn(delHtml)) {
+      sourceHtml = normalizeCnDiffPair(delHtml, sourceHtml).addHtml;
+    }
+    const normalized = normalizeDiffTags(sourceHtml);
     const refs = [];
     let m;
 
@@ -805,8 +1084,9 @@
 
   /**
    * Discovers the corresponding #cite_note anchor ID in the live document, if present.
-   * Matches by explicit reference name, sfn parameters, unique URL, template title/author,
-   * plain text content, or sequential reference numbering.
+   * Matches explicit reference names directly (name="ABC"). For anonymous/unnamed references,
+   * matches persistent identifiers (DOI, PMID, PMC, unique URL) in the rendered document,
+   * falling back to template metadata, plain text content, or sequential reference numbering.
    * @param {string|null} name Reference name attribute
    * @param {string} rawContent Raw wikitext content of the reference
    * @param {string} [label] Badge label (e.g. 'ref2', 'kami')
@@ -868,26 +1148,66 @@
         }
       }
 
-      // 3. Try matching unique URL in rendered reference list
+      // 3. For anonymous/unnamed references: Try matching persistent identifiers (URL, DOI, PMID, PMC) in rendered reference list
+      // MediaWiki renders these identifiers into external anchor links inside .references li[id^="cite_note-"]
+      const idCandidates = [];
+
+      // Web URL (e.g. https://www.example.com/...)
       const urlMatch = rawContent.match(/https?:\/\/[^\s|}<>"]+/);
       if (urlMatch) {
-        const url = urlMatch[0];
+        idCandidates.push(urlMatch[0]);
+      }
+
+      // DOI (e.g. 10.1183/20734735.0310-2019)
+      const doiMatch = rawContent.match(/\b(?:doi\s*=\s*(?:https?:\/\/(?:dx\.)?doi\.org\/|doi:)?|https?:\/\/(?:dx\.)?doi\.org\/)?(10\.\d{4,9}\/[^\s|}<>"]+)/i);
+      if (doiMatch) {
+        idCandidates.push(doiMatch[1]);
+      }
+
+      // PMID (e.g. pmid = 31803258)
+      const pmidMatch = rawContent.match(/\bpmid\s*=\s*(\d+)/i);
+      if (pmidMatch) {
+        idCandidates.push(pmidMatch[1]);
+      }
+
+      // PMC (e.g. pmc = 6885340)
+      const pmcMatch = rawContent.match(/\bpmc\s*=\s*(?:PMC)?(\d+)/i);
+      if (pmcMatch) {
+        idCandidates.push(pmcMatch[1]);
+      }
+
+      // ISBN (e.g. isbn = 978-0-12-345678-9 matching Special:BookSources/...)
+      const isbnMatch = rawContent.match(/\bisbn\s*=\s*([0-9Xx-]+)/i);
+      if (isbnMatch) {
+        const cleanIsbn = isbnMatch[1].replace(/[- ]/g, '').trim();
+        if (cleanIsbn.length >= 9) {
+          idCandidates.push(cleanIsbn);
+        }
+      }
+
+      for (let idx = 0; idx < idCandidates.length; idx++) {
+        const idVal = idCandidates[idx];
         try {
-          const safeUrl = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(url) : url.replace(/["\\]/g, '\\$&');
-          const link = document.querySelector(`.references a[href*="${safeUrl}"], #mw-content-text a.external[href*="${safeUrl}"]`);
+          const safeId = (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(idVal) : idVal.replace(/["\\]/g, '\\$&');
+          const link = document.querySelector(`.references a[href*="${safeId}"], #mw-content-text a.external[href*="${safeId}"], #mw-content-text a[href*="${safeId}"]`);
           if (link && link.closest) {
             const li = link.closest('li[id^="cite_note-"]');
             if (li && li.id) return li.id;
           }
         } catch (_e) {
+          // Selector query failed, fallback to loop
+        }
+        try {
           const refLinks = document.querySelectorAll('.references a[href]');
           for (let i = 0; i < refLinks.length; i++) {
             const href = refLinks[i].getAttribute('href');
-            if (href && href.includes(url)) {
+            if (href && href.includes(idVal)) {
               const li = refLinks[i].closest ? refLinks[i].closest('li[id^="cite_note-"]') : null;
               if (li && li.id) return li.id;
             }
           }
+        } catch (_e) {
+          // Loop error ignored
         }
       }
 
@@ -1057,9 +1377,10 @@
    * @param {'mod'|'add'|'del'|'norm'} type
    * @param {string} label
    * @param {string|null} [href] Target anchor or jump link
+   * @param {string} [rawContent] Raw reference wikitext for preview list formatting
    * @returns {HTMLElement|null}
    */
-  function createProseBadgeElement(type, label, href) {
+  function createProseBadgeElement(type, label, href, rawContent) {
     let badgeClass = CLASSES.BADGE;
     const displayLabel = formatBadgeDisplayLabel(label);
     let title = `Citation: ⟨${label}⟩`;
@@ -1088,11 +1409,33 @@
     if (href) {
       const aAttrs = { href, class: badgeClass };
       if (!isCiteNote) {
-        aAttrs.title = title;
+        let fullTooltip = title;
+        const previewInfo = rawContent ? parseTemplateList(rawContent) : null;
+        if (previewInfo && previewInfo.text) {
+          fullTooltip = `${title}\n${previewInfo.text}`;
+          if (previewInfo.data && previewInfo.data.length > 0) {
+            aAttrs['data-preview-json'] = JSON.stringify({ title, data: previewInfo.data });
+          } else {
+            aAttrs['data-preview-json'] = JSON.stringify({ title, text: previewInfo.text });
+          }
+        }
+        aAttrs.title = fullTooltip;
       }
       childNode = el('a', aAttrs, inner);
     } else {
-      childNode = el('span', { class: badgeClass, title }, inner);
+      let fullTooltip = title;
+      const spanAttrs = { class: badgeClass };
+      const previewInfo = rawContent ? parseTemplateList(rawContent) : null;
+      if (previewInfo && previewInfo.text) {
+        fullTooltip = `${title}\n${previewInfo.text}`;
+        if (previewInfo.data && previewInfo.data.length > 0) {
+          spanAttrs['data-preview-json'] = JSON.stringify({ title, data: previewInfo.data });
+        } else {
+          spanAttrs['data-preview-json'] = JSON.stringify({ title, text: previewInfo.text });
+        }
+      }
+      spanAttrs.title = fullTooltip;
+      childNode = el('span', spanAttrs, inner);
     }
 
     return el('sup', { class: CLASSES.REF_CONTAINER }, childNode);
@@ -1104,11 +1447,12 @@
    * @param {'mod'|'add'|'del'|'norm'} type
    * @param {string} label
    * @param {string|null} [href] Target anchor or jump link
+   * @param {string} [rawContent] Raw reference wikitext for preview list formatting
    * @returns {string}
    */
-  function createProseBadge(type, label, href) {
+  function createProseBadge(type, label, href, rawContent) {
     if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
-      const badgeEl = createProseBadgeElement(type, label, href);
+      const badgeEl = createProseBadgeElement(type, label, href, rawContent);
       if (badgeEl && badgeEl.outerHTML) return badgeEl.outerHTML;
     }
 
@@ -1135,13 +1479,140 @@
         break;
     }
 
+    const isCiteNote = href && href.startsWith('#cite_note-');
+    if (isCiteNote) {
+      const escapedHref = href.replace(/"/g, '&quot;');
+      return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}">${inner}</a></sup>`;
+    }
+
+    let fullTooltip = title;
+    let dataAttr = '';
+    const previewInfo = rawContent ? parseTemplateList(rawContent) : null;
+    if (previewInfo && previewInfo.text) {
+      fullTooltip = `${title}\n${previewInfo.text}`;
+      if (previewInfo.data && previewInfo.data.length > 0) {
+        const jsonStr = JSON.stringify({ title, data: previewInfo.data }).replace(/"/g, '&quot;');
+        dataAttr = ` data-preview-json="${jsonStr}"`;
+      } else {
+        const jsonStr = JSON.stringify({ title, text: previewInfo.text }).replace(/"/g, '&quot;');
+        dataAttr = ` data-preview-json="${jsonStr}"`;
+      }
+    }
+
+    const escapedTitle = fullTooltip.replace(/"/g, '&quot;');
     if (href) {
       const escapedHref = href.replace(/"/g, '&quot;');
-      const isCiteNote = href.startsWith('#cite_note-');
-      const titleAttr = isCiteNote ? '' : ` title="${title.replace(/"/g, '&quot;')}"`;
-      return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}"${titleAttr}>${inner}</a></sup>`;
+      return `<sup class="${CLASSES.REF_CONTAINER}"><a href="${escapedHref}" class="${badgeClass}" title="${escapedTitle}"${dataAttr}>${inner}</a></sup>`;
     }
-    return `<sup class="${CLASSES.REF_CONTAINER}"><span class="${badgeClass}" title="${title.replace(/"/g, '&quot;')}">${inner}</span></sup>`;
+    return `<sup class="${CLASSES.REF_CONTAINER}"><span class="${badgeClass}" title="${escapedTitle}"${dataAttr}>${inner}</span></sup>`;
+  }
+
+  let activePreviewCard = null;
+
+  /**
+   * Lazily retrieves or creates the singleton floating preview card element.
+   * @returns {HTMLElement|null}
+   */
+  function getOrCreatePreviewCard() {
+    if (typeof document === 'undefined' || typeof document.createElement !== 'function') return null;
+    let card = document.getElementById('refdiff-preview-card');
+    if (!card) {
+      card = el('div', { id: 'refdiff-preview-card', class: CLASSES.PREVIEW_CARD, role: 'tooltip' });
+      if (document.body && card && typeof document.body.appendChild === 'function') {
+        document.body.appendChild(card);
+      }
+    }
+    return card;
+  }
+
+  /**
+   * Displays the floating reference preview card populated with template list format.
+   * Suppresses the native OS title tooltip while the preview card is shown.
+   * @param {HTMLElement} badge
+   */
+  function showBadgePreview(badge) {
+    if (!badge || typeof badge.getAttribute !== 'function') return;
+    const jsonStr = badge.getAttribute('data-preview-json');
+    if (!jsonStr) return;
+
+    let info;
+    try {
+      info = JSON.parse(jsonStr);
+    } catch (_e) {
+      return;
+    }
+
+    const card = getOrCreatePreviewCard();
+    if (!card) return;
+
+    while (card.firstChild) {
+      card.removeChild(card.firstChild);
+    }
+
+    if (info.title) {
+      const titleEl = el('div', { class: CLASSES.PREVIEW_TITLE }, info.title);
+      if (titleEl) card.appendChild(titleEl);
+    }
+
+    if (info.data && Array.isArray(info.data) && info.data.length > 0) {
+      for (const tpl of info.data) {
+        const tplEl = el('div', { class: CLASSES.PREVIEW_TPL }, `{{${tpl.name}}}`);
+        if (tplEl) card.appendChild(tplEl);
+
+        if (tpl.params && tpl.params.length > 0) {
+          const ul = el('ul', { class: CLASSES.PREVIEW_LIST });
+          for (const p of tpl.params) {
+            const li = el('li', null, el('span', { class: CLASSES.PREVIEW_KEY }, `${p.key}: `), p.val);
+            if (li && ul) ul.appendChild(li);
+          }
+          if (ul) card.appendChild(ul);
+        }
+      }
+    } else if (info.text) {
+      const textEl = el('div', { class: 'refdiff-preview-text' }, info.text);
+      if (textEl) card.appendChild(textEl);
+    }
+
+    if (badge.hasAttribute('title')) {
+      badge.dataset.refdiffOrigTitle = badge.getAttribute('title');
+      badge.removeAttribute('title');
+    }
+
+    card.style.display = 'block';
+
+    if (typeof badge.getBoundingClientRect === 'function') {
+      const rect = badge.getBoundingClientRect();
+      const docEl = document.documentElement || document.body;
+      const scrollX = (typeof window !== 'undefined' && window.scrollX !== undefined) ? window.scrollX : (docEl ? docEl.scrollLeft : 0);
+      const scrollY = (typeof window !== 'undefined' && window.scrollY !== undefined) ? window.scrollY : (docEl ? docEl.scrollTop : 0);
+
+      const top = rect.bottom + scrollY + 4;
+      let left = rect.left + scrollX;
+
+      const winWidth = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1000;
+      if (left + 350 > winWidth) {
+        left = Math.max(10, winWidth - 360);
+      }
+
+      card.style.top = `${Math.round(top)}px`;
+      card.style.left = `${Math.round(left)}px`;
+    }
+
+    activePreviewCard = card;
+  }
+
+  /**
+   * Hides the floating preview card and restores the native title tooltip attribute on the badge.
+   * @param {HTMLElement} [badge]
+   */
+  function hideBadgePreview(badge) {
+    if (badge && badge.dataset && badge.dataset.refdiffOrigTitle !== undefined) {
+      badge.setAttribute('title', badge.dataset.refdiffOrigTitle);
+      delete badge.dataset.refdiffOrigTitle;
+    }
+    if (activePreviewCard) {
+      activePreviewCard.style.display = 'none';
+    }
   }
 
   /**
@@ -1169,7 +1640,7 @@
     let addDiv;
 
     if (mc.isAdd) {
-      const badgeNode = createProseBadgeElement('add', mc.label, badgeHref);
+      const badgeNode = createProseBadgeElement('add', mc.label, badgeHref, mc.newRaw);
       const cleanContent = mc.newRaw ? mc.newRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
       addDiv = el('div', null, badgeNode, ' ');
       if (cleanContent) {
@@ -1188,7 +1659,7 @@
         if (tdAdd) citRow.appendChild(tdAdd);
       }
     } else if (mc.isDel) {
-      const badgeNode = createProseBadgeElement('del', mc.label, null);
+      const badgeNode = createProseBadgeElement('del', mc.label, null, mc.oldRaw);
       const cleanContent = mc.oldRaw ? mc.oldRaw.replace(/<\/?(?:ins|del)\b[^>]*>/gi, '') : '';
       delDiv = el('div', null, badgeNode, ' ');
       if (cleanContent) {
@@ -1207,8 +1678,8 @@
         if (tdEmpty) citRow.appendChild(tdEmpty);
       }
     } else {
-      const delBadge = createProseBadgeElement('mod', mc.label, badgeHref);
-      const addBadge = createProseBadgeElement('mod', mc.label, badgeHref);
+      const delBadge = createProseBadgeElement('mod', mc.label, badgeHref, mc.oldRaw);
+      const addBadge = createProseBadgeElement('mod', mc.label, badgeHref, mc.newRaw);
       delDiv = el('div', null, delBadge, ' ');
       appendHtmlChildren(delDiv, mc.oldRaw);
 
@@ -1330,8 +1801,15 @@
 
     let citCounter = startCounter;
     const modifiedCits = [];
-    let newDelHtml = normalizeDiffTags(initialDelHtml);
-    let newAddHtml = normalizeDiffTags(initialAddHtml);
+    let alignedDel = initialDelHtml;
+    let alignedAdd = initialAddHtml;
+    if (hasDeletedCn(alignedDel)) {
+      const aligned = normalizeCnDiffPair(alignedDel, alignedAdd);
+      alignedDel = aligned.delHtml;
+      alignedAdd = aligned.addHtml;
+    }
+    let newDelHtml = normalizeDiffTags(alignedDel);
+    let newAddHtml = normalizeDiffTags(alignedAdd);
 
     for (const pair of pairs) {
       const d = pair.d;
@@ -1343,9 +1821,10 @@
       if (d && a) {
         const isMod = (d && d.hasChange) || (a && a.hasChange) || (stripHtml(d.raw) !== stripHtml(a.raw));
         if (isMod) {
+          const modContent = (a && (a.content || a.raw)) || (d && (d.content || d.raw)) || '';
           if (inlineModified) {
             const href = citeNoteId ? `#${citeNoteId}` : null;
-            const badge = createProseBadge('mod', label, href);
+            const badge = createProseBadge('mod', label, href, modContent);
             newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge, true);
             newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge, true);
             continue;
@@ -1353,25 +1832,25 @@
           const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
           modifiedCits.push({ label, oldRaw: d.raw, newRaw: a.raw, rowId, citeNoteId });
           const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
-          const badge = createProseBadge('mod', label, href);
+          const badge = createProseBadge('mod', label, href, modContent);
           newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
           newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         } else {
           const href = citeNoteId ? `#${citeNoteId}` : null;
-          const badge = createProseBadge('norm', label, href);
+          const badge = createProseBadge('norm', label, href, refContent);
           newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
           newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         }
       } else if (a && !d) {
         const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
         const href = citeNoteId ? `#${citeNoteId}` : `#${rowId}`;
-        const badge = createProseBadge('add', label, href);
+        const badge = createProseBadge('add', label, href, a.content || a.raw);
         newAddHtml = replaceRefInHtml(newAddHtml, a.raw, badge);
         modifiedCits.push({ label, oldRaw: '', newRaw: a.raw, isAdd: true, rowId, citeNoteId });
       } else if (d && !a) {
         const rowId = `refdiff-cit-${sanitizeAnchor(label)}-${citCounter}`;
         const href = `#${rowId}`;
-        const badge = createProseBadge('del', label, href);
+        const badge = createProseBadge('del', label, href, d.content || d.raw);
         newDelHtml = replaceRefInHtml(newDelHtml, d.raw, badge);
         modifiedCits.push({ label, oldRaw: d.raw, newRaw: '', isDel: true, rowId });
       }
@@ -1443,8 +1922,17 @@
       const addDiv = row.querySelector(`${SELECTORS.ADDED_LINE} div`);
       if (!delDiv && !addDiv) continue;
 
-      const delRefs = parseRefs(delDiv ? delDiv.innerHTML : '');
-      const addRefs = parseRefs(addDiv ? addDiv.innerHTML : '');
+      let delHtml = delDiv ? delDiv.innerHTML : '';
+      let addHtml = addDiv ? addDiv.innerHTML : '';
+
+      if (hasDeletedCn(delHtml)) {
+        const aligned = normalizeCnDiffPair(delHtml, addHtml);
+        delHtml = aligned.delHtml;
+        addHtml = aligned.addHtml;
+      }
+
+      const delRefs = parseRefs(delHtml);
+      const addRefs = parseRefs(addHtml);
       if (delRefs.length === 0 && addRefs.length === 0) continue;
 
       // 1. Capture snapshot before mutation
@@ -1453,8 +1941,8 @@
       // 2. Pair references and transform prose
       const pairs = pairReferences(delRefs, addRefs);
       const { newDelHtml, newAddHtml, modifiedCits, nextCounter } = transformProseCells(
-        delDiv ? delDiv.innerHTML : '',
-        addDiv ? addDiv.innerHTML : '',
+        delHtml,
+        addHtml,
         pairs,
         citCounter,
         opts
@@ -1482,6 +1970,26 @@
       table.addEventListener('click', state.onTableClickHandler);
     }
 
+    // Attach delegated hover handlers for template preview cards
+    if (!state.onTableHoverHandler && typeof table.addEventListener === 'function') {
+      state.onTableMouseOver = function(e) {
+        const badge = (e.target && e.target.closest) ? e.target.closest('.refdiff-ref a, .refdiff-ref span') : null;
+        if (!badge) return;
+        const href = badge.getAttribute('href');
+        if (href && href.startsWith('#cite_note-')) return;
+        showBadgePreview(badge);
+      };
+      state.onTableMouseOut = function(e) {
+        const badge = (e.target && e.target.closest) ? e.target.closest('.refdiff-ref a, .refdiff-ref span') : null;
+        if (badge) {
+          hideBadgePreview(badge);
+        }
+      };
+      state.onTableHoverHandler = true;
+      table.addEventListener('mouseover', state.onTableMouseOver);
+      table.addEventListener('mouseout', state.onTableMouseOut);
+    }
+
     notifyBodyUpdate(table);
   }
 
@@ -1491,6 +1999,7 @@
    * @param {MouseEvent} e
    */
   function onTableClick(e) {
+    hideBadgePreview();
     const a = (e.target && e.target.closest) ? e.target.closest('.refdiff-ref a') : null;
     if (!a) return;
     const href = a.getAttribute('href');
@@ -1539,6 +2048,20 @@
     if (state.onTableClickHandler && typeof table.removeEventListener === 'function') {
       table.removeEventListener('click', state.onTableClickHandler);
       state.onTableClickHandler = null;
+    }
+
+    if (state.onTableHoverHandler && typeof table.removeEventListener === 'function') {
+      if (state.onTableMouseOver) table.removeEventListener('mouseover', state.onTableMouseOver);
+      if (state.onTableMouseOut) table.removeEventListener('mouseout', state.onTableMouseOut);
+      state.onTableMouseOver = null;
+      state.onTableMouseOut = null;
+      state.onTableHoverHandler = false;
+    }
+
+    hideBadgePreview();
+    if (activePreviewCard && activePreviewCard.parentNode) {
+      activePreviewCard.parentNode.removeChild(activePreviewCard);
+      activePreviewCard = null;
     }
 
     if (typeof table.querySelectorAll === 'function') {
@@ -1768,8 +2291,13 @@
     const $ = window.jQuery || window.$;
     if ($) {
       const optWidget = $(opt).data('oo-ui-optionWidget');
-      if (optWidget && typeof optWidget.getElementGroup === 'function') {
-        return optWidget.getElementGroup();
+      if (optWidget) {
+        if (typeof optWidget.getElementGroup === 'function') {
+          return optWidget.getElementGroup();
+        }
+        if (optWidget.elementGroup) {
+          return optWidget.elementGroup;
+        }
       }
     }
     return null;
@@ -1781,11 +2309,33 @@
    */
   function isVisualDiffActive() {
     if (typeof document === 'undefined') return false;
+    if (typeof window !== 'undefined' && window.location) {
+      if (/[?&]diffmode=visual\b/.test(window.location.search)) return true;
+      if (/[?&]diffmode=source\b/.test(window.location.search)) return false;
+    }
+    if (typeof window !== 'undefined' && window.mw && window.mw.user && typeof window.mw.user.options?.get === 'function') {
+      const hist = window.mw.user.options.get('visualeditor-diffmode-historical');
+      if (hist === 'visual') return true;
+    }
+    const widget = getDiffModeWidget();
+    if (widget && typeof widget.findSelectedItem === 'function') {
+      const item = widget.findSelectedItem();
+      if (item && typeof item.getData === 'function') {
+        return item.getData() === 'visual';
+      }
+    }
     const veDiff = document.querySelector(SELECTORS.VE_DIFF_ELEMENT);
     if (veDiff && veDiff.offsetParent !== null) return true;
     const visualBtn = document.querySelector(SELECTORS.VE_VISUAL_BUTTON);
-    if (visualBtn && (visualBtn.classList.contains(CLASSES.OO_OPTION_SELECTED) || visualBtn.getAttribute('aria-selected') === 'true')) {
+    if (visualBtn && (visualBtn.classList.contains(CLASSES.OO_OPTION_SELECTED) || visualBtn.classList.contains(CLASSES.OO_BUTTON_ACTIVE) || visualBtn.getAttribute('aria-selected') === 'true')) {
       return true;
+    }
+    const eyeBtn = document.querySelector('.ve-init-mw-diffPage-diffMode .oo-ui-icon-eye');
+    if (eyeBtn) {
+      const btn = eyeBtn.closest('.oo-ui-buttonElement, .oo-ui-optionWidget');
+      if (btn && (btn.classList.contains(CLASSES.OO_OPTION_SELECTED) || btn.classList.contains(CLASSES.OO_BUTTON_ACTIVE) || btn.getAttribute('aria-selected') === 'true')) {
+        return true;
+      }
     }
     return false;
   }
@@ -1854,6 +2404,33 @@
   }
 
   /**
+   * Sets the disabled/inert state of the RefDiff OOUI button.
+   * While Visual mode is active, RefDiff is visually dimmed and not interactive.
+   * @param {boolean} disabled
+   */
+  function setRefDiffButtonDisabled(disabled) {
+    if (typeof document === 'undefined') return;
+    const refBtn = document.getElementById('refdiff-ooui-btn');
+    if (!refBtn) return;
+    if (refBtn.classList && typeof refBtn.classList.toggle === 'function') {
+      refBtn.classList.toggle(CLASSES.OO_WIDGET_DISABLED, disabled);
+      refBtn.classList.toggle(CLASSES.OO_WIDGET_ENABLED, !disabled);
+    }
+    if (typeof refBtn.setAttribute === 'function') {
+      refBtn.setAttribute('aria-disabled', String(disabled));
+    }
+    const link = typeof refBtn.querySelector === 'function' ? refBtn.querySelector('a') : null;
+    if (link && typeof link.setAttribute === 'function') {
+      link.setAttribute('tabindex', disabled ? '-1' : '0');
+      if (disabled) {
+        link.setAttribute('aria-disabled', 'true');
+      } else if (typeof link.removeAttribute === 'function') {
+        link.removeAttribute('aria-disabled');
+      }
+    }
+  }
+
+  /**
    * Identifies the Wikitext and Visual button elements in a button group.
    * @param {HTMLElement|null} group
    * @param {HTMLElement|null} refBtn
@@ -1876,11 +2453,43 @@
   }
 
   /**
+   * Persists the visualeditor-diffmode-historical option across in-memory options and mw.Api.
+   * @param {'source'|'visual'} mode
+   */
+  function saveDiffModeOption(mode) {
+    if (typeof window === 'undefined' || !window.mw || !window.mw.user || !window.mw.user.options) return;
+    if (window.mw.user.options.get('visualeditor-diffmode-historical') !== mode) {
+      window.mw.user.options.set('visualeditor-diffmode-historical', mode);
+    }
+    if (window.mw.Api && typeof window.mw.user.isAnon === 'function' && !window.mw.user.isAnon()) {
+      try {
+        new window.mw.Api().saveOption('visualeditor-diffmode-historical', mode);
+      } catch (_e) {
+        // Silently ignore API saveOption errors
+      }
+    }
+  }
+
+  /**
    * Switches the diff view mode between 'visual', 'wikitext', and 'refdiff'.
+   *
+   * Architectural Invariants:
+   * 1. Wikitext-Only Scope: RefDiff operates strictly on wikitext diffs.
+   *    In 'visual' mode, RefDiff remains dormant, does not mutate the DOM, and persists refdiff-active: false.
+   * 2. Disabled in Visual Mode: When 'visual' mode is active, the RefDiff button is visually dimmed
+   *    and disabled (aria-disabled="true", tabindex="-1"). RefDiff mode cannot be entered directly from
+   *    Visual mode; the reviewer switches to 'wikitext' first, then activates RefDiff.
+   * 3. Deterministic Persistence: Explicitly choosing 'visual' or 'wikitext' sets refdiff-active: false,
+   *    while choosing 'refdiff' sets refdiff-active: true.
+   * 4. Non-Interfering Delegation: Native VisualEditor clicks (Visual and Wikitext) bubble in the
+   *    standard phase without capture interruption; RefDiff only halts propagation on #refdiff-ooui-btn.
+   *
    * @param {'visual'|'wikitext'|'refdiff'} mode
    * @param {HTMLTableElement} [table]
+   * @param {boolean} [persist=true] Set to false during passive page initialization
    */
-  function selectMode(mode, table) {
+  function selectMode(mode, table, persist) {
+    if (typeof persist !== 'boolean') persist = true;
     table = table || (typeof document !== 'undefined' ? document.querySelector(SELECTORS.DIFF_TABLE) : null);
     const widget = getDiffModeWidget();
     const refBtn = typeof document !== 'undefined' ? document.getElementById('refdiff-ooui-btn') : null;
@@ -1900,8 +2509,22 @@
         notifyBodyUpdate(table);
       }
       setInlineSwitchDisabled(true);
-      if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'visual') {
-        widget.selectItemByData('visual');
+      setRefDiffButtonDisabled(true);
+      if (persist) {
+        setRefDiffPreferred(false);
+        if (widget && typeof widget.findSelectedItem === 'function') {
+          const curr = widget.findSelectedItem();
+          if (!curr || (typeof curr.getData === 'function' && curr.getData() !== 'visual')) {
+            const visItem = (typeof widget.getItemFromData === 'function' ? widget.getItemFromData('visual') : null) ||
+                            (widget.items && widget.items.find(i => (typeof i.getData === 'function' ? i.getData() : i.data) === 'visual'));
+            if (visItem && typeof widget.chooseItem === 'function') {
+              widget.chooseItem(visItem);
+            } else if (typeof widget.selectItemByData === 'function') {
+              widget.selectItemByData('visual');
+            }
+          }
+        }
+        saveDiffModeOption('visual');
       }
       setElementActive(refBtn, false, isSelect);
       setElementActive(wikiBtn, false, isSelect);
@@ -1915,10 +2538,23 @@
         bodyRows.forEach(r => r.classList.remove(CLASSES.HIDDEN));
         notifyBodyUpdate(table);
       }
-      setRefDiffPreferred(false);
       setInlineSwitchDisabled(false);
-      if (widget && widget.findSelectedItem && widget.findSelectedItem() && widget.findSelectedItem().getData() !== 'source') {
-        widget.selectItemByData('source');
+      setRefDiffButtonDisabled(false);
+      if (persist) {
+        setRefDiffPreferred(false);
+        if (widget && typeof widget.findSelectedItem === 'function') {
+          const curr = widget.findSelectedItem();
+          if (!curr || (typeof curr.getData === 'function' && curr.getData() !== 'source')) {
+            const srcItem = (typeof widget.getItemFromData === 'function' ? widget.getItemFromData('source') : null) ||
+                            (widget.items && widget.items.find(i => (typeof i.getData === 'function' ? i.getData() : i.data) === 'source'));
+            if (srcItem && typeof widget.chooseItem === 'function') {
+              widget.chooseItem(srcItem);
+            } else if (typeof widget.selectItemByData === 'function') {
+              widget.selectItemByData('source');
+            }
+          }
+        }
+        saveDiffModeOption('source');
       }
       setElementActive(refBtn, false, isSelect);
       setElementActive(visualBtn, false, isSelect);
@@ -1926,19 +2562,19 @@
       if (btnStandard) btnStandard.classList.add('active');
       if (btnDecoupled) btnDecoupled.classList.remove('active');
     } else if (mode === 'refdiff') {
+      if (refBtn && ((refBtn.classList && typeof refBtn.classList.contains === 'function' && refBtn.classList.contains(CLASSES.OO_WIDGET_DISABLED)) || (typeof refBtn.getAttribute === 'function' && refBtn.getAttribute('aria-disabled') === 'true'))) {
+        return;
+      }
       if (table && typeof table.querySelectorAll === 'function') {
         const bodyRows = getDiffBodyRows(table);
         bodyRows.forEach(r => r.classList.remove(CLASSES.HIDDEN));
       }
-      if (isVisualDiffActive()) {
-        if (widget) {
-          widget.selectItemByData('source');
-        } else if (wikiBtn) {
-          wikiBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-        }
-      }
-      setRefDiffPreferred(true);
       setInlineSwitchDisabled(true);
+      setRefDiffButtonDisabled(false);
+      if (persist) {
+        saveDiffModeOption('source');
+        setRefDiffPreferred(true);
+      }
       setElementActive(visualBtn, false, isSelect);
       setElementActive(wikiBtn, false, isSelect);
       setElementActive(refBtn, true, isSelect);
@@ -2080,18 +2716,28 @@
    * Creates the OOUI RefDiff button element matching MediaWiki's ButtonOptionWidget.
    * Constructed purely with DOM elements via el() (fixes M1).
    * @param {boolean} isSelect True if part of an OOUI ButtonSelectWidget
+   * @param {boolean} [disabled=false] True if button should be initialized in disabled state (e.g. Visual mode)
    * @returns {HTMLElement|null}
    */
-  function createRefDiffButton(isSelect) {
+  function createRefDiffButton(isSelect, disabled) {
+    const baseClasses = isSelect
+      ? 'oo-ui-widget oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
+      : 'oo-ui-widget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget';
+    const stateClass = disabled ? CLASSES.OO_WIDGET_DISABLED : CLASSES.OO_WIDGET_ENABLED;
+
     return el(isSelect ? 'div' : 'span', {
       id: 'refdiff-ooui-btn',
-      class: isSelect
-        ? 'oo-ui-widget oo-ui-widget-enabled oo-ui-labelElement oo-ui-optionWidget oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-buttonOptionWidget'
-        : 'oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-buttonElement-size-medium oo-ui-iconElement oo-ui-labelElement oo-ui-buttonWidget',
+      class: `${baseClasses} ${stateClass}`,
       role: isSelect ? 'option' : 'button',
-      title: 'RefDiff: Decoupled citation diff view'
+      'aria-disabled': String(!!disabled),
+      title: `RefDiff v${VERSION}: Decoupled citation diff view`
     },
-      el('a', { class: 'oo-ui-buttonElement-button', role: 'button', tabindex: '0', rel: 'nofollow' },
+      el('a', {
+        class: 'oo-ui-buttonElement-button',
+        role: 'button',
+        tabindex: disabled ? '-1' : '0',
+        rel: 'nofollow'
+      },
         el('span', { class: 'oo-ui-iconElement-icon oo-ui-icon-diffs' }),
         el('span', { class: 'oo-ui-labelElement-label' }, 'RefDiff'),
         el('span', { class: 'oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator' })
@@ -2129,7 +2775,12 @@
       el('span', { class: 'refdiff-mode-separator' }, '•'),
       el('strong', null, 'Diff view:'),
       ' ',
-      el('a', { href: '#', id: 'refdiff-btn-decoupled', class: shouldDecouple ? 'active' : '' }, 'Decoupled (RefDiff)'),
+      el('a', {
+        href: '#',
+        id: 'refdiff-btn-decoupled',
+        class: shouldDecouple ? 'active' : '',
+        title: `RefDiff v${VERSION}: Decoupled citation diff view`
+      }, 'Decoupled (RefDiff)'),
       ' • ',
       el('a', { href: '#', id: 'refdiff-btn-standard', class: shouldDecouple ? '' : 'active' }, 'Standard Wikidiff')
     );
@@ -2162,15 +2813,19 @@
     }
 
     const isVisual = isVisualDiffActive();
-    const shouldDecouple = isVisual ? false : isRefDiffPreferred();
+    const shouldDecouple = isRefDiffPreferred();
 
     if (buttonGroup) {
       if (document.getElementById('refdiff-ooui-btn')) return;
 
-      // 1. Mount Inline modified refs toggle to the left of the mode bar
+      // 1. Mount Inline modified refs toggle inline before native inline toggle switch if in .mw-diff-table-prefix
       if (!document.getElementById('refdiff-inline-container') && !document.getElementById('refdiff-decouple-container')) {
         const toggleEl = createInlineToggle(isInlineModifiedPreferred());
-        if (diffModeContainer && typeof diffModeContainer.insertBefore === 'function') {
+        const prefix = diffModeContainer && typeof diffModeContainer.closest === 'function' ? diffModeContainer.closest('.mw-diff-table-prefix') : null;
+        const inlineContainer = prefix ? prefix.querySelector('.mw-diffPage-inlineToggle-container') : null;
+        if (prefix && inlineContainer) {
+          prefix.insertBefore(toggleEl, inlineContainer);
+        } else if (diffModeContainer && typeof diffModeContainer.insertBefore === 'function') {
           diffModeContainer.insertBefore(toggleEl, buttonGroup);
         } else if (buttonGroup.parentNode && typeof buttonGroup.parentNode.insertBefore === 'function') {
           buttonGroup.parentNode.insertBefore(toggleEl, buttonGroup);
@@ -2179,40 +2834,41 @@
       }
 
       const isSelect = buttonGroup.classList.contains('oo-ui-buttonSelectWidget');
-      const refBtn = createRefDiffButton(isSelect);
+      const refBtn = createRefDiffButton(isSelect, isVisual);
       buttonGroup.appendChild(refBtn);
 
-      // Initialize button states according to user preference and initial view
+      // ONLY activate RefDiff when wikitext is active!
+      // If Visual is active, keep Visual mode active and dim/disable RefDiff button.
       if (isVisual) {
-        setElementActive(refBtn, false, isSelect);
-        const toggleCheckbox = document.getElementById('refdiff-inline-toggle') || document.getElementById('refdiff-decouple-toggle');
-        const toggleContainer = document.getElementById('refdiff-inline-container') || document.getElementById('refdiff-decouple-container');
-        if (toggleCheckbox) toggleCheckbox.disabled = true;
-        if (toggleContainer) {
-          toggleContainer.classList.remove(CLASSES.OO_WIDGET_ENABLED);
-          toggleContainer.classList.add(CLASSES.OO_WIDGET_DISABLED);
-        }
+        selectMode('visual', table, false);
+      } else if (shouldDecouple) {
+        selectMode('refdiff', table, false);
       } else {
-        selectMode(shouldDecouple ? 'refdiff' : 'wikitext', table);
+        selectMode('wikitext', table, false);
       }
 
-      // Delegated click handling on diffModeContainer with capture phase
+      // Delegated click handling on diffModeContainer in capture phase
       if (diffModeContainer && !diffModeContainer._refdiffBound) {
         diffModeContainer._refdiffBound = true;
         diffModeContainer.addEventListener('click', (e) => {
           const btn = e.target.closest('.oo-ui-buttonElement, .oo-ui-buttonWidget, .oo-ui-buttonOptionWidget, [role="button"], [role="option"]');
           if (!btn) return;
-          if (btn.id === 'refdiff-ooui-btn' || btn.closest('#refdiff-ooui-btn')) {
+          if (btn.id === 'refdiff-ooui-btn' || (typeof btn.closest === 'function' && btn.closest('#refdiff-ooui-btn'))) {
             e.preventDefault();
             e.stopPropagation();
+            if ((btn.classList && typeof btn.classList.contains === 'function' && btn.classList.contains(CLASSES.OO_WIDGET_DISABLED)) || (typeof btn.getAttribute === 'function' && btn.getAttribute('aria-disabled') === 'true')) {
+              return;
+            }
             selectMode('refdiff', table);
           } else if (
             btn.querySelector('.oo-ui-icon-wikiText') ||
+            (btn.closest('.oo-ui-buttonOptionWidget') && btn.closest('.oo-ui-buttonOptionWidget').querySelector('.oo-ui-icon-wikiText')) ||
             btn.textContent.toLowerCase().includes('wiki')
           ) {
             selectMode('wikitext', table);
           } else if (
             btn.querySelector('.oo-ui-icon-eye') ||
+            (btn.closest('.oo-ui-buttonOptionWidget') && btn.closest('.oo-ui-buttonOptionWidget').querySelector('.oo-ui-icon-eye')) ||
             btn.textContent.toLowerCase().includes('visu')
           ) {
             selectMode('visual', table);
@@ -2228,7 +2884,7 @@
             const data = item.getData();
             if (data === 'visual') {
               selectMode('visual', table);
-            } else if (data === 'source' && !isRefDiffPreferred()) {
+            } else if (data === 'source') {
               selectMode('wikitext', table);
             }
           });
@@ -2326,6 +2982,7 @@
      ========================================================================== */
 
   return {
+    VERSION,
     STORAGE_KEY,
     STORAGE_KEY_SEPARATE,
     STORAGE_KEY_INLINE,
@@ -2349,6 +3006,8 @@
     extractSfnInfo,
     normalizeDiffTags,
     hasBalancedDiffTags,
+    hasDeletedCn,
+    normalizeCnDiffPair,
     parseRefs,
     pairReferences,
     sanitizeAnchor,
@@ -2377,6 +3036,10 @@
     createDecoupleToggle,
     bindDecoupleToggleListener,
     onTableClick,
+    parseTemplateList,
+    showBadgePreview,
+    hideBadgePreview,
+    getOrCreatePreviewCard,
     init
   };
   /* === [END VIRTUAL FILE: src/exports.js] === */

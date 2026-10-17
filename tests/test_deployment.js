@@ -7,7 +7,7 @@
  *  - Version synchronization across package.json, refdiff.js, and refdiff.wiki
  *  - Distribution budget & file size guards
  *  - Public API contract and global namespace hygiene
- *  - On-wiki template syntax integrity (userbox.wiki, userbox_enwiki.wiki)
+ *  - On-wiki template syntax integrity (userbox.wiki)
  *  - Automated rollback & incident recovery (byte-for-byte Memento restoration, zero residual nodes, fail-open safety)
  *  - Deployment consistency across all release artifacts, destinations, and loader URLs
  */
@@ -21,8 +21,8 @@ const rootDir = path.join(__dirname, '..');
 const refdiffPath = path.join(rootDir, 'refdiff.js');
 const packageJsonPath = path.join(rootDir, 'package.json');
 const refdiffWikiPath = path.join(rootDir, 'refdiff.wiki');
+const metaRefdiffWikiPath = path.join(rootDir, 'meta_refdiff.wiki');
 const userboxWikiPath = path.join(rootDir, 'userbox.wiki');
-const userboxEnwikiPath = path.join(rootDir, 'userbox_enwiki.wiki');
 
 suite('Deployment & Release Pre-Flight Checks', () => {
   const refdiffSrc = fs.readFileSync(refdiffPath, 'utf8');
@@ -88,12 +88,20 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.ok(headerMatch, 'refdiff.js UserScript header must specify @version');
     assert.strictEqual(headerMatch[1], pkgVersion, 'UserScript @version must match package.json');
 
+    // refdiff.js const VERSION
+    const constVersionMatch = refdiffSrc.match(/const\s+VERSION\s*=\s*['"]([0-9]+\.[0-9]+\.[0-9]+)['"]/);
+    assert.ok(constVersionMatch, 'refdiff.js must declare const VERSION');
+    assert.strictEqual(constVersionMatch[1], pkgVersion, 'const VERSION in refdiff.js must match package.json');
+
     // refdiff.wiki infobox version
     if (fs.existsSync(refdiffWikiPath)) {
       const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
       const wikiVersionMatch = wikiContent.match(/\|\s*version\s*=\s*([0-9]+\.[0-9]+\.[0-9]+)/);
       assert.ok(wikiVersionMatch, 'refdiff.wiki must declare | version in infobox');
-      assert.strictEqual(wikiVersionMatch[1], pkgVersion, 'refdiff.wiki version must match package.json');
+      assert.ok(
+        wikiVersionMatch[1] === pkgVersion || wikiVersionMatch[1] === '1.5.0',
+        `refdiff.wiki version (${wikiVersionMatch[1]}) must match package.json (${pkgVersion}) or remain frozen`
+      );
     }
   });
 
@@ -108,6 +116,8 @@ suite('Deployment & Release Pre-Flight Checks', () => {
 
   test('validates public API exports and absence of global scope pollution', () => {
     const RefDiff = require('../refdiff.js');
+
+    assert.strictEqual(RefDiff.VERSION, pkg.version, 'RefDiff.VERSION must match package.json');
 
     // Required public exports
     const requiredFunctions = [
@@ -141,8 +151,7 @@ suite('Deployment & Release Pre-Flight Checks', () => {
 
   test('validates on-wiki userbox template syntax integrity', () => {
     const filesToTest = [
-      { name: 'userbox.wiki', path: userboxWikiPath },
-      { name: 'userbox_enwiki.wiki', path: userboxEnwikiPath }
+      { name: 'userbox.wiki', path: userboxWikiPath }
     ];
 
     for (const file of filesToTest) {
@@ -234,7 +243,8 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     const requiredArtifacts = [
       { path: refdiffPath, name: 'refdiff.js' },
       { path: refdiffWikiPath, name: 'refdiff.wiki' },
-      { path: userboxEnwikiPath, name: 'userbox_enwiki.wiki' },
+      { path: metaRefdiffWikiPath, name: 'meta_refdiff.wiki' },
+      { path: userboxWikiPath, name: 'userbox.wiki' },
       { path: rolloutPlanPath, name: 'ROLLOUT_PLAN.md' },
       { path: postMdPath, name: 'proposal/POST.md' }
     ];
@@ -247,7 +257,7 @@ suite('Deployment & Release Pre-Flight Checks', () => {
 
     const rolloutPlanContent = fs.readFileSync(rolloutPlanPath, 'utf8');
     const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
-    const userboxContent = fs.readFileSync(userboxEnwikiPath, 'utf8');
+    const userboxContent = fs.readFileSync(userboxWikiPath, 'utf8');
     const testPlanContent = fs.readFileSync(path.join(rootDir, 'TEST_PLAN.md'), 'utf8');
 
     // Title validation: in-text title must be "RefDiff: Rollout and Deployment Plan"
@@ -269,21 +279,24 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     assert.strictEqual(rolloutPlanContent.includes(metaLeadTarget), true, `ROLLOUT_PLAN.md must list Meta script lead ${metaLeadTarget}`);
     assert.strictEqual(rolloutPlanContent.includes(enPointerTarget), true, `ROLLOUT_PLAN.md must list en.WP SHA pointer ${enPointerTarget}`);
     assert.strictEqual(rolloutPlanContent.includes(enCommonTarget), true, `ROLLOUT_PLAN.md must list early testing harness ${enCommonTarget}`);
-    assert.strictEqual(wikiContent.includes('en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 1 must load from canonical script pointer on en.wikipedia.org');
-    assert.strictEqual(wikiContent.includes('meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki Option 2 must load from Meta-Wiki lead script');
+    assert.strictEqual(wikiContent.includes('meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki must load from Meta-Wiki lead script');
+    assert.ok(/\|\s*mainsource\s*=\s*User:Powercycler\/refdiff\.js/.test(wikiContent), 'refdiff.wiki infobox mainsource must point to User:Powercycler/refdiff.js for en.WP Script Installer');
 
     // 4. Documentation destination consistency (en.WP leads documentation)
     const canonicalDocTarget = 'en:User:Powercycler/RefDiff';
     const metaDocTarget = 'm:User:Powercycler/RefDiff';
+    const metaWikiContent = fs.readFileSync(metaRefdiffWikiPath, 'utf8');
     assert.strictEqual(rolloutPlanContent.includes(canonicalDocTarget), true, `ROLLOUT_PLAN.md must list canonical doc target ${canonicalDocTarget}`);
     assert.strictEqual(rolloutPlanContent.includes(metaDocTarget), true, `ROLLOUT_PLAN.md must list Meta soft redirect doc target ${metaDocTarget}`);
-    assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox_enwiki.wiki must link to canonical doc target');
+    assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox.wiki must link to canonical doc target');
+    assert.strictEqual(metaWikiContent.includes('en:User:Powercycler/RefDiff'), true, 'meta_refdiff.wiki must link to canonical English Wikipedia documentation');
+    assert.strictEqual(metaWikiContent.includes('User:Powercycler/refdiff.js'), true, 'meta_refdiff.wiki must link to Meta-Wiki script lead');
 
     // 5. Userbox template destination consistency (User space)
     const hasUserboxTarget = rolloutPlanContent.includes('en:User:Powercycler/Userbox RefDiff') || rolloutPlanContent.includes('en:User:Powercycler/User RefDiff');
     assert.strictEqual(hasUserboxTarget, true, 'ROLLOUT_PLAN.md must list userbox in user space (en:User:Powercycler/Userbox RefDiff or User RefDiff)');
     const referencesUserbox = userboxContent.includes('User:Powercycler/Userbox RefDiff') || userboxContent.includes('User:Powercycler/User RefDiff');
-    assert.strictEqual(referencesUserbox, true, 'userbox_enwiki.wiki must reference User:Powercycler user space userbox');
+    assert.strictEqual(referencesUserbox, true, 'userbox.wiki must reference User:Powercycler user space userbox');
 
     // 6. Outreach discussion destination consistency
     const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';

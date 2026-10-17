@@ -2,7 +2,7 @@
 """
 scripts/capture_full_audit.py
 Captures comprehensive visual inspection screenshots for all citation change cases
-across Meta Showcase diff (31142550) and Bihar diff (1379207737) in both Light and Dark modes.
+across en.WP Showcase diff (1380240829) and Bihar diff (1379207737) in both Light and Dark modes.
 """
 
 import asyncio
@@ -10,12 +10,13 @@ import base64
 import json
 import os
 import sys
+import tempfile
 import urllib.request
 import websockets
 
 CDP_HTTP = 'http://127.0.0.1:9222'
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ARTIFACTS_DIR = os.environ.get('ARTIFACTS_DIR') or os.path.join(REPO_DIR, 'tests', 'screenshots')
+ARTIFACTS_DIR = os.environ.get('ARTIFACTS_DIR') or os.path.join(tempfile.gettempdir(), 'refdiff_screenshots')
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 REFDIFF_JS = os.path.join(REPO_DIR, 'refdiff.js')
 
@@ -120,7 +121,7 @@ async def main():
         await cdp.send("Runtime.enable")
 
         # ==========================================================
-        # PART 1: Meta Showcase Diff (31142550)
+        # PART 1: en.WP Showcase Diff (1380240829)
         # Covers:
         # - Sec 1: Modified citation (pages 50-55 -> 80-88)
         # - Sec 2: Modified named citation (schmidt2020)
@@ -128,8 +129,8 @@ async def main():
         # - Sec 4: Added citation within modified line (esa-press)
         # - Sec 5: Pure deleted citation within modified line (venera1982)
         # ==========================================================
-        showcase_url = "https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549"
-        print(f"\n[1/2] Loading Meta Showcase Diff...")
+        showcase_url = "https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443"
+        print(f"\n[1/2] Loading en.WP Showcase Diff (1380240829)...")
         await cdp.send("Page.navigate", {"url": showcase_url})
         await asyncio.sleep(3.5)
 
@@ -202,9 +203,9 @@ async def main():
             await set_theme(cdp, theme)
             if first_bihar_row:
                 # Capture prose line + first added citation row
-                await capture_element(cdp, f"#{first_bihar_row}", os.path.join(ARTIFACTS_DIR, f"audit_bihar_added1_{theme}.png"), pad=15, include_prev=True)
+                await capture_element(cdp, f'[id="{first_bihar_row}"]', os.path.join(ARTIFACTS_DIR, f"audit_bihar_added1_{theme}.png"), pad=15, include_prev=True)
             if second_bihar_row:
-                await capture_element(cdp, f"#{second_bihar_row}", os.path.join(ARTIFACTS_DIR, f"audit_bihar_added2_{theme}.png"), pad=15, include_prev=True)
+                await capture_element(cdp, f'[id="{second_bihar_row}"]', os.path.join(ARTIFACTS_DIR, f"audit_bihar_added2_{theme}.png"), pad=15, include_prev=True)
 
     print("\nVisual audit capture complete!")
 

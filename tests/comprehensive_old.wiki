@@ -1,3 +1,5 @@
+{{AI-generated|userscript test page|reason=Simulated LLM text and hallucinated citations for diff decoupling verification|date=October 2026}}
+
 == Planetary Science Test Page ==
 
 === 1. Sequential Anonymous References ===
@@ -14,3 +16,6 @@ Surface atmospheric pressure is ninety times that of Earth.
 
 === 5. Reference Removed ===
 Early radar measurements were conducted by Soviet Venera landers.<ref name="venera1982">{{Cite book |author=Moroz, V. I. |title=The Atmosphere of Venus |year=1982 |pages=12–18}}</ref>
+
+=== 6. Citation Needed Replaced with Citations (CNfirmed / Eisenhower diff=1380014667) ===
+He was promoted to lieutenant general on July 7.{{citation needed|date=August 2025}}

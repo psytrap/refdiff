@@ -190,6 +190,26 @@ To ensure diff reviews remain fast, high-confidence, and zero-defect, all releas
 
 ---
 
+### 2.9 Engineering Methodology: Specification-Driven Agentic Coding
+
+RefDiff is engineered via **agentic coding**—a collaborative human–AI development model where autonomous coding agents execute implementation, refactoring, and test design under strict human editorial direction and architectural governance.
+
+#### Why Agentic Development Demands Extreme Formalism
+In standard human solo programming, architectural assumptions and regression precautions often reside informally in developer memory. In an agentic paradigm, informal assumptions lead to context drift, subtle regressions, and code bloat. To make autonomous AI iteration safe, deterministic, and verifiable, RefDiff grounds every change in explicit, machine-readable specifications and continuous automated feedback loops:
+
+1. **Specification as Single Source of Truth:**
+   All features, heuristics, and invariants are pre-defined in formal documentation ([`ARCHITECTURE.md`](ARCHITECTURE.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md)). The AI agent does not generate spontaneous ad-hoc implementations; it translates verified specifications into code and tests.
+2. **Deterministic Multi-Tier Test Anchors:**
+   Rapid agentic generation is bounded by an exhaustive four-tier test pyramid (121 unit/DOM tests, JSDOM headless fixtures, live Chromium CDP browser verification, and live monkey patching). If a proposed code edit introduces a subtle syntax slip, DOM leak, or heuristic drift, automated test gates immediately reject the change before it reaches the working tree.
+3. **Cross-File Synchronization & Drift Prevention:**
+   Agentic coding excels at systemic cross-artifact synchronization (e.g. updating version tokens, API exports, test assertions, and on-wiki wikitext simultaneously). Strict pre-flight gates ([`tests/test_deployment.js`](tests/test_deployment.js)) enforce that manifest files, documentation stats, and code exports remain 100% in sync.
+4. **Human Editorial & Architectural Authority:**
+   The human engineer operates as chief architect and release authority—directing scope, approving critical changes, scrutinizing git diffs, and signing off on on-wiki deployments—while the agent executes implementation, regression testing, and verification.
+5. **Concise, Descriptive, and Professional Tone:**
+   All project documentation, on-wiki pages ([`refdiff.wiki`](refdiff.wiki), [`userbox.wiki`](userbox.wiki)), docstrings, and commit artifacts must maintain a concise, descriptive, and professional tone. Avoid promotional language, buzzwords, or AI-generated boilerplate; prioritize technical precision, direct architectural rationale, and factual clarity.
+
+---
+
 ## 3. Pillar 2: Editorial Review & Source Auditing Playbook
 
 ### 3.1 The "Template Camouflage" Audit Workflow

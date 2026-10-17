@@ -102,7 +102,7 @@ async def main():
         await cdp.send("Page.enable")
         await cdp.send("Runtime.enable")
 
-        showcase_url = "https://meta.wikimedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=31142550&oldid=31142549"
+        showcase_url = "https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443"
         await cdp.send("Page.navigate", {"url": showcase_url})
         await asyncio.sleep(3.5)
 

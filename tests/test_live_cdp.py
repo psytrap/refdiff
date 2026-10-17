@@ -18,6 +18,8 @@ import base64
 import json
 import os
 import sys
+import tempfile
+import urllib.parse
 import urllib.request
 from typing import Any, Dict, Optional
 import websockets
@@ -151,7 +153,8 @@ def find_target_page(args: argparse.Namespace) -> tuple[Dict[str, Any], Optional
 
     # Priority 1: Explicit diff URL
     if getattr(args, "diff_url", None):
-        new_url = f"http://{args.host}:{args.port}/json/new?{args.diff_url}"
+        target_url = urllib.parse.quote(args.diff_url, safe="")
+        new_url = f"http://{args.host}:{args.port}/json/new?{target_url}"
         req = urllib.request.Request(new_url, method="PUT")
         with urllib.request.urlopen(req, timeout=5) as resp:
             created = json.loads(resp.read().decode("utf-8"))
@@ -166,17 +169,19 @@ def find_target_page(args: argparse.Namespace) -> tuple[Dict[str, Any], Optional
             created = json.loads(resp.read().decode("utf-8"))
             return created, created["id"]
 
-    # Priority 3: Live diff page on Wikimedia / Wikipedia or comprehensive test fixture
+    # Priority 3: Active diff page already open with known test citations
     diff_tab = next(
-        (t for t in tabs if t.get("type") == "page" and any(k in t.get("url", "") for k in ("wikimedia.org", "wikipedia.org", "diff=", "comprehensive_test.html"))),
+        (t for t in tabs if t.get("type") == "page" and (
+            ("1379486498" in t.get("url", "") or "1380240829" in t.get("url", "") or "comprehensive_test.html" in t.get("url", ""))
+        )),
         None
     )
     if diff_tab:
         return diff_tab, None
 
-    # Priority 4: Fall back to local comprehensive test fixture
-    fixture_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "comprehensive_test.html"))
-    new_url = f"http://{args.host}:{args.port}/json/new?file://{fixture_path}"
+    # Priority 4: Default canonical live Wikipedia diff (Odoacer diff=1379486498)
+    canonical_url = "https://en.wikipedia.org/w/index.php?diff=1379486498"
+    new_url = f"http://{args.host}:{args.port}/json/new?{canonical_url}"
     req = urllib.request.Request(new_url, method="PUT")
     with urllib.request.urlopen(req, timeout=5) as resp:
         created = json.loads(resp.read().decode("utf-8"))
@@ -251,13 +256,18 @@ async def run_suite(args: argparse.Namespace) -> int:
             # 3. Check Initial Wikitext Diff State
             print("[Step 3] Verifying initial state...")
             state_init = await client.evaluate("""
-                (() => ({
-                    hasRefBtn: !!document.getElementById('refdiff-ooui-btn') || !!document.getElementById('refdiff-mode-bar'),
-                    citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
-                    tableVisible: !!document.querySelector('table.diff') && (document.querySelector('table.diff').offsetParent !== null)
-                }))()
+                (() => {
+                    const btn = document.getElementById('refdiff-ooui-btn') || document.getElementById('refdiff-btn-decoupled');
+                    return {
+                        hasRefBtn: !!btn,
+                        tooltip: btn ? (btn.getAttribute('title') || '') : '',
+                        citRowCount: document.querySelectorAll('.refdiff-cit-row').length,
+                        tableVisible: !!document.querySelector('table.diff') && (document.querySelector('table.diff').offsetParent !== null)
+                    };
+                })()
             """)
             assert state_init["hasRefBtn"], "RefDiff UI button/bar missing from diff toolbar"
+            assert "RefDiff v" in state_init["tooltip"], f"Button tooltip '{state_init['tooltip']}' must contain version"
             assert state_init["tableVisible"], "Native diff table should be visible"
             test_steps.append(("Initial injection & toolbar button presence", True))
 
@@ -284,7 +294,7 @@ async def run_suite(args: argparse.Namespace) -> int:
                         const citRows = document.querySelectorAll('tr.refdiff-cit-row');
                         const citRowsVisible = Array.from(citRows).filter(r => r.offsetParent !== null).length;
                         const table = document.querySelector('table.diff');
-                        const nonHeaderRowsVisible = table ? Array.from(table.querySelectorAll('tr:not(.diff-title)')).filter(r => r.offsetParent !== null).length : 0;
+                        const nonHeaderRowsVisible = table ? Array.from(table.querySelectorAll('tr:not(.diff-title)')).filter(r => !r.querySelector('td.diff-multi, td.diff-notice') && r.offsetParent !== null).length : 0;
                         const sw = document.getElementById('mw-diffPage-inline-toggle-switch');
                         return {
                             veDiffVisible: veDiff ? (veDiff.offsetParent !== null && veDiff.closest('.oo-ui-element-hidden') === null) : false,
@@ -300,8 +310,32 @@ async def run_suite(args: argparse.Namespace) -> int:
                 await client.capture_screenshot(os.path.join(screenshots_dir, "01_visual_diff.png"))
                 test_steps.append(("Switch to Visual Diff (clean view, 0 leaked rows)", True))
 
-            # 5. Mode Switch: RefDiff Decoupled View
-            print("[Step 5] Switching to RefDiff decoupled mode...")
+            # 5. Mode Switch: RefDiff Decoupled View (Wikitext-first transition)
+            if has_ve:
+                print("[Step 5a] Verifying RefDiff button is disabled in Visual mode...")
+                ref_btn_disabled = await client.evaluate("""
+                    (() => {
+                        const btn = document.getElementById('refdiff-ooui-btn');
+                        return btn ? (btn.classList.contains('oo-ui-widget-disabled') || btn.getAttribute('aria-disabled') === 'true') : false;
+                    })()
+                """)
+                assert ref_btn_disabled, "RefDiff button must be disabled while in Visual Diff mode"
+                print("       -> [✓] RefDiff button correctly disabled in Visual Diff mode")
+
+                print("[Step 5b] Switching to Wikitext mode first...")
+                wiki_btn_sel = ".ve-init-mw-diffPage-diffMode .oo-ui-icon-wikiText, .ve-init-mw-diffPage-diffMode .oo-ui-buttonOptionWidget:nth-child(2), #refdiff-btn-standard"
+                await client.click(wiki_btn_sel)
+                await asyncio.sleep(args.wait_ve)
+
+                ref_btn_enabled = await client.evaluate("""
+                    (() => {
+                        const btn = document.getElementById('refdiff-ooui-btn');
+                        return btn ? (!btn.classList.contains('oo-ui-widget-disabled') && btn.getAttribute('aria-disabled') !== 'true') : true;
+                    })()
+                """)
+                assert ref_btn_enabled, "RefDiff button should be re-enabled after switching to Wikitext mode"
+
+            print("[Step 5c] Switching to RefDiff decoupled mode...")
             ref_btn_sel = "#refdiff-ooui-btn, #refdiff-btn-decoupled"
             await client.click(ref_btn_sel)
             await asyncio.sleep(1.0)
@@ -374,7 +408,7 @@ async def run_suite(args: argparse.Namespace) -> int:
                         const citRows = document.querySelectorAll('tr.refdiff-cit-row');
                         const citRowsVisible = Array.from(citRows).filter(r => r.offsetParent !== null).length;
                         const table = document.querySelector('table.diff');
-                        const nonHeaderRowsVisible = table ? Array.from(table.querySelectorAll('tr:not(.diff-title)')).filter(r => r.offsetParent !== null).length : 0;
+                        const nonHeaderRowsVisible = table ? Array.from(table.querySelectorAll('tr:not(.diff-title)')).filter(r => !r.querySelector('td.diff-multi, td.diff-notice') && r.offsetParent !== null).length : 0;
                         const sw = document.getElementById('mw-diffPage-inline-toggle-switch');
                         return {
                             veDiffVisible: veDiff ? (veDiff.offsetParent !== null && veDiff.closest('.oo-ui-element-hidden') === null) : false,
@@ -498,8 +532,8 @@ def main():
     parser.add_argument("--wait-ve", type=float, default=3.0, help="Seconds to wait for VisualEditor to render")
     parser.add_argument(
         "--screenshots-dir",
-        default=os.path.abspath(os.path.join(os.path.dirname(__file__), "screenshots")),
-        help="Directory to save verification screenshots"
+        default=os.environ.get("REFDIFF_SCREENSHOTS_DIR") or os.path.join(tempfile.gettempdir(), "refdiff_screenshots"),
+        help="Directory to save verification screenshots (default: /tmp/refdiff_screenshots)"
     )
     args = parser.parse_args()
 

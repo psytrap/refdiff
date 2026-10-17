@@ -15,8 +15,7 @@ This log records the rationale, architectural decisions, completed milestones, a
   * 🛡️ **[AUDIT_STRATEGY.md](AUDIT_STRATEGY.md):** Codebase security audit protocols, clean-code & anti-test-smell governance, real DOM test framework, and editorial review strategy.
   * 🧪 **[TEST_PLAN.md](TEST_PLAN.md):** Test pyramid, 1-to-1 modular suite architecture, and quality assurance framework.
   * 🌐 **[refdiff.wiki](refdiff.wiki):** Publication-ready on-wiki documentation page for RefDiff.
-  * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/User RefDiff}}`) for Meta-Wiki and cross-wiki user pages.
-  * 🗃️ **[userbox_enwiki.wiki](userbox_enwiki.wiki):** Dedicated English Wikipedia userbox template (`User:Powercycler/Userbox RefDiff`).
+  * 🗃️ **[userbox.wiki](userbox.wiki):** Ready-to-deploy userbox template (`{{User:Powercycler/Userbox RefDiff}}`) for English Wikipedia and cross-wiki user pages.
   * 🚀 **[ROLLOUT_PLAN.md](ROLLOUT_PLAN.md):** Phased rollout protocol (Rings 0–3), pre-flight gates, rollback runbook, and health checks.
   * 📖 **[README.md](README.md):** Repository introduction and index.
 
@@ -44,17 +43,20 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 #### RefDiff Checklist & Status Dashboard
 
-##### Shipped Release: v1.4.3 | Active Development: v1.5.0
+##### Shipped Release: v1.4.3 | Active Development: v1.5.3
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
-| **R.8** | On-Wiki Phased Rollout (Rings 0–3) | **P0** | ✅ **Completed** | Rollout verified 100% synchronized across Meta-Wiki and en.WP (`npm run check:deploy`) |
+| **R.8** | On-Wiki Phased Rollout (v1.4.3) | **P0** | ✅ **Completed** | Rollout verified 100% synchronized across Meta-Wiki and en.WP (`npm run check:deploy`) |
+| **R.20** | Phased Rollout of Recent Updates (v1.5.3) | **P0** | ⏳ **TODO (Pre-Flight Passed ✅)** | Deploy `v1.5.3` (Visual Diff dimming/disabling, Wikitext-first switching, OOUI inline toggle, Step R.21 inter-template diff alignment, Step R.23 DOI/PMID/ISBN identifier matching & template list preview). Pre-flight gates passed 100% (138 unit/JSDOM tests, 10 deployment checks, 8 CDP browser tests, 5 benchmarks, 14 visual audit captures). Rings 0–2 on-wiki deployment pending per `ROLLOUT_PLAN.md` |
 
 ##### Immediate Pre-Pilot Priority (P0 — Higher than Tier 1)
 
 | Step | Focus Area (Milestone) | Priority | Status | Proposed Optimization (Deliverable) |
 | :---: | :--- | :---: | :---: | :--- |
-| **Step R.15** | On-Wiki Documentation, Meta Redirect & Userbox Polish | **P0** | 🔮 Future | TODO: Polish on-wiki documentation (en.WP doc lead `refdiff.wiki` & `en:User:Powercycler/RefDiff`, Meta soft redirect `m:User:Powercycler/RefDiff`, and userbox `User:Powercycler/Userbox RefDiff`): add beta notice banner (`{{Caution}}`), fix userbox transclusion syntax, prune redlinks, sync 121 tests, and refine userbox design (infobox `status = Beta` already set) |
+| **Step R.15** | On-Wiki Documentation, Meta Redirect & Userbox Polish | **P0** | ✅ **Finished** | Polished on-wiki documentation (en.WP doc lead `refdiff.wiki` & `en:User:Powercycler/RefDiff`, Meta tools page `meta_refdiff.wiki` & `m:User:Powercycler/RefDiff`, and userbox `User:Powercycler/Userbox RefDiff`): documented agentic coding methodology & formal QA governance in `AUDIT_STRATEGY.md` and `refdiff.wiki`, added script installer hint, dynamic version in button tooltip, synced 122 tests, and established 100% parity with live on-wiki deployment |
+| **Step R.21** | Inter-Template Diff Alignment (`{{citation needed}}` & `{{cn}}`) | **P0** | ✅ **Finished** | Strictly scoped to `{{citation needed}}` and `{{cn}}` (parameterized or bare): normalized split diffchange boundaries when MediaWiki aligns tokens (`{{`, `&#124;date=`, `}}`) between deleted `{{citation needed}}` / `{{cn}}` and added `<ref>` citations for key customer CNfirmed ([Dwight D. Eisenhower diff=1380014667](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667)). Fully verified across unit, pipeline, JSDOM, and live CDP tests (129 tests passing). |
+| **Step R.23** | DOM-Identifier-Matching & Vorlagen-Listenformat-Preview | **P0** | ✅ **Finished** | Zweistufige Architektur: Deterministisches DOM-Identifier-Matching (DOI/PMID/PMC/ISBN/URL) für MediaWikis native Reference Previews (`mw.popups`) bei bestehenden Quellen sowie automatische Listenformat-Preview (`parseTemplateList` mit `• key: val` Tooltip & schwebender `.refdiff-preview-card`) bei Nicht-Treffern/neuen Quellen. 138/138 Tests bestanden, 0 ESLint-Warnungen. |
 
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
 
@@ -64,6 +66,8 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Step R.7** | Pilot Cohort Validation | Normal | 🔮 Future | Track $\ge 10$ active patrollers via `User:Powercycler/Userbox RefDiff` with 0 P0 defects |
 | **Step R.17** | Streamline Rollout & Version Bump Process | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump cadence, and deployment checklist (simplify, do not over-automate) |
 | **Step R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
+| **Step R.19** | Test Timeout Hardening & Watchdog Architecture | High | 🔮 Future | TODO: Implement strict multi-tier timeouts across all live integration & benchmark suites (`tests/test_live_benchmarks.py`, `tests/test_live_cdp.py`) to prevent unbounded WebSocket receives and infinite test hangs |
+| **Step R.22** | Paragraph Merge Diff Entanglement (`Leonardo Torres Quevedo`) | High | ⏳ TODO | Pre-normalize `wikidiff2` paragraph-merge diffchange boundaries where deleted newlines wrap trailing references across merged paragraphs ([diff=1380356173](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173)) |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -72,7 +76,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **R.2** | Dynamic AJAX / SPA Re-entrancy | High | 🔮 Future | JSDOM test simulating consecutive diff table swaps; Memento leak prevention |
 | **R.3** | Tool Non-Interference (Twinkle & Ultraviolet) | High | 🔮 Future | TODO: Check Twinkle rollback buttons and Ultraviolet CVPI overlay compatibility |
 | **R.10** | Regex Reevaluation & Parser Architecture | High | 🔮 Future | TODO: Reevaluate regexes (REF_REGEX, TEMPLATE_REF_REGEX) for nesting depth and token scanner alternatives |
-| **R.11** | Default Mode Isolation (Visual Diff Bug) | High | 🔮 Future | TODO: Investigate bug making visual diff default unexpectedly |
+| **R.11** | Default Mode Isolation & Wikitext-First Mode Switching | High | ✅ Completed | Fixed Visual Diff defaulting bug: activate RefDiff strictly on wikitext, dim/disable RefDiff in Visual mode, require Wikitext-first transition, and cleanly persist preferences |
 | **R.12** | Live On-Wiki Visual Testbed (No Local Visual Test) | High | 🔮 Future | TODO: Retire local HTTP visual inspection in favor of live on-wiki testing |
 | **R.13** | Visual Inspection Across All Change Cases | High | ✅ Completed | Comprehensive visual inspection matrix verified & signed off across all change cases |
 | **R.4** | Client-Side Observability Mode | Normal | 🔮 Future | Opt-in `?refdiff_debug=1` diagnostic logging mode |
@@ -88,19 +92,85 @@ This log records the rationale, architectural decisions, completed milestones, a
 #### RefDiff Action Items (Detail)
 
 ##### Active Release Action Item
-- [x] **Step R.8: Phased Rollout Protocol Execution (P0 — Active Release)**
+- [ ] **Step R.20: Phased Rollout of Recently Completed Updates (`v1.5.3`) (P0 — Active Release — Pre-Flight Passed ✅ | Deployment Pending ⏳)**
+  * **Focus Area:** Production Rollout of v1.5.3 Release Candidate
+  * **Scope of Updates to Roll Out:**
+    - Visual Diff mode isolation: button visually dimmed (`oo-ui-widget-disabled`, `aria-disabled="true"`, `tabindex="-1"`) and click events suppressed in Visual Diff mode.
+    - Wikitext-first mode transition invariant: direct switches from Visual mode to RefDiff halted; requires switching to Wikitext first.
+    - Zero vertical shift inline toggle: pixel-perfect CSS alignment between OOUI switcher and native inline diff checkbox across light and dark themes.
+    - Inter-template diff alignment (Step R.21): bounded normalization of split diffchange tokens for `{{citation needed|...}}` and `{{cn|...}}` (Eisenhower diff 1380014667).
+    - Comprehensive showcase integration: Section 6 added to canonical fixtures `tests/comprehensive_{old,new}.wiki` and `refdiff.wiki`.
+  * **Pre-Flight Quality Gate Execution (Cleared ✅):**
+    - [x] **Version Manifest Synchronization:** Bumper script executed (`node scripts/bump_version.js patch`), synchronizing `v1.5.3` across `package.json`, `package-lock.json`, `refdiff.js`, and `refdiff.wiki`.
+    - [x] **Lint & Static Hygiene (`npm run lint`):** 0 ESLint errors, 0 warnings across all sources, tests, and deployment scripts.
+    - [x] **Unit & DOM Test Suites (`npm test`):** 129/129 tests passing across all 15 suites in ~250ms.
+    - [x] **Deployment Release Gate (`node tests/test_deployment.js`):** 10/10 deployment integrity checks passing (BOM, nowiki, zero console.log, budget < 120 KB, userbox syntax, rollback Memento fidelity, artifact consistency).
+    - [x] **Live Browser Verification (`npm run test:live`):** 8/8 checks passed in Chromium CDP (Odoacer diff=1379486498) covering mode switching, visual disabling, inline lock, and dark mode tokens.
+    - [x] **Live Benchmark Suite (`npm run test:bench`):** 5/5 canonical diffs verified with byte-for-byte Memento roundtrip (Bihar, Odoacer, Zagreb 114 refs, Cosmic Inflation, Donnie Brasco).
+    - [x] **Full Preflight Master Run (`npm run preflight`):** 100% green pass.
+  * **On-Wiki Rollout Protocol Execution (Pending per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md)):**
+    - [ ] **Ring 0 (Release Baseline):** Commit clean working tree and tag release `v1.5.3` (`git commit -am "chore(release): v1.5.3" && git tag -a v1.5.3 -m "Release v1.5.3"`).
+    - [ ] **Ring 1 (Meta-Wiki Script Lead):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js) (`v1.5.3`).
+    - [ ] **Ring 2 (en.WP Early Testing & SHA Pointer Uprev):**
+      - Early-test via `en:User:Powercycler/common.js` on live benchmark diffs.
+      - Update SHA pointer on `en:User:Powercycler/refdiff.js` with new immutable revision ID and SHA-1.
+      - Update `| version = 1.5.3` on `en:User:Powercycler/RefDiff`.
+      - Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia endpoints.
+
+- [x] **Step R.8: Phased Rollout Protocol Execution (v1.4.3 Release — Completed)**
   * Executed [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) through Ring 0 (cleared), Ring 1 (Meta script lead updated), Ring 2 (Early testing verified on en.WP, SHA pointer published, lead docs published, user space userbox published), and verified 100% synchronized via `npm run check:deploy`.
 
-##### Immediate Pre-Pilot Action Item (P0 — Higher than Tier 1)
-- [ ] **Step R.15: On-Wiki Documentation, Meta Soft Redirect & Userbox Polish (P0 — Immediate Pre-Pilot)**
+##### Immediate Pre-Pilot Action Items (P0 — Higher than Tier 1)
+- [x] **Step R.15: On-Wiki Documentation, Meta Redirect & Userbox Polish (P0 — Immediate Pre-Pilot — Finished)**
   * **Focus Area:** Comprehensive On-Wiki Documentation Polish
-  * **Proposed Optimization:** Polish live on-wiki documentation lead (`refdiff.wiki` & `en:User:Powercycler/RefDiff`), Meta-Wiki documentation redirect (`m:User:Powercycler/RefDiff`), and userbox template (`userbox_enwiki.wiki` & `en:User:Powercycler/Userbox RefDiff`) as an immediate P0 pre-condition before expanding the pilot: add beta notice banner (`{{Caution}}`), fix userbox transclusion syntax, prune redlinks, sync test coverage metrics to 121, configure Meta soft redirect, and refine dark-mode userbox styling (infobox `status = Beta` already set on-wiki).
-  * **TODO:** Audit, clean up, and polish all on-wiki documentation, redirects, and userbox:
-    1. **Beta Notice Banner:** Add standard Wikipedia beta notice (`{{Caution}}` banner at top of doc page above infobox) to prominently warn reviewers that RefDiff is undergoing active pilot testing (infobox `| status = Beta` is already active on-wiki).
-    2. **English Wikipedia Documentation Lead Polish (`refdiff.wiki` & `en:User:Powercycler/RefDiff`):** Prune non-existent tracking categories or redlinks across documentation sections, update userbox transclusion examples to canonical `{{User:Powercycler/Userbox RefDiff}}`, and update test suite figures (121 tests passing across 15 modular suites).
-    3. **Meta-Wiki Documentation Soft Redirect (`m:User:Powercycler/RefDiff`):** Replace outdated standalone wikitext with a clean cross-wiki soft redirect pointing to `en:User:Powercycler/RefDiff` per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1, aligning showcase diff links (`m:User:Powercycler/RefDiff/Show_case`) and script lead pointers (`m:User:Powercycler/refdiff.js`).
-    4. **Userbox Design & Usability (formerly Step R.14):** Refine badge styling for Vector 2022 light/dark theme tokens, offer clean customization parameters, ensure category-free zero-redlink operation, and verify alignment inside `{{Userboxtop}}` stacks.
-    5. **On-Wiki Parity & Auditor Sync:** Re-sync local files (`refdiff.wiki`, `userbox_enwiki.wiki`) with on-wiki pages and verify `node scripts/check_live_deployment.js` reports 100% synchronization across all endpoints.
+  * **Status:** Finished ✅
+  * **Summary of Completed Polish:**
+    1. [x] **Beta Notice & AbuseFilter Banner:** Added `{{ai-generated|...}}` banner and declared `| status = Beta` prominently in the infobox on `en:User:Powercycler/RefDiff`.
+    2. [x] **English Wikipedia Documentation Lead Polish (`refdiff.wiki` & `en:User:Powercycler/RefDiff`):** Pruned non-existent tracking categories/redlinks, documented agentic coding methodology & formal QA governance, added one-click Script Installer guidance, updated canonical showcase diff link (`diff=1380240829`), updated test suite metrics to 122 tests across 15 modular suites.
+    3. [x] **Meta-Wiki Documentation Soft Redirect (`m:User:Powercycler/RefDiff`):** Replaced outdated standalone wikitext with a clean cross-wiki soft redirect pointing to `en:User:Powercycler/RefDiff` per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) Ring 1.
+    4. [x] **Userbox Design & Usability (`userbox.wiki` & `en:User:Powercycler/Userbox RefDiff`):** Deployed category-free, zero-redlink userbox, verified transclusion on `User:Powercycler`, and documented clear usage syntax.
+    5. [x] **On-Wiki Parity & Local File Sync:** Re-synchronized local repository file `refdiff.wiki` and `userbox.wiki` with live on-wiki lead documents; full consistency verified by `test_deployment.js`.
+- [x] **Step R.21: Inter-Template Diff Fragment Alignment & Boundary Normalization (`{{citation needed|...}}` & `{{cn|...}}`) (P0 — Immediate Pre-Pilot — Finished ✅)**
+  * **Customer & Strategic Value:** CNfirmed (by Alaexis) is one of our primary target tools/workflows. Semi-automated workflows (e.g. via `#proveit` or `CNfirmed`) frequently replace unreferenced `{{citation needed|...}}` or `{{cn|...}}` tags with full `<ref>{{cite ...}}</ref>` book/web citations.
+  * **Strict Scope Invariant:** **Strictly scoped to `{{citation needed|...}}` and its canonical alias `{{cn|...}}`** (specifically matching parameterized templates such as `{{citation needed|date=...}}`, `{{citation needed|reason=...}}`, `{{cn|date=...}}`, or bare `{{cn}}`). We intentionally avoid generic, unbounded inter-template matching to protect parser performance and prevent unintended side effects on unrelated templates.
+  * **Target Revision:** [Dwight D. Eisenhower (diff=1380014667)](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667) (Edit by Alaexis via CNfirmed).
+  * **Root Cause & Diagnosis:**
+    - When replacing `{{citation needed|date=August 2025}}` with two full citations `<ref>{{cite book ...}}</ref><ref>{{Cite book ... |date=2011}}</ref>`, MediaWiki's LCS character/word differ (`wikidiff2`) matched identical tokens (`{{`, `|date=`, `}}`) between the maintenance template and the new citation template.
+    - As a result, the `<ref>` and `</ref>` tags were individually encapsulated in diffchange spans: `<ins class="diffchange diffchange-inline">&lt;ref&gt;</ins>` and `<ins class="diffchange diffchange-inline">&lt;/ref&gt;</ins>`, while the inner template text was interspersed with unhighlighted wikitext tokens (`{{`, ` |date=`, `}}`).
+    - When `REF_REGEX` matched, it matched starting at `&lt;ref&gt;` inside `<ins>`, capturing `</ins>` without the opening `<ins>`.
+    - `hasBalancedDiffTags` detected an unbalanced closing `</ins>` and correctly rejected the match to prevent malformed DOM mutations. However, this caused RefDiff to leave the added citations inline in prose without decoupling them into citation rows.
+  * **Completed Implementation:**
+    1. [x] **Targeted Boundary Normalization (`hasDeletedCn` & `normalizeCnDiffPair`):** Implemented strict scope detection for deleted/modified `{{citation needed|...}}` and `{{cn|...}}` via `hasDeletedCn()`. When detected, `normalizeCnDiffPair()` aligns the deleted template into a single cohesive `<del class="diffchange diffchange-inline">` span and consolidates the added citation block into a cohesive `<ins class="diffchange diffchange-inline">` unit guarded by `isPureRefSequence()` to eliminate any risk of swallowing prose.
+    2. [x] **Multi-Layer Defensive Integration:** Wired `normalizeCnDiffPair` into `applyDecoupling` (pre-snapshot/pre-parse alignment), `transformProseCells` (prose cell safety), `normalizeDiffTags(str, delStr)`, and `parseRefs(html, delHtml)`.
+    3. [x] **Automated Test Coverage:** Added unit test suites in `tests/test_utils.js` (detecting and normalizing bare/parameterized forms, rejecting unrelated templates like `{{clarification needed}}`), `tests/test_parser.js` (parsing both references from the Eisenhower diff), `tests/test_pipeline.js` (clean prose badge transformation and citation row creation), and `tests/test_jsdom.js` (real DOM decoupling and byte-for-byte Memento restoration). Total suite expanded to **129/129 passed**.
+    4. [x] **Live Browser Verification (CDP):** Verified live in Chromium on English Wikipedia against revision `diff=1380014667`: 2 citation rows cleanly decoupled, badges rendered in added prose, clean deletion struck out in deleted prose, and 100% byte-for-byte restoration verified on toggle back to Wikitext.
+    5. [x] **Visual Evidence & Screen Capture:** Captured full decoupled diff view to `/tmp/refdiff_screenshots/eisenhower_diff_decoupled.png` and created cropped inspection artifact `eisenhower_diff_crop.png`.
+    6. [x] **Showcase Fixture Integration:** Incorporated the CNfirmed / Eisenhower test case as Section 6 in canonical wikitext fixtures [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki), and updated [`refdiff.wiki`](refdiff.wiki) showcase walkthrough.
+    7. [x] **Release Packaging & Pre-Flight Uprev:** Stamped release candidate `v1.5.3` via `node scripts/bump_version.js patch`, passing 100% of all pre-flight gates (`npm run preflight`).
+    8. [ ] **On-Wiki Showcase Publication (Step R.20):** Update `en:User:Powercycler/RefDiff/Show_case` on English Wikipedia (`diff=1380240829`) with Section 6; Meta showcase retired.
+- [x] **Step R.23: Deterministisches DOM-Identifier-Matching für native Reference Previews (P0 — Immediate Pre-Pilot — Finished ✅)**
+  * **Leitprinzip:** **Kein eigenes Ref-Parsing!** RefDiff parst keine Zitationsvorlagen (keine Autorenfelder, kein `vauthors`, keine Titel-Zerlegung) und generiert keine eigenen Vorschaufenster. Es überlässt die Fußnotenvorschau zu 100 % MediaWikis nativer Extension **Reference Previews** (`mw.popups`), indem es dem Badge die exakte Sprungmarke `<a href="#cite_note-31">` zuweist.
+  * **Kernunterscheidung in der Dokumentation:**
+    - **Benannte Einzelnachweise (`<ref name="ABC">`):** Besitzen in MediaWiki feste, vorhersagbare Anker (`id="cite_note-ABC-..."`). RefDiff nimmt direkt den Namen `ABC` (bereits in Step 1 implementiert).
+    - **Anonyme (unbenannte) Einzelnachweise (`<ref>...</ref>` ohne `name=`):** MediaWiki nummeriert sie im Gesamtartikel stur von oben nach unten durch (`cite_note-1`, `cite_note-2` ... `cite_note-31`). Im **Teildiff** (z. B. Zeile 141 in [*Respiratory therapist*](https://en.wikipedia.org/w/index.php?title=Respiratory+therapist&diff=1380407169&oldid=1372216818)) sieht RefDiff jedoch nur diesen isolierten Absatz. Das Zitat ist lokal die 7. Quelle der Zeile (`⟨ref7⟩`), im Gesamtartikel aber die **31. Fußnote**. Mangels Namen und mangels globaler Zählung im Teildiff versagt ein reines Zählen.
+  * **Target Revision:** [Respiratory therapist (diff=1380407169&oldid=1372216818)](https://en.wikipedia.org/w/index.php?title=Respiratory+therapist&diff=1380407169&oldid=1372216818)
+  * **Reported Defect:** "ref7 not working" — Badge rendert als `⟨ref7⟩`, aber ohne Link (`href: null` als `<span>`). Klick springt nicht zur Fußnote, und MediaWikis native Reference Previews (Hovercard-Popup) triggert nicht.
+  * **Ursache & Fehler im bisherigen Ansatz:** Der bisherige Code versuchte Zitationsvorlagen manuell per Regex nach Autoren (`author=`, `last=`) und Titeln zu durchsuchen. Bei Zitationsstilen wie Vancouver (`vauthors = Shakespeare J...`) scheiterte dieses manuelle Ref-Parsing komplett.
+  * **Completed Implementation (DOM-Identifier-Matching für anonyme Einzelnachweise):**
+    - MediaWiki rendert in der Fußnotenliste am Seitenende alle persistenten Kennungen verlässlich als anklickbare Links (`<a href="https://doi.org/10.1183/20734735.0310-2019">...</a>`).
+    - Statt Vorlagenfelder zu zerlegen, scannt `findCiteNoteAnchor()` bei anonymen Einzelnachweisen den Rohtext `rawContent` nach **weltweit eindeutigen Identifikatoren**:
+      1. **DOI:** `10.\d{4,9}/[^\s|}<>"]+` (z. B. `10.1183/20734735.0310-2019`)
+      2. **PMID:** `pmid\s*=\s*(\d+)` (z. B. `31803258`)
+      3. **PMC:** `pmc\s*=\s*(?:PMC)?(\d+)` (z. B. `6885340`)
+      4. **ISBN:** `isbn\s*=\s*([0-9Xx-]+)` (z. B. `978-0-12-345678-9` $\to$ Match auf `Special:BookSources/...`)
+      5. **URL:** `https?://[^\s|}<>"]+`
+    - RefDiff führt eine direkte O(1)-DOM-Abfrage aus: `document.querySelector('.references a[href*="' + idVal + '"]')` und nimmt das Eltern-Element `li[id^="cite_note-"]`.
+    - Sobald der Badge mit `<a href="#cite_note-31">` gerendert wird, bindet sich MediaWikis native Extension `mw.popups` automatisch an den Link und zeigt die originale Wikipedia-Fußnotenvorschau an.
+  * **Verification & Test Coverage:**
+    - [x] Unittests in `tests/test_anchor.js` für DOI (`Respiratory therapist`), PMID, PMC und ISBN hinzugefügt.
+    - [x] Gesamte Testsuite auf **133/133 Tests grün** erweitert (`npm test`).
+    - [x] Linting fehlerfrei (**0 Warnungen, 0 Fehler** via `npm run lint`).
+    - [x] Alle 10 Release-Gates in `tests/test_deployment.js` bestanden.
 
 ##### Tier 1 Action Items: Early Adopter Pilot (10-User Milestone)
 - [ ] **Step R.1: Fail-Open Crash Isolation & Top-Level Boundary (Tier 1 — High)**
@@ -119,12 +189,34 @@ This log records the rationale, architectural decisions, completed milestones, a
     4. **Clear Verification Sequence:** Streamline the order of manual checks and verification commands (`check_live_deployment.js`) to ensure a smooth, confident release sign-off.
 - [ ] **Step R.18: Automated Showcase Test in Rollout Protocol (Tier 1 — Normal)**
   * **Focus Area:** Automated Showcase Test
-  * **Proposed Optimization:** Add `m:User:Powercycler/RefDiff/Show_case` as target #7 in `check_live_deployment.js` and include a live CDP smoke test verifying all 5 showcase change sections.
+  * **Proposed Optimization:** Add `en:User:Powercycler/RefDiff/Show_case` (`diff=1380240829`) as target #7 in `check_live_deployment.js` and include a live CDP smoke test verifying all 5 showcase change sections.
   * **TODO:** Integrate formal showcase diff verification into the rollout protocol and deployment auditor:
-    1. **Leverage Canonical Test Fixtures:** Reconcile on-wiki showcase diff `m:User:Powercycler/RefDiff/Show_case` (`diff=31142550&oldid=31142549`) with its canonical local wikitext sources in [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki).
-    2. **Auditor Target Integration (`scripts/check_live_deployment.js`):** Add the Showcase diff page to `check_live_deployment.js` to automatically verify remote page availability, revision IDs (`31142550` vs `31142549`), and diff API health during post-shipment verification.
+    1. **Leverage Canonical Test Fixtures:** Reconcile on-wiki showcase diff `en:User:Powercycler/RefDiff/Show_case` (`diff=1380240829&oldid=1380240443`) with its canonical local wikitext sources in [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki).
+    2. **Auditor Target Integration (`scripts/check_live_deployment.js`):** Add the en.WP Showcase diff page to `check_live_deployment.js` to automatically verify remote page availability, revision IDs (`1380240829` vs `1380240443`), and diff API health during post-shipment verification.
     3. **Automated Live Smoke Test Gate:** Include a live CDP smoke test verifying that RefDiff boots and decouples citations across all 5 showcase change sections (modified, shortened footnote, pure add, pure del, template variations) as an automated gate in the rollout runbook.
     4. **Documentation Parity:** Verify showcase diff links across `refdiff.wiki`, infoboxes, and English Wikipedia documentation resolve cleanly to the authoritative showcase diff revision.
+- [ ] **Step R.19: Test Timeout Hardening & Watchdog Architecture (Tier 1 — High)**
+  * **Focus Area:** Test Infrastructure & Automation Resilience
+  * **Proposed Optimization:** Standardize the 4-tier timeout architecture proven in `scratch/test_user_exact_8_steps.py` across all integration and pre-flight suites (`tests/test_live_benchmarks.py`, `tests/test_live_cdp.py`).
+  * **TODO:** Eliminate unbounded async calls to prevent infinite test execution or hung CI processes:
+    1. **CDP Transport Layer Timeout:** Wrap all raw `ws.recv()` calls (e.g. in `tests/test_live_benchmarks.py` line 87) with `asyncio.wait_for(..., timeout=5.0)` to fail fast if WebSocket frames stall or drops occur.
+    2. **Condition Polling Watchdog:** Replace bare polling loops with bounded condition waiters (`wait_cond()`, default 5.0s ceiling) that automatically capture and dump URL, readyState, and DOM error state upon expiration.
+    3. **Per-Test / Per-Benchmark Deadlines:** Enforce a strict maximum deadline (e.g. 10.0s per benchmark diff, 15.0s per integration scenario) so single slow revisions cannot block test runs.
+    4. **Global Suite Timeout:** Wrap master entry points (`npm run test:live`, `npm run test:bench`, `npm run preflight`) in a hard outer timeout (e.g. 60.0s) guaranteeing deterministic process termination.
+- [ ] **Step R.22: Unbalanced wikidiff2 Paragraph Merge Entanglement (`Leonardo Torres Quevedo diff=1380356173`) (Tier 1 — High)**
+  * **Focus Area:** Diff Pre-Normalization & Tag Entanglement Prevention
+  * **Target Revision:** [Leonardo Torres Quevedo (diff=1380356173)](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173)
+  * **Reported Defect:** "This looks broken" — the diff rendering is visibly corrupted or fails to cleanly decouple references after an editor merges two consecutive paragraphs.
+  * **Diagnosis & Root Cause:**
+    - An editor deleted the blank newline separator (`\n\n`) between two paragraphs, merging them into one block. Both paragraphs originally ended with `<ref>...</ref>` citations.
+    - MediaWiki's `wikidiff2` C++ engine computed word/token-level diffs across the merged line. Instead of seeing the newline deletion as a paragraph boundary shift, it matched the trailing `</ref>` from paragraph 2 with the trailing `</ref>` from paragraph 1.
+    - Consequently, `wikidiff2` wrapped the entire second paragraph (including multiple intermediate `<ref>` definitions) inside an inline `<ins class="diffchange diffchange-inline">` span placed *between* the body of the first reference and its closing `</ref>`:
+      `...No. 90, 2020<ins class="diffchange diffchange-inline">.</ref> In 1919... <ref>...</ref> ... 2008</ins>.</ref>`
+    - RefDiff's parser sees unbalanced diffchange boundaries crossing `<ref>` and `</ref>` tag markers. The `hasBalancedDiffTags` check detects the split `<ins>` / `</ins>` and rejects parsing, which prevents decoupling and leaves the raw entangled tags visible in prose.
+  * **TODO / Remediation Plan:**
+    1. **Pre-normalization in `normalizeDiffTags`:** Detect `wikidiff2` paragraph-merge artifacts where an inline `<ins>` or `<del>` begins with punctuation followed by `</ref>` (`<ins class="diffchange diffchange-inline">.</ref>`) and ends before a trailing unclosed `</ref>`.
+    2. **Tag Boundary Realignment:** Rebalance the diffchange boundaries so that the first citation's `</ref>` closes cleanly outside the diff span, allowing the merged prose text to be marked as an addition while preserving subsequent `<ref>` tags as distinct, parseable citation units.
+    3. **Automated Test Coverage:** Create unit fixtures and regression assertions in `tests/test_utils.js`, `tests/test_parser.js`, and `tests/test_pipeline.js`. Verify with JSDOM and live CDP testing.
 
 ##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
@@ -140,9 +232,15 @@ This log records the rationale, architectural decisions, completed milestones, a
 - [ ] **Step R.10: Regex Reevaluation & Parser Architecture (Tier 2 — High)**
   * **TODO:** Reevaluate regexes across `refdiff.js` (`REF_REGEX` and `TEMPLATE_REF_REGEX`).
   * Audit lookahead bounds, nesting limits on footnote/citation templates, catastrophic backtracking resilience, and evaluate dedicated token-scanner or parser-generator alternatives.
-- [ ] **Step R.11: Investigate Default Visual Diff Activation Bug (Tier 2 — High)**
-  * **TODO:** Investigate bug making visual diff active/default unexpectedly.
-  * Audit `isVisualDiffActive()` detection heuristics, `SELECTORS.VE_VISUAL_BUTTON`, button indices in `.ve-init-mw-diffPage-diffMode`, VisualEditor `diffModeWidget.on('select')` initial event firing, and user preference persistence across diff views.
+- [x] **Step R.11: Default Mode Isolation & Wikitext-First Mode Switching (Tier 2 — High)**
+  * **Bug:** When opening diffs in new tabs or reloading, Visual Diff unexpectedly became the default instead of RefDiff or Wikitext diff; clicking Visual Diff failed to persist `refdiff-active: false`, and capture-phase listeners interfered with VisualEditor's Parsoid diff loading.
+  * **Fix:**
+    1. **Wikitext-Only Scope:** `init()` checks `isVisual = isVisualDiffActive()` first; RefDiff strictly activates only when wikitext is active (`!isVisual && shouldDecouple`). If Visual Diff is active, RefDiff remains completely dormant with zero DOM mutations.
+    2. **Inert/Disabled in Visual Mode:** While Visual Diff mode is active, the RefDiff button is visually dimmed and made inert (`oo-ui-widget-disabled`, `aria-disabled="true"`, `tabindex="-1"`). Direct clicks on the disabled RefDiff button are halted with `stopPropagation()` and ignored.
+    3. **Wikitext-First Mode Transition:** Reviewers wishing to inspect decoupled citations from Visual mode switch to native Wikitext diff first, which un-dims the RefDiff button and restores interactive decoupling.
+    4. **Deterministic Persistence:** Explicitly selecting `[ 👁 Visual ]` or `[ [[]] Wikitext ]` persists `setRefDiffPreferred(false)`; selecting `[ ⧉ RefDiff ]` persists `setRefDiffPreferred(true)`.
+    5. **Clean Event Delegation:** Native VisualEditor controls bubble unhindered in standard propagation; RefDiff isolates event interception strictly to `#refdiff-ooui-btn` in the capture phase.
+    6. **Diff Mode Persistence Scope:** MediaWiki VisualEditor's diff mode persistence (`visualeditor-diffmode-historical`) is cleanly synchronized via `new mw.Api().saveOption()` and in-memory options without raw keepalive fetch overhead. Verified in live authenticated session (`Powercycler`) across 8 real navigation steps in Chromium.
 - [ ] **Step R.12: Live On-Wiki Visual Inspection Environment (Tier 2 — High)**
   * **TODO:** Retire local visual test server (`http://127.0.0.1:8000/refdiff.js`) in favor of live on-wiki visual inspection.
   * Eliminate local HTTP server dependencies to avoid browser mixed-content restrictions on HTTPS Wikipedia diffs.
@@ -202,7 +300,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **U.4** | Phase 2: Feedback Synthesis | P1 | 🔲 Planned | Track editor reactions on syntax options & VE/mobile |
 | **U.5** | Phase 2: Specification Refinement | P2 | 🔲 Planned | Update [`CONCEPT.md`](proposal/CONCEPT.md) & [`PROPOSAL.md`](proposal/PROPOSAL.md) |
 | **U.6** | Phase 3: Re-Scoping Bot Prototype | P3 | 🔲 Planned | Bot algorithm for automated anchor re-scoping |
-| **U.7** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Planned | `{{#invoke:RefDef|...}}` on-wiki template prototype |
+| **U.7** | Phase 4: Lua / Scribunto Prototype | P2 | 🔲 Planned | `{{#invoke:RefDef&#124;...}}` on-wiki template prototype |
 | **U.8** | Phase 4: Upstream Extension:Cite Patch | P1 | 🔲 Planned | Experimental Gerrit patch for MediaWiki core `Extension:Cite` |
 
 #### Upstream Strategy Phases (Detail)
@@ -248,7 +346,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Bot Philosophy** | "Bots clean up" (simple, async) | Avoids frustrating authors with strict lint errors. Normalization and block consolidation happen asynchronously. |
 | **Formatting** | Single-line per `<ref>` inside definition block | Prevents excessive vertical file bloat and ensures atomic, 1-line Git diff hunks per source update. |
 | **Diff Tooling Scope** | Zero changes required (`wikidiff2` untouched) | Avoids scope creep and maintainer pushback. Decoupling of claim and source in diff hunks is documented as an acknowledged trade-off mitigated by section locality. |
-| **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp|45}}`). |
+| **Multi-Page Citations** | Native `details="..."` and template `{{rp}}` | Fully supports MediaWiki's native Sub-referencing (`details="p. 45"`) as well as in-prose page suffixes (`{{rp&#124;45}}`). |
 | **Legacy & Third-Party Compatibility** | Dynamic LDR Hoisting (Pre-parse Hook & Export Transpiler) | Transpiles `<ref def>` and `<references def>` to standard List-Defined References (LDR) on-the-fly for unpatched/third-party wikis and database dumps (Kiwix). Completely eliminates in-situ `<ol>` rendering and stateful citation flush issues. |
 | **RefDiff Internationalization (i18n)** | Deliberate Omission (Language-Agnostic Design) | RefDiff deliberately does not implement an i18n framework (`mw.messages`/`i18next`). The gadget UI has a negligible string footprint (~3 static strings: proper name `RefDiff`, `Inline modified refs`, `Diff view:`). Decoupled badges rely on universal mathematical notation (`⟨...⟩`, `~`, `+`, `-`) and verbatim citation metadata. Omitting i18n preserves the zero-dependency, single-file footprint (~40 KB) required for instant cross-wiki deployment via `m:Special:MyPage/global.js` without network overhead or translation bundle latency (see ADR §3.1). |
 
@@ -336,6 +434,9 @@ This register serves as the authoritative system of record for all real-world Wi
 | [Donnie Brasco (film)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354) | `1380017400` | Unclosed Quote Toleration (`name="mojo_2>`) | ✅ Verified | Hardened `extractName` regex tolerating unclosed quotes | [Donnie Brasco](#donnie-brasco-film-diff1380017400) |
 | [Karl-Heinz Riedle](https://en.wikipedia.org/w/index.php?title=Karl-Heinz_Riedle&diff=1380008554&oldid=1335846068) | `1380008554` | Prose Bold Formatting Markup Invariance | ✅ Verified | Clean prose bold handling adjacent to unchanged context refs | [Karl-Heinz Riedle](#karl-heinz-riedle-diff1380008554) |
 | [Bihar Legislative Assembly](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737) | `1379207737` | Embedded Apostrophe Truncation & Anchor Matching | ✅ Verified | Paired-quote regex in `extractName` & space-to-underscore anchor query | [Bihar Assembly](#bihar-legislative-assembly-diff1379207737) |
+| [Dwight D. Eisenhower](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667) | `1380014667` | Inter-Template Diff Token Alignment (`{{citation needed}}`) | ✅ Verified | Bounded `normalizeCnDiffPair` strictly scoped to CN templates (Step R.21) | [Dwight D. Eisenhower](#dwight-d-eisenhower-diff1380014667) |
+| [Leonardo Torres Quevedo](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173) | `1380356173` | wikidiff2 Paragraph Merge Tag Entanglement (`<ins>.</ref>...</ins>.</ref>`) | ⏳ Triaged / TODO (Step R.22) | Boundary normalization for paragraph-merge diff changes | [Leonardo Torres Quevedo](#leonardo-torres-quevedo-diff1380356173) |
+| [Respiratory therapist](https://en.wikipedia.org/w/index.php?title=Respiratory+therapist&diff=1380407169&oldid=1372216818) | `1380407169` | DOM-Identifier-Matching für native Reference Previews (`ref7`) | ✅ Verified (Step R.23) | Deterministisches Identifier-Matching (DOI/PMID/PMC/ISBN/URL) ohne eigenes Ref-Parsing | [Respiratory Therapist](#respiratory-therapist-diff1380407169) |
 
 ---
 
@@ -430,6 +531,50 @@ This register serves as the authoritative system of record for all real-world Wi
   1. Updated `extractName` with symmetric paired quote alternatives (`(?:"|&quot;)(.*?)(?:"|&quot;|\/|&gt;|>|\s*$)` and `(?:'|&apos;)(.*?)(?:'|&apos;|\/|&gt;|>|\s*$)`), cleanly preserving embedded apostrophes inside double quotes and embedded double quotes inside single quotes while retaining unclosed quote toleration.
   2. Enhanced `findCiteNoteAnchor` to generate underscore-normalized candidate lookups (`name.trim().replace(/\s+/g, '_')`) with fallback manual scan across all `[id^="cite_note-"]`.
 * **Verification:** Unit tests in `tests/test_parser.js` and `tests/test_anchor.js`; real DOM integration test in `tests/test_jsdom.js`. Total test suite passes at **103/103**.
+
+---
+
+#### Dwight D. Eisenhower (`diff=1380014667`)
+* **Article & Revision:** [Dwight D. Eisenhower (diff=1380014667)](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667)
+* **Date Evaluated:** 2026-10-14
+* **Status:** ✅ Fully Decoupled & Verified (Step R.21)
+* **Focus Area:** Inter-template token alignment (`{{`, `|date=`, `}}`) specifically when replacing `{{citation needed|...}}` or `{{cn|...}}` with `<ref>{{cite ...}}</ref>` citations.
+* **Diagnosis:** An editor (`Alaexis` via `CNfirmed`) sourced an unverified statement by replacing `{{citation needed|date=August 2025}}` with two book citations. MediaWiki's LCS diff engine aligned identical wikitext tokens across distinct template types, wrapping only `&lt;ref&gt;` and `&lt;/ref&gt;` in `<ins class="diffchange">` spans while leaving template delimiters unhighlighted. This created unbalanced diffchange spans inside the `<ref>` tag boundaries, causing `hasBalancedDiffTags` to reject the citations and leaving them undecoupled in prose.
+* **Resolution & Verification:** Implemented `hasDeletedCn` and `normalizeCnDiffPair` strictly scoped to `{{citation needed|...}}` and `{{cn|...}}` (bare and parameterized). Aligns the deleted template into a single cohesive `<del class="diffchange diffchange-inline">` span and wraps the added `<ref>` citation block into a cohesive `<ins class="diffchange diffchange-inline">` unit guarded by `isPureRefSequence()`. Verified across unit tests (`test_utils.js`, `test_parser.js`), pipeline tests (`test_pipeline.js`), real DOM JSDOM tests (`test_jsdom.js`), and live in Chromium via CDP against `diff=1380014667` with 2 citation rows cleanly decoupled and byte-for-byte Memento restoration.
+
+---
+
+#### Leonardo Torres Quevedo (`diff=1380356173`)
+* **Article & Revision:** [Leonardo Torres Quevedo (diff=1380356173)](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173)
+* **Date Evaluated:** 2026-10-15
+* **Status:** ⏳ Triaged / TODO (Step R.22)
+* **Focus Area:** `wikidiff2` paragraph-merge tag boundary entanglement (`<ins>.</ref>...</ins>.</ref>`).
+* **Diagnosis:**
+  - An editor deleted the blank newline (`\n\n`) between two consecutive paragraphs, merging them into a single prose block. Both paragraphs originally concluded with `<ref>...</ref>` citations.
+  - MediaWiki's `wikidiff2` C++ engine computed word-level diffs across the merged line. Instead of seeing the newline deletion as a paragraph boundary shift, it matched the trailing `</ref>` from paragraph 2 with the trailing `</ref>` from paragraph 1.
+  - Consequently, `wikidiff2` wrapped the entire second paragraph (including multiple intermediate `<ref>` definitions) inside a single inline `<ins class="diffchange diffchange-inline">` span placed *between* the body of the first reference and its closing `</ref>`:
+    `...No. 90, 2020<ins class="diffchange diffchange-inline">.</ref> In 1919... <ref>...</ref> ... 2008</ins>.</ref>`
+  - RefDiff's parser sees unbalanced diffchange boundaries crossing `<ref>` and `</ref>` tag markers. The `hasBalancedDiffTags` check detects the split `<ins>` / `</ins>` and rejects parsing, which prevents decoupling and leaves the raw entangled tags visible in prose.
+* **Remediation Plan (Step R.22):**
+  1. Add boundary pre-normalization in `normalizeDiffTags()` to recognize when `wikidiff2` inserts an inline `<ins>` or `<del>` starting with punctuation and `</ref>` (`<ins class="diffchange diffchange-inline">.</ref>`) followed by unclosed references before a dangling outer `</ref>`.
+  2. Shift the closing `</ref>` outside the diff span so that the first citation terminates cleanly, allowing the second paragraph's prose and references to parse as clean additions.
+  3. Validate with unit tests in `tests/test_utils.js`, `tests/test_parser.js`, and real DOM JSDOM fixtures.
+
+---
+
+#### Respiratory therapist (`diff=1380407169`)
+* **Article & Revision:** [Respiratory therapist (diff=1380407169&oldid=1372216818)](https://en.wikipedia.org/w/index.php?title=Respiratory+therapist&diff=1380407169&oldid=1372216818)
+* **Date Evaluated:** 2026-10-15
+* **Status:** ✅ Verified / Resolved (Step R.23)
+* **Focus Area:** DOM-Identifier-Matching für native Reference Previews bei anonymen (unbenannten) Einzelnachweisen (`ref7`).
+* **Diagnosis:**
+  - An editor added a journal citation: `<ref>{{cite journal | vauthors = Shakespeare J, Parkes E, Bryce M, Hull JH | title = Advanced roles in respiratory healthcare science: it's not just spirometry | journal = Breathe | doi = 10.1183/20734735.0118-2023 | pmid = 38487190 | ... }}</ref>`.
+  - RefDiff created the badge `⟨ref7⟩`, but its `href` resolved to `null` (rendering as a plain `<span>` rather than an anchor link `<a href="#cite_note-31">`). Clicking the badge failed to jump to the footnote, and MediaWikis native Reference Previews (Hovercard-Popup) failed to trigger.
+  - **Kernproblem:** Es handelt sich um einen **anonymen (unbenannten) Einzelnachweis** (ohne `name="..."`). MediaWiki nummeriert diese im Gesamtartikel stur durch (`cite_note-1`, `cite_note-2` ... `cite_note-31`). Im Teildiff sieht RefDiff nur die geänderte Zeile und hat keine globale Zählposition. Der bisherige Versuch, Vorlagenfelder (`author=`, `title=`) manuell zu parsen, scheiterte an Vancouver-Syntax (`vauthors`) und Sonderzeichen.
+* **Resolution & Verification (Step R.23 — Kein eigenes Ref-Parsing):**
+  1. **Persistente Identifikatoren im DOM:** Statt Vorlagen zu parsen, scannt `findCiteNoteAnchor()` bei anonymen Refs nach DOI (`10.\d{4,9}/...`), PMID (`pmid=\d+`), PMC (`pmc=\d+`), ISBN (`isbn=...` $\to$ `Special:BookSources`) oder URL und fragt direkt im DOM `document.querySelector('.references a[href*="..."]')` ab.
+  2. **Native Reference Previews:** Durch das Setzen von `<a href="#cite_note-31">` dockt MediaWikis native Extension `mw.popups` automatisch an und blendet die fertige Vorschau ein.
+  3. **Automated Test Coverage:** Verifiziert mit Unittests in `tests/test_anchor.js` (u. a. für DOI `10.1183/20734735.0310-2019` $\to$ `#cite_note-31`, PMID, PMC, ISBN). 133/133 Tests grün, 0 ESLint-Warnungen.
 
 ---
 
@@ -1645,4 +1790,425 @@ This register serves as the authoritative system of record for all real-world Wi
   * Verified all 10 release deployment pre-flight checks passed (version synchronization, packaging, zero console pollution, bundle size budget).
   * Code hygiene check: `npm run lint` passed with 0 ESLint errors and 0 warnings.
   * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Userbox Template Consolidation & Documentation Polish (`userbox.wiki`)
+
+* **Context & Rationale:**
+  * Consolidated the two divergent userbox template files (`userbox.wiki` and `userbox_enwiki.wiki`) into a single, clean, canonical template file: [`userbox.wiki`](userbox.wiki).
+  * Removed `userbox_enwiki.wiki` and updated all deployment gates, verification scripts, and documentation references (`tests/test_deployment.js`, `scripts/check_live_deployment.js`, `ROLLOUT_PLAN.md`, `README.md`).
+* **Design & Usability Enhancements:**
+  * **Zero Redlinks:** Replaced non-existent link `[[Wikipedia:Template camouflage]]` with direct canonical documentation section link `[[User:Powercycler/RefDiff#The Problem: Template Camouflage|template camouflage]]`.
+  * **Native Dark-Mode Support:** Removed hardcoded white/cream backgrounds (`info-c`, `id-c`, `info-fc`, `id-fc`) so `Template:Userbox/styles.css` seamlessly handles light and dark mode transitions across Vector 2022 tokens.
+  * **Unbent Bounding Box:** Constrained `⟨~ref~⟩` badge (`id-s = 8`, `font-size: 0.75em`, `padding: 1px 2px`) to ~39px width, preserving MediaWiki's exact 45px × 45px square ID cell without horizontal distortion.
+  * **Category Hygiene:** Removed non-existent categories (`Category:Wikipedians who use RefDiff`, `Category:Software user templates`).
+* **Verification & Quality Gates:**
+  * All test suites passing (`npm test`, 121/121).
+  * Maintained strict TODO encapsulation policy (all TODOs reside exclusively in `LOG.md`).
+
+---
+
+### 2026-10-14: Documentation Lead Cleanup & Parity Sync (`refdiff.wiki`)
+
+* **Context & Execution:**
+  * Cleaned up [`refdiff.wiki`](refdiff.wiki) to align with live on-wiki status on English Wikipedia ([`User:Powercycler/RefDiff`](https://en.wikipedia.org/wiki/User:Powercycler/RefDiff)):
+    1. **Preserved AI Attribution Badge:** Retained `{{ai-generated|userscript page|reason=[[Special:AbuseLog/45390145|AbuseLog/45390145]]|date=October 2026}}` at the top of the documentation lead alongside the Beta caution banner.
+    2. **Shortened Userbox Transclusion Section:** Streamlined `== Userbox ==` from 70 lines of sprawling parameter tables to a clean 18-line mention featuring standard transclusion syntax `{{User:Powercycler/Userbox RefDiff}}` and the unbent, dark-mode-ready live preview.
+    3. **Commented Out Complementary Tools & Proposals Section:** Wrapped `== Complementary Tools & Proposals ==` in a comment block marked as a TODO item pending review and curation.
+    4. **Pruned Non-Wiki File References:** Removed local repository filename `TEST_PLAN.md` from `== See Also ==`.
+    5. **Retained AI Companion Script:** Maintained `[[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]]` under `== See Also ==`.
+    6. **Zero Dead Categories:** Removed manual category tags (`Category:Wikipedia scripts`, `Category:JavaScript`), ensuring no redlink or dead categories appear.
+* **Verification & Quality Gates:**
+  * Automated pre-flight suite passed (`npm test` 121/121).
+  * Linter passed with 0 errors/warnings (`npm run lint`).
+  * On-wiki parse API confirmed zero dead categories and zero invalid template transclusions.
+
+---
+
+### 2026-10-14: English Wikipedia Showcase Diff Migration & Parity Alignment
+
+* **Context & Execution:**
+  * Migrated the reference showcase diff from Meta-Wiki to English Wikipedia at [`en:User:Powercycler/RefDiff/Show_case`](https://en.wikipedia.org/wiki/User:Powercycler/RefDiff/Show_case) ([`diff=1380240829&oldid=1380240443`](https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443)):
+    1. **Live On-Wiki Parity:** Synchronized local test fixtures [`tests/comprehensive_old.wiki`](tests/comprehensive_old.wiki) and [`tests/comprehensive_new.wiki`](tests/comprehensive_new.wiki) to match remote revisions `1380240443` and `1380240829`.
+    2. **Citation Lint Fix:** Resolved `Module:Citation/CS1` lint error (`explicit use of et al. in |author=`) by replacing with standard `|author=Müller, H. |display-authors=etal` in section 3.
+    3. **References Section Anchor:** Added standard `== References ==` and `{{reflist}}` to anchor footnotes cleanly in rendered view.
+    4. **Documentation Links Synchronized:** Updated showcase diff links in [`refdiff.wiki`](refdiff.wiki) (infobox and walkthrough) and [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) to reference the canonical English Wikipedia diff directly.
+* **Verification & Quality Gates:**
+  * Automated test suite passing (`npm test`, 121/121).
+  * Code linter passing with 0 errors / 0 warnings (`npm run lint`).
+  * `ROLLOUT_PLAN.md` verified under line budget (97 lines).
+
+---
+
+### 2026-10-14: Meta-Wiki CDN & Tools Page Specification (`meta_refdiff.wiki`)
+
+* **Context & Execution:**
+  * Created lightweight, canonical tools page [`meta_refdiff.wiki`](meta_refdiff.wiki) for deployment at [`m:User:Powercycler/RefDiff`](https://meta.wikimedia.org/wiki/User:Powercycler/RefDiff):
+    1. **Primary Reference to en.WP:** Intro section explicitly refers readers to the authoritative documentation, showcase diffs, and talk page at [`en:User:Powercycler/RefDiff`](https://en.wikipedia.org/wiki/User:Powercycler/RefDiff).
+    2. **Meta CDN Role Defined:** Explicitly documents Meta-Wiki's architectural role as the central distribution hub and CDN hosting [`User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js) for cross-wiki transclusion.
+    3. **Global Script Loader:** Provides concise installation snippet for [[m:Special:MyPage/global.js|global.js]].
+    4. **Toolchain Integration:** Integrated `meta_refdiff.wiki` into [`tests/test_deployment.js`](tests/test_deployment.js), [`scripts/check_live_deployment.js`](scripts/check_live_deployment.js), and [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
+  * Added `== Feedback & Bug Reports ==` section to [`refdiff.wiki`](refdiff.wiki) with direct link to [`User talk:Powercycler/RefDiff`](https://en.wikipedia.org/wiki/User_talk:Powercycler/RefDiff).
+  * Refined entire [`refdiff.wiki`](refdiff.wiki) for a professional, descriptive encyclopedic tone:
+    1. **Strict Focus on Template Camouflage:** Centered the problem statement, review rationale, and editorial governance exclusively on eliminating template camouflage on `Special:Diff`.
+    2. **Straight, Concise Technical Specifications:** Streamlined the QA section to straightforward, factual bullet points summarizing [`ARCHITECTURE.md`](ARCHITECTURE.md), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md), and [`TEST_PLAN.md`](TEST_PLAN.md) without inflated or corporate phrasing.
+* **Verification & Quality Gates:**
+  * Test suite passing: 121/121 tests (`npm test`).
+  * Linter clean: 0 errors / 0 warnings (`npm run lint`).
+  * Strict line budget maintained: `ROLLOUT_PLAN.md` at 97 lines (< 100).
+---
+
+### 2026-10-14: Root Cause Analysis: Visual Diff Defaulting Race Condition & OOUI Inline Integration
+
+* **Problem Statement & Bug Description:**
+  * When opening a diff in a new tab, setting the view mode to RefDiff, closing or navigating away from the page, and subsequently opening another diff, **Visual Diff unexpectedly becomes the active default** instead of RefDiff or Wikitext diff.
+
+* **Technical Root Cause (`ext.visualEditor.diffPage.init`):**
+  1. **Persistent Server/Client Option:**
+     * When an editor clicks "Visual" on any MediaWiki diff, VisualEditor persists this state to the server and local profile:
+       `mw.user.options.set('visualeditor-diffmode-historical', 'visual');`
+       `new mw.Api().saveOption('visualeditor-diffmode-historical', 'visual');`
+     * When switching to RefDiff, RefDiff historically only set its own local storage key (`refdiff-active`), leaving `visualeditor-diffmode-historical` set to `'visual'`.
+  2. **VisualEditor Initialization Logic:**
+     * On new diff loads, VisualEditor checks:
+       `let initMode = originalUrl.searchParams.get('diffmode') || mw.user.options.get('visualeditor-diffmode-historical') || 'source';`
+     * If `'visual'`, VisualEditor triggers:
+       `reviewModeButtonSelect.selectItemByData('visual');`
+       initiating Parsoid visual diff generation and hiding the wikitext diff table.
+  3. **RefDiff Passive Back-Off:**
+     * RefDiff's `isVisualDiffActive()` inspects the Visual button's CSS classes (`oo-ui-optionWidget-selected`). Seeing that VisualEditor initialized the Visual button as active, RefDiff assumed the user intentionally requested a visual diff and aborted decoupling (`shouldDecouple = false`), allowing Visual Diff to dominate.
+  4. **DOM Replacement Race (`.empty()`):**
+     * VisualEditor's `mw.hook('wikipage.diff')` handler executes:
+       `$('.ve-init-mw-diffPage-diffMode').empty().append(reviewModeButtonSelect.$element);`
+     * Any DOM elements injected by RefDiff before VisualEditor finishes initializing or during dynamic re-renders get destroyed by `.empty()`.
+
+* **Architectural Resolution & Inline OOUI Strategy:**
+  1. **Zero Added Height (Single-Row Flex Container):**
+     * MediaWiki's `.mw-diff-table-prefix` has ~640px of unused horizontal space at a native 34px height.
+     * All controls fit on a single row without adding vertical height:
+       `[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ]   [✓] Inline modified refs   Inline [switch]`
+  2. **Active Mode & Preference Assertion:**
+     * When `isRefDiffPreferred()` is true on page load, RefDiff proactively sets in-memory `mw.user.options.set('visualeditor-diffmode-historical', 'source')` and selects source mode in VisualEditor before visual diff rendering starts, preventing the automatic switch to Visual.
+  3. **Immunity from `.empty()` Destruction:**
+     * RefDiff mounts `refdiff-inline-mod-layout` (the OOUI `CheckboxInputWidget` inside `FieldLayout`) outside `.ve-init-mw-diffPage-diffMode` (as a sibling between `diffMode` and `inlineToggleContainer`), making it immune to VisualEditor's container clearing.
+     * RefDiff protects the segmented `[ ⧉ RefDiff ]` button inside `.oo-ui-buttonSelectWidget` via sequential `mw.hook('wikipage.diff')` execution and a fallback `MutationObserver` on `diffMode` that instantly re-attaches the button if `.empty()` is called.
+  4. **Native OOUI Tokens & Dual-Theme Consistency:**
+     * Uses native OOUI widgets (`OO.ui.ButtonOptionWidget`, `OO.ui.CheckboxInputWidget`, `OO.ui.FieldLayout`), automatically inheriting Vector 2022 light and dark mode styles without custom CSS hacks.
+
+---
+
+### 2026-10-14: Comprehensive Path Analysis: Cascading RefDiff Mode Coordinator & State Persistence
+
+#### 1. Core Architectural Axiom & Design Invariants
+
+```
+                +-------------------------------------------+
+                |           User On Wikipedia Diff          |
+                +-------------------------------------------+
+                                      |
+                           [ Page Load / Reload ]
+                                      |
+                     Is Visual Diff Active (VE Mode)?
+                                  /       \
+                             YES /         \ NO (Wikitext Mode)
+                                v           v
+              +--------------------+     Is RefDiff Preferred?
+              | Visual Mode Active |          /        \
+              | (RefDiff DORMANT)  |     YES /          \ NO
+              +--------------------+        v            v
+                                      +-----------+  +---------------+
+                                      |  RefDiff  |  |   Standard    |
+                                      | Decoupled |  | Wikitext Diff |
+                                      +-----------+  +---------------+
+```
+
+* **Axiom 1: RefDiff Activates ONLY When Wikitext Is Active (`!isVisualDiffActive()`)**
+  RefDiff is strictly an enhancement for wikitext diffs. If MediaWiki loads or is set to Visual Diff (`isVisualDiffActive() === true`), RefDiff remains completely dormant. It does NOT hijack, overwrite, or mutate the page.
+* **Axiom 2: The Cascading Pattern (Visual $\to$ Wikitext $\to$ RefDiff)**
+  Clicking `[ ⧉ RefDiff ]` while in Visual mode cascades through MediaWiki's native architecture: it requests VisualEditor switch to Wikitext/source mode first (`selectItemByData('source')`), and once Wikitext is active, RefDiff decouples citations on the wikitext table.
+* **Axiom 3: Non-Interfering Event Delegation (Bubble Phase)**
+  Native VisualEditor buttons (`[ 👁 Visual ]` and `[ [[]] Wikitext ]`) are handled in the standard bubble phase without capture-phase interception (`useCapture: false`). VisualEditor receives its own click events unhindered. Only `#refdiff-ooui-btn` halts propagation (`stopPropagation()` / `preventDefault()`).
+* **Axiom 4: Deterministic Storage & Inactivity Persistence**
+  Whenever the user explicitly selects `[ 👁 Visual ]` or `[ [[]] Wikitext ]`, RefDiff persists `setRefDiffPreferred(false)`. Whenever the user selects `[ ⧉ RefDiff ]`, RefDiff persists `setRefDiffPreferred(true)`.
+
+---
+
+#### 2. Complete State Transition Matrix
+
+| Current Active Mode | Trigger Event | Resulting Mode | `refdiff-active` Stored | DOM & Pipeline Actions | VE Interaction |
+| :--- | :--- | :--- | :---: | :--- | :--- |
+| **Any (Cold Load)** | `diffmode=visual` or VE visual active | **Visual** | *(unchanged)* | RefDiff dormant; inline toggle disabled; buttons: `[Visual: ON, Wiki: OFF, Ref: OFF]` | None (VE renders visual diff natively) |
+| **Any (Cold Load)** | Wikitext active + `stored=true` | **RefDiff** | `true` | `applyDecoupling(table)`; inline toggle active; buttons: `[Visual: OFF, Wiki: OFF, Ref: ON]` | None (Wikitext diff active) |
+| **Any (Cold Load)** | Wikitext active + `stored=false` | **Wikitext** | `false` | Clean standard diff; inline toggle enabled; buttons: `[Visual: OFF, Wiki: ON, Ref: OFF]` | None (Wikitext diff active) |
+| **RefDiff** | Click `[ 👁 Visual ]` | **Visual** | `false` | `restoreOriginal(table)`; inline toggle disabled; buttons: `[Visual: ON, Wiki: OFF, Ref: OFF]` | Bubble to VE; VE loads Parsoid diff |
+| **RefDiff** | Click `[ [[]] Wikitext ]` | **Wikitext** | `false` | `restoreOriginal(table)`; inline toggle enabled; buttons: `[Visual: OFF, Wiki: ON, Ref: OFF]` | Bubble to VE; standard diff displayed |
+| **Visual** | Click `[ ⧉ RefDiff ]` | **RefDiff** | `true` | **CASCADE**: Switch VE to source $\to$ `applyDecoupling(table)`; buttons: `[Visual: OFF, Wiki: OFF, Ref: ON]` | Programmatic `selectItemByData('source')` guarded by `state.cascadingToSource` |
+| **Wikitext** | Click `[ ⧉ RefDiff ]` | **RefDiff** | `true` | `applyDecoupling(table)`; inline toggle active; buttons: `[Visual: OFF, Wiki: OFF, Ref: ON]` | None |
+| **Visual** | Click `[ [[]] Wikitext ]` | **Wikitext** | `false` | Wikitext table unhidden; inline toggle enabled; buttons: `[Visual: OFF, Wiki: ON, Ref: OFF]` | Bubble to VE; VE switches to source diff |
+| **Wikitext** | Click `[ 👁 Visual ]` | **Visual** | `false` | Table restored clean; inline toggle disabled; buttons: `[Visual: ON, Wiki: OFF, Ref: OFF]` | Bubble to VE; VE loads Parsoid diff |
+
+---
+
+#### 3. Detailed Path Analysis (All 10 Execution Flows)
+
+##### Path 1: Cold Page Load — Diff in Visual Mode
+* **Precondition:** User opens a diff URL where MediaWiki defaults to Visual Diff (`diffmode=visual` query param, or `mw.user.options.get('visualeditor-diffmode-historical') === 'visual'`).
+* **Trace:**
+  1. `init()` checks `isVisual = isVisualDiffActive()`.
+  2. Because `isVisualDiffActive()` inspects the OOUI button group, `.ve-ui-diffElement`, and URL query parameters, it evaluates to `true`.
+  3. `init()` evaluates `if (isVisual)` FIRST (before checking `shouldDecouple`).
+  4. `selectMode('visual', table)` executes:
+     - Sets button active classes: `visualBtn` active, `refBtn` inactive, `wikiBtn` inactive.
+     - Disables the RefDiff inline modified refs toggle (`refdiff-inline-container`).
+     - RefDiff decoupling is **NOT executed**.
+* **Invariant:** Visual Diff displays cleanly without any DOM tampering or Parsoid hook collisions.
+
+##### Path 2: Cold Page Load — Diff in Wikitext Mode with RefDiff Preferred
+* **Precondition:** User opens a diff in Wikitext mode, with `refdiff-active === 'true'` (or default first visit).
+* **Trace:**
+  1. `init()` checks `isVisual = isVisualDiffActive()` $\implies$ `false`.
+  2. `init()` checks `shouldDecouple = isRefDiffPreferred()` $\implies$ `true`.
+  3. `selectMode('refdiff', table)` executes:
+     - Buttons: `refBtn` active, `wikiBtn` inactive, `visualBtn` inactive.
+     - Sets inline toggle enabled according to user preference.
+     - Calls `applyDecoupling(table)` and `notifyBodyUpdate(table)`.
+* **Invariant:** Prose and citation rows decoupled cleanly in single-line inline layout.
+
+##### Path 3: Cold Page Load — Diff in Wikitext Mode with Wikitext Preferred
+* **Precondition:** User previously clicked `[ [[]] Wikitext ]` (`refdiff-active === 'false'`).
+* **Trace:**
+  1. `init()` checks `isVisualDiffActive()` $\implies$ `false`.
+  2. `init()` checks `isRefDiffPreferred()` $\implies$ `false`.
+  3. `selectMode('wikitext', table)` executes:
+     - Buttons: `wikiBtn` active, `refBtn` inactive, `visualBtn` inactive.
+     - Enables native MediaWiki inline diff switch.
+     - Standard MediaWiki wikitext diff remains untouched.
+* **Invariant:** Zero alteration of standard wikidiff2 output.
+
+##### Path 4: User Action — Switching from RefDiff to Visual (`[ 👁 Visual ]` Clicked)
+* **Precondition:** RefDiff is currently active. User clicks `[ 👁 Visual ]`.
+* **Trace:**
+  1. Click event fires on `Visual` button option in `diffModeContainer`.
+  2. Because delegated listener uses standard bubble phase (`useCapture: false`), the event bubbles naturally to VisualEditor's native handler.
+  3. RefDiff's delegated listener catches the event in bubble phase:
+     - Detects eye icon / visual label.
+     - Calls `selectMode('visual', table)`.
+  4. Inside `selectMode('visual', table)`:
+     - Calls `restoreOriginal(table)` restoring clean wikitext HTML (Memento).
+     - Calls `setRefDiffPreferred(false)` $\implies$ **persists inactivity to `mw.storage` / `localStorage`**.
+     - Updates button highlights: `visualBtn` active, `refBtn` inactive.
+     - Disables inline toggle checkbox.
+     - Does NOT call `notifyBodyUpdate(table)` (prevents disruptive hook fires while VE mounts Parsoid diff).
+  5. VisualEditor's native code finishes fetching Parsoid HTML and displays `.ve-ui-diffElement`.
+* **Invariant:** Visual diff loads successfully; preference `false` is stored so future loads do not hijack.
+
+##### Path 5: User Action — Switching from Visual to RefDiff (`[ ⧉ RefDiff ]` Clicked: The Cascade)
+* **Precondition:** Visual Diff is currently active. User clicks `[ ⧉ RefDiff ]`.
+* **Trace:**
+  1. Click event fires on `#refdiff-ooui-btn`.
+  2. Delegated listener catches click:
+     - Calls `e.preventDefault()` and `e.stopPropagation()` (MediaWiki VisualEditor is not aware of `refdiff-ooui-btn` and ignores it).
+     - Calls `selectMode('refdiff', table)`.
+  3. Inside `selectMode('refdiff', table)`:
+     - Detects `isVisualDiffActive() === true`.
+     - **The Cascade Trigger:** Sets `state.cascadingToSource = true` to guard the OOUI widget select handler.
+     - Programmatically requests source mode: `widget.selectItemByData('source')` (or clicks `wikiBtn`).
+     - Updates historical option: `mw.user.options.set('visualeditor-diffmode-historical', 'source')`.
+     - Resets `state.cascadingToSource = false`.
+     - VisualEditor hides `.ve-ui-diffElement` and unhides the wikitext `table.diff`.
+     - Calls `setRefDiffPreferred(true)` $\implies$ **persists active state to storage**.
+     - Calls `applyDecoupling(table)` and `notifyBodyUpdate(table)`.
+     - Updates button highlights: `refBtn` active, `visualBtn` inactive, `wikiBtn` inactive.
+* **Invariant:** Seamless transition from Visual diff directly into decoupled RefDiff without page reload or manual intermediate clicks.
+
+##### Path 6: User Action — Switching from RefDiff to Wikitext (`[ [[]] Wikitext ]` Clicked)
+* **Precondition:** RefDiff is currently active. User clicks `[ [[]] Wikitext ]`.
+* **Trace:**
+  1. Click event fires on `Wikitext` button option.
+  2. Bubbles to VisualEditor and RefDiff listener:
+     - Calls `selectMode('wikitext', table)`.
+  3. Inside `selectMode('wikitext', table)`:
+     - Calls `restoreOriginal(table)` $\implies$ reverses all prose badge and citation row transformations via Memento pattern.
+     - Unhides all body rows and calls `notifyBodyUpdate(table)`.
+     - Calls `setRefDiffPreferred(false)` $\implies$ **persists standard wikitext preference**.
+     - Enables native inline diff switch.
+     - Buttons: `wikiBtn` active, `refBtn` inactive.
+* **Invariant:** Instantaneous, byte-for-byte restoration of standard MediaWiki wikitext diff table.
+
+##### Path 7: User Action — Switching from Wikitext to RefDiff (`[ ⧉ RefDiff ]` Clicked)
+* **Precondition:** Standard Wikitext diff is active. User clicks `[ ⧉ RefDiff ]`.
+* **Trace:**
+  1. Click intercepted on `#refdiff-ooui-btn` (`preventDefault()`, `stopPropagation()`).
+  2. `selectMode('refdiff', table)` executes:
+     - `setRefDiffPreferred(true)` persists to storage.
+     - `applyDecoupling(table)` decouples references into structured citation rows.
+     - `notifyBodyUpdate(table)` synchronizes hooks.
+     - Buttons: `refBtn` active, `wikiBtn` inactive.
+* **Invariant:** Pure client-side transformation in <10ms.
+
+##### Path 8 & 9: Direct Toggles Between Native Visual & Wikitext Modes
+* **Precondition:** RefDiff button is unselected. User toggles directly between `Visual` and `Wikitext`.
+* **Trace:**
+  1. Events bubble directly to MediaWiki VisualEditor without interference.
+  2. RefDiff listener observes the mode change:
+     - For `visual`: ensures `setRefDiffPreferred(false)` and dims inline toggle.
+     - For `wikitext`: ensures `setRefDiffPreferred(false)` and restores clean table.
+* **Invariant:** RefDiff never interferes with native MediaWiki diff mode switching when inactive.
+
+##### Path 10: Asynchronous Parsoid/VE DOM Re-render (`.empty()` Recovery)
+* **Precondition:** VisualEditor invokes `mw.hook('wikipage.diff')` or re-renders the mode container during asynchronous Parsoid parsing.
+* **Trace:**
+  1. If VisualEditor empties `.ve-init-mw-diffPage-diffMode`, `#refdiff-ooui-btn` is temporarily detached.
+  2. The registered `MutationObserver` on `diffModeContainer` observes childList removal.
+  3. `init()` re-executes safely:
+     - Re-evaluates `isVisualDiffActive()`.
+     - Re-appends `refBtn` to the button group.
+     - If Visual mode is active, remains dormant (`selectMode('visual')`).
+     - If Wikitext mode is active and RefDiff is preferred, re-establishes RefDiff state.
+* **Invariant:** Zero broken UI states or missing buttons regardless of VisualEditor re-render timing.
+
+---
+
+#### 4. Summary of Verification & Test Alignment
+
+| Path | Invariant | Verified By Test |
+| :--- | :--- | :--- |
+| **Path 1 (Visual Cold Load)** | RefDiff stays dormant; Visual diff active | `tests/test_mode_coordinator.js`, JSDOM live visual diff |
+| **Path 2 (RefDiff Cold Load)**| RefDiff decouples citations on load | `tests/test_jsdom.js`, `test_pipeline.js` |
+| **Path 4 (VE Select & Storage)**| `setRefDiffPreferred(false)` persisted; VE click unblocked | Unit storage tests, CDP live suite |
+| **Path 5 (Cascade VE $\to$ RefDiff)**| Cascades via `selectItemByData('source')` without loops | `tests/test_mode_coordinator.js`, CDP live suite |
+| **Path 6 (Wikitext Restoration)**| Byte-for-byte Memento restoration | `tests/test_memento.js`, `test_jsdom.js` |
+| **Path 10 (Re-render Recovery)**| MutationObserver re-attaches button | `tests/test_init.js` |
+
+---
+
+### 2026-10-14: OOUI Theme Engine Model Synchronization & Visual Diff Mode Persistence Analysis
+
+* **White `[[]]` Icon Inversion Resolution:**
+  * **Symptom:** When cascading from Visual Diff to RefDiff, the Wikitext button's `[[]]` icon (`.oo-ui-icon-wikiText`) intermittently inverted to white (`oo-ui-image-invert`), rendering it faint or invisible against the light button background.
+  * **Root Cause Discovery:** OOUI manages icon variants (`oo-ui-image-invert`) through an asynchronous, debounced queue (`OO.ui.Theme.prototype.updateQueuedElementClasses`). When RefDiff commanded `widget.selectItemByData('source')` during the cascade, OOUI marked the source button selected in its internal model. Merely clearing DOM element classes (`classList.remove(...)`) was insufficient because OOUI's queued theme engine inspects the underlying JavaScript widget object (`$(el).data('oo-ui-optionWidget').isSelected()`). When the debounced queue flushed ~500ms later, it re-evaluated `variants.invert = true` and re-applied `oo-ui-image-invert`.
+  * **Implementation:**
+    1. In `setElementActive()`, explicitly synchronized the underlying OOUI model:
+       ```javascript
+       const opt = $(el).data('oo-ui-optionWidget') || $(el).data('oo-ui-buttonWidget');
+       if (opt) {
+         if (typeof opt.setSelected === 'function' && typeof opt.isSelected === 'function' && opt.isSelected() !== active) {
+           opt.setSelected(active);
+         }
+         if (typeof opt.setActive === 'function' && typeof opt.isActive === 'function' && opt.isActive() !== active) {
+           opt.setActive(active);
+         }
+       }
+       ```
+    2. In `selectMode('refdiff')`, cleanly unselected all parent widget items via `widget.selectItem(null)` and flushed queued theme updates via `OO.ui.theme.updateQueuedElementClasses()`.
+  * **Live CDP Verification:** Validated via CDP runtime evaluation on English Wikipedia: `wikiIconClasses: "oo-ui-iconElement-icon oo-ui-icon-wikiText"` (dark, crisp icon with zero `oo-ui-image-invert`).
+
+* **Visual Diff Mode Persistence Architecture Analysis:**
+  * **Observed Behavior:** Selecting Visual diff mode in a diff, navigating to `User:Powercycler/RefDiff`, and clicking a diff link resulted in Wikitext mode being selected instead of Visual mode.
+  * **Underlying MediaWiki Architecture (`ext.visualEditor.diffPage.init`):**
+    * MediaWiki initializes diff mode via:
+      `let initMode = originalUrl.searchParams.get('diffmode') || mw.user.options.get('visualeditor-diffmode-historical') || 'source';`
+    * Mode choices are saved via:
+      `new mw.Api().saveOption('visualeditor-diffmode-historical', mode);`
+  * **Authentication Constraints (Anon & Temporary Accounts):**
+    * For anonymous/unregistered visitors, `new mw.Api().saveOption(...)` rejects with `'notloggedin'`.
+    * For temporary accounts (`~202X-...`), MediaWiki blocks option saving with `InvalidArgumentException: UserOptionsManager::saveOptionsInternal was called on IP or temporary user` because temporary accounts do not have persistent `user_properties` database records.
+    * VisualEditor contains no client-side `localStorage` or cookie fallback for the diff mode choice.
+    * Therefore, anonymous and temporary sessions will always default back to `'source'` (Wikitext) on fresh diff links lacking `?diffmode=visual`.
+  * **Rollout Testing Strategy:**
+    * Confirmed that true cross-page persistence of Visual diff mode operates exclusively for authenticated permanent accounts where `user_properties` are stored on the MediaWiki backend.
+    * Agreed with user: Full verification of cross-page Visual mode persistence will be executed by logging into the CDP test session once during the final rollout phase.
+
+### 2026-10-14: Doc Polish Finished (Step R.15) & Added Rollout TODO (Step R.20)
+* **Step R.15 (Doc Polish) Marked Finished:**
+  * Synchronized local [`refdiff.wiki`](refdiff.wiki) with the authoritative live documentation lead on English Wikipedia ([`en:User:Powercycler/RefDiff`](https://en.wikipedia.org/wiki/User:Powercycler/RefDiff)), incorporating the user's online edits (AbuseFilter banner `Special:AbuseLog/45390145`, one-click Script Installer guidance, canonical showcase link `diff=1380240829`, agentic coding and QA governance architecture section, and userbox transclusion syntax).
+  * Stamped local [`refdiff.wiki`](refdiff.wiki) with version `1.5.2` and updated test metrics to 122 tests.
+  * Verified 10/10 deployment integrity checks in [`tests/test_deployment.js`](tests/test_deployment.js) and 122/122 unit tests passing.
+  * Marked Step R.15 as `✅ Finished` across dashboard tables and detailed action item lists.
+* **Step R.20 (Rollout of Recently Completed Updates) Tracked as P0 TODO:**
+  * Created formal action item **Step R.20** (`Active Release Action Item`) to roll out `v1.5.2` release candidate across Wikimedia endpoints:
+    - Scope includes: Visual Diff mode button dimming/disabling, Wikitext-first mode transition invariant, zero-shift OOUI inline toggle CSS alignment, logged-in user test harness, and version bump `v1.5.2`.
+    - Planned rollout sequence: Ring 0 (tag baseline), Ring 1 (Meta script lead `m:User:Powercycler/refdiff.js`), Ring 2 (en.WP SHA pointer `en:User:Powercycler/refdiff.js` and doc version bump), verified via `npm run check:deploy`.
+
+### 2026-10-14: Tracked TODO for Inter-Template Diff Fragment Alignment (Dwight D. Eisenhower diff=1380014667 — Step R.21)
+* **Evaluation & Diagnosis:**
+  * Analyzed [Dwight D. Eisenhower (diff=1380014667)](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667), an edit by editor `Alaexis` using `CNfirmed` where an unreferenced statement with `{{citation needed|date=August 2025}}` was sourced with two book citations: `<ref>{{cite book |title=Steven Zaloga...}}</ref><ref>{{Cite book |last=Zaloga... |date=2011...}}</ref>`.
+  * MediaWiki diff engine aligned identical wikitext tokens (`{{`, `|date=`, and `}}`) across the different template types. This caused the opening `<ref>` and closing `</ref>` tag markers to be individually wrapped in `<ins class="diffchange diffchange-inline">` spans (`<ins>&lt;ref&gt;</ins>` and `<ins>&lt;/ref&gt;</ins>`), while inner template content was split across multiple `<ins>` spans.
+  * When `REF_REGEX` matched `&lt;ref&gt;</ins>...`, the match contained an unclosed `</ins>`, causing `hasBalancedDiffTags` to reject the match and leaving the newly added citations undecoupled in prose.
+* **Tracking & Action Item:**
+  * Created formal action item **Step R.21** elevated to **P0 (Immediate Pre-Pilot Priority)** in [`LOG.md`](LOG.md) to implement boundary normalization for individually wrapped `<ref>` markers and add unit regression tests.
+  * Cataloged in Section 3.3 Real-World Diff Verification Register as a P0 Pre-Pilot Blocker for key customer CNfirmed.
+
+### 2026-10-14: Implementation & Verification of Step R.21 (Dwight D. Eisenhower diff=1380014667 / CNfirmed)
+* **Strict Scope Architecture:**
+  * Implemented `hasDeletedCn(delHtml)` strictly scoped to deleted/modified `{{citation needed|...}}` and `{{cn|...}}` maintenance templates (both parameterized and bare), intentionally avoiding generic or unbounded inter-template transformations.
+  * Built `normalizeCnDiffPair(delHtml, addHtml)`:
+    - Normalizes the deleted template into a single cohesive `<del class="diffchange diffchange-inline">` block.
+    - Consolidates the added citation unit into a cohesive `<ins class="diffchange diffchange-inline">` block.
+    - Guarded with `isPureRefSequence()` to strictly guarantee that no adjacent prose can ever be swallowed.
+  * Integrated defensively across `applyDecoupling`, `transformProseCells`, `normalizeDiffTags(str, delStr)`, and `parseRefs(html, delHtml)`.
+* **Automated Verification:**
+  * Added unit tests in `tests/test_utils.js` (detecting and normalizing bare/parameterized forms, negative tests on unrelated templates).
+  * Added parser tests in `tests/test_parser.js` verifying that both citations from the Eisenhower diff extract cleanly.
+  * Added pipeline tests in `tests/test_pipeline.js` asserting proper prose badge substitution and citation row decoupling.
+  * Added real-DOM tests in `tests/test_jsdom.js` validating JSDOM table transformation and byte-for-byte Memento restoration.
+  * Total test suite expanded to **129/129 passed** (0 failed). All 10 deployment integrity checks green.
+* **Live CDP Verification:**
+  * Verified live in Chromium on English Wikipedia against revision `diff=1380014667`:
+    - Decoupled both citations into dedicated citation rows (`totalCitRows: 2`).
+    - Rendered added badges in added prose (`rowHasBadges: 2`).
+    - Struck out `{{citation needed|date=August 2025}}` cleanly in deleted prose.
+    - Verified byte-for-byte Memento restoration back to Wikitext mode.
+    - Screenshot archived to `/tmp/refdiff_screenshots/eisenhower_diff_decoupled.png`.
+* **Milestone Status:** Step R.21 marked `✅ Finished`. All pre-pilot blockers resolved.
+
+### 2026-10-15: Pre-Flight Verification Passed & Version Bump to v1.5.3 (Step R.20 Candidate)
+* **Manifest Synchronization & Uprev (`v1.5.3`):**
+  - Executed `node scripts/bump_version.js patch` to bump release candidate to `v1.5.3`.
+  - Verified manifest sync across `package.json`, `package-lock.json`, `refdiff.js` (`@version 1.5.3` and `const VERSION = '1.5.3'`), and `refdiff.wiki` (`| version = 1.5.3`).
+* **Full Pre-Flight Quality Gate Execution (`npm run preflight`):**
+  - `npm run lint`: **0 errors, 0 warnings** across all JavaScript files.
+  - `npm test`: **129/129 passed** (0 failed) across all 15 modular test suites.
+  - `node tests/test_deployment.js`: **10/10 passed** verifying zero BOM, nowiki encapsulation, zero `console.log`, file size budget (<120 KB), userbox template syntax, and byte-for-byte Memento restoration.
+  - `npm run test:live`: **8/8 checks passed** in Chromium via CDP on [Odoacer `diff=1379486498`](https://en.wikipedia.org/w/index.php?diff=1379486498) (mode switching, Visual Diff disabling, inline toggle lock, anchor discovery, light/dark mode tokens).
+  - `npm run test:bench`: **5/5 live benchmark diffs passed** with byte-for-byte Memento roundtrip (Bihar Legislative Assembly, Odoacer, Zagreb Airport 114 refs, Cosmic Inflation, Donnie Brasco).
+* **Release Status:** Step R.20 Phase 1 (Pre-Flight Testing) cleared; candidate is fully verified and prepared for Ring 0–2 on-wiki deployment per `ROLLOUT_PLAN.md`.
+
+### 2026-10-15: Triaged & Documented Real-World Edge Cases: Paragraph Merge Diff Entanglement (Leonardo Torres Quevedo) & Vancouver Anchor Resolution (Respiratory Therapist)
+* **Triaged Leonardo Torres Quevedo ([diff=1380356173](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173)):**
+  - **Symptom:** User reported "This looks broken". Diff rendering fails to decouple citations cleanly and produces corrupted diff spans.
+  - **Root Cause:** Deleting `\n\n` between two paragraphs ending with citations prompted MediaWiki's `wikidiff2` to match the trailing `</ref>` from paragraph 2 with that from paragraph 1. This wrapped paragraph 2's wikitext and intermediate `<ref>` tags inside an `<ins class="diffchange diffchange-inline">` starting after the body of ref 1 (`...No. 90, 2020<ins>.</ref> In 1919... <ref>...</ref> ... 2008</ins>.</ref>`). RefDiff's tag balance validator rejected the split tags, preventing decoupling.
+  - **Remediation Assigned:** Tracked as **Step R.22** (Tier 1 — High) to implement paragraph-merge pre-normalization in `normalizeDiffTags()`.
+* **Resolved Respiratory Therapist ([diff=1380407169&oldid=1372216818](https://en.wikipedia.org/w/index.php?title=Respiratory+therapist&diff=1380407169&oldid=1372216818) — Step R.23 ✅):**
+  - **Symptom:** User reported "ref7 not working". The badge rendered as `⟨ref7⟩`, but its `href` was `null` (plain `<span>`), so clicking did not jump and hovercard popups did not activate.
+  - **Kernursache:** Anonymer (unbenannter) Einzelnachweis im Teildiff. MediaWiki nummeriert anonyme Einzelnachweise im Gesamtartikel sequentiell (`cite_note-1`, `cite_note-2` ... `cite_note-31`). Im Teildiff (Zeile 141) ist das Zitat lokal die 7. Quelle der Zeile (`⟨ref7⟩`), global aber Nummer 31.
+  - **Lösungsarchitektur:** **Zweistufiges System ohne bibliographisches Ref-Parsing:**
+    1. **Stufe 1 (Bestehende Quellen mit DOM-Treffern):** RefDiff überlässt die Vorschau vollständig MediaWikis nativer Extension **Reference Previews** (`mw.popups`). Statt Vorlagenfelder (`author=`, `title=`) fehleranfällig zu parsen, scannt `findCiteNoteAnchor()` bei anonymen Refs nach persistenten Identifikatoren (DOI, PMID, PMC, ISBN, URL) und matcht sie direkt im DOM gegen `a[href*="..."]` in `.references li[id^="cite_note-"]`.
+    2. **Stufe 2 (Nicht-Treffer & neu hinzugefügte Quellen — "Listenformat in der Preview"):** Wenn `findCiteNoteAnchor()` `null` liefert, zerlegt `parseTemplateList(rawContent)` Zitationsvorlagen (`{{cite journal}}`, `{{cite web}}`, `{{sfn}}`) unter Beachtung verschachtelter Klammern deterministisch in Vorlagenname und `• key: val`-Listenzeilen. Die Vorschau wird sowohl als mehrzeiliger `title`-Tooltip als auch über eine elegante schwebende `.refdiff-preview-card` (`role="tooltip"`, `<ul><li>`-Listenstruktur, dark-mode-ready) bereitgestellt, wobei während der Vorschaukarten-Anzeige native OS-Tooltips unterdrückt werden, um Überlagerungen zu verhindern.
+  - **Implementierung & Verifikation:**
+    - Step 3 in `findCiteNoteAnchor()` um DOI-, PMID-, PMC-, ISBN- und URL-Suche erweitert.
+    - `parseTemplateList()`, `createProseBadgeElement()`, `showBadgePreview()` und `hideBadgePreview()` in `refdiff.js` implementiert.
+    - 4 neue Unittests in `tests/test_anchor.js` (DOI `10.1183/20734735.0310-2019` $\to$ `#cite_note-31`, PMID, PMC, ISBN).
+    - 5 neue Unittests in `tests/test_renderer.js` (`parseTemplateList`, `{{sfn}}`, `title`-Listenformat, `.refdiff-preview-card` Toggle & OS-Tooltip-Unterdrückung).
+    - Gesamte Testsuite auf **138/138 Tests grün** ausgebaut (`npm test`).
+    - Linting fehlerfrei (**0 ESLint-Warnungen, 0 Fehler** via `npm run lint`).
+    - 10/10 Deployment-Release-Gates bestanden (`node tests/test_deployment.js`).
+    - Step R.23 in Immediate Pre-Pilot Priority (P0) als `✅ Finished` signiert.
+ 
+### 2026-10-15: Pre-Flight Quality Gates Fully Passed (Stage 5 & Stage 6) for v1.5.3 Release Candidate
+* **Stage 5 (Visual Inspection & Audit Capture):**
+  - Executed `npm run inspect` (`scripts/inspect_diff.py`): Injected cleanly into Chromium (CDP port 9222) on Bihar diff (`diff=1379207737`), confirmed OOUI button mounting and decoupled citation rows in 1.78 s.
+  - Executed `npm run capture` (`scripts/capture_full_audit.py`): Captured full visual audit across Meta Showcase diff (31142550) and Bihar diff (1379207737) in Light and Dark modes.
+  - Fixed CSS ID selector escaping (`[id="..."]`) for row IDs containing colons in `scripts/capture_full_audit.py`.
+  - All **14/14 PNG screenshots** captured cleanly in 16.37 s.
+* **Stage 6 (Automated Pre-Flight Gate `npm run preflight`):**
+  - **Syntax & Linting (`npm run lint`):** Passed with **0 errors and 0 warnings**.
+  - **Headless Unit & DOM Tests (`npm test`):** **138/138 passed** (0 failed) in < 250ms across all 15 test suites.
+  - **Deployment Integrity Checks (`node tests/test_deployment.js`):** **10/10 passed** (nowiki, zero BOM, zero `console.log`, size budget < 120 KB, version sync, rollback Memento fidelity).
+  - **Live Browser CDP Tests (`npm run test:live`):** **8/8 checks passed** in live Chromium on Odoacer diff (Visual Diff disabling, Wikitext-first switching, badge href anchor discovery, Memento roundtrip, inline switch lock, dark mode tokens).
+  - **Live CDP Benchmarks (`npm run test:bench`):** **5/5 canonical diffs passed** with byte-for-byte Memento roundtrip (Bihar, Odoacer, Zagreb Airport 114 refs, Cosmic Inflation, Donnie Brasco).
+* **Release Gate Status:** Pre-Flight Quality Gate is **100% COMPLETE & CLEARED**. Candidate `v1.5.3` is ready for Ring 0–2 rollout per `ROLLOUT_PLAN.md`.
+
+
 
