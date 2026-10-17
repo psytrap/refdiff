@@ -2,16 +2,25 @@
 """
 scripts/check_toolpage_installer.py
 
-Read-Only Verification of ScriptInstaller Button on Toolpage:
+Toolpage ScriptInstaller Button Verifier & Interactive Tester:
 1. Connects to Chromium CDP on port 9222.
 2. Navigates to or inspects en:User:Powercycler/RefDiff.
 3. Checks user login status (wgUserName).
-4. Verifies presence and state of the ScriptInstaller button:
+4. Detects presence and state of the ScriptInstaller button:
    - "Install" (when not yet active in common.js)
    - "Uninstall" (when already active in common.js)
-5. Zero write operations: purely inspects DOM rendering.
+5. Supports interactive button clicking (--press or --toggle-roundtrip) to verify
+   that ScriptInstaller properly updates common.js via real UI interaction.
+
+GOVERNANCE & PERMISSION NOTE:
+Per repository deployment governance (ROLLOUT_PLAN.md & AUDIT_STRATEGY.md),
+automated pushing to remotes and automated deployment edits are strictly
+forbidden. This script is the SOLE AND ONLY EXCEPTION authorized to perform
+read-write UI actions by pressing the ScriptInstaller Install/Uninstall button
+on the toolpage to verify button responsiveness and common.js state transitions.
 """
 
+import argparse
 import asyncio
 import json
 import sys
@@ -34,13 +43,13 @@ async def get_browser_ws():
         return None
 
 
-async def check_installer_button():
+async def run_toolpage_check(args):
     ws_url = await get_browser_ws()
     if not ws_url:
         return 1
 
     print("=" * 70)
-    print("RefDiff Toolpage ScriptInstaller Button Auditor (Read-Only)")
+    print("RefDiff Toolpage ScriptInstaller Button Inspector")
     print("=" * 70)
 
     # Find or open toolpage tab
@@ -91,8 +100,9 @@ async def check_installer_button():
             await asyncio.sleep(0.5)
 
         # Allow ScriptInstaller extra time to execute and insert button
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(2.0)
 
+        # Inspect DOM state
         data = await eval_js("""(() => {
             const user = (window.mw && mw.config && mw.config.get('wgUserName')) || null;
             const infobox = document.querySelector('table.infobox-user-script, table.infobox');
@@ -100,20 +110,18 @@ async def check_installer_button():
 
             // ScriptInstaller button search:
             // Look for buttons, links, or spans created by User:Enterprisey/script-installer
-            const buttons = Array.from(document.querySelectorAll('a, button, span')).filter(el => {
+            const buttons = Array.from(document.querySelectorAll('td.script-installer-ibx button, #script-installer-main-install, .script-installer-button, button.mw-ui-button')).filter(el => {
                 const t = (el.innerText || '').trim().toLowerCase();
-                const cls = el.className || '';
-                return (t === 'install' || t === 'uninstall' || t.includes('install script') || t.includes('uninstall script') || cls.includes('script-installer'));
+                return (t === 'install' || t === 'uninstall' || t.includes('install script') || t.includes('uninstall script'));
             });
 
             const buttonDetails = buttons.map(b => ({
                 text: b.innerText.trim(),
                 tag: b.tagName.toLowerCase(),
-                href: b.getAttribute('href'),
+                id: b.id,
                 className: b.className
             }));
 
-            // Check if ScriptInstaller gadget is loaded in mw
             const hasScriptInstaller = typeof window.scriptInstaller !== 'undefined' ||
                                        (window.mw && mw.loader && mw.loader.getState('ext.gadget.script-installer') === 'ready');
 
@@ -133,14 +141,7 @@ async def check_installer_button():
         print(f"[4] ScriptInstaller:      {'Active' if data.get('hasScriptInstaller') else 'Not loaded or not enabled'}")
 
         btn_list = data.get("buttonDetails", [])
-        if btn_list:
-            print(f"\n[5] ScriptInstaller Buttons Found ({len(btn_list)}):")
-            for b in btn_list:
-                print(f"    - Text: [{b['text']}], Tag: <{b['tag']}>, Class: '{b['className']}'")
-            state = btn_list[0]['text'].upper()
-            print(f"\n[✓] VERIFIED: Toolpage renders button in state: **{state}**")
-            return 0
-        else:
+        if not btn_list:
             print("\n[-] No ScriptInstaller button detected on page.")
             if not data.get("user"):
                 print("    Hint: Log in with an account that has ScriptInstaller enabled in Special:Preferences.")
@@ -148,9 +149,91 @@ async def check_installer_button():
                 print("    Hint: Enable ScriptInstaller in Special:Preferences -> Gadgets -> 'Install scripts without having to manually edit JavaScript files'.")
             return 1
 
+        print(f"\n[5] ScriptInstaller Buttons Found ({len(btn_list)}):")
+        for b in btn_list:
+            print(f"    - Text: [{b['text']}], Tag: <{b['tag']}>, Class: '{b['className']}'")
+
+        current_state = btn_list[0]['text'].strip()
+        print(f"\n[✓] VERIFIED: Toolpage renders button in state: **{current_state}**")
+
+        # Interactive button clicking action (if requested)
+        if args.press or args.toggle_roundtrip:
+            if not data.get("user"):
+                print("[-] Cannot perform write action: No user is logged in.")
+                return 1
+
+            print("\n" + "=" * 50)
+            print("PERFORMING SCRIPT-INSTALLER BUTTON PRESS ACTION")
+            print("=" * 50)
+
+            async def click_button_and_wait(expected_from):
+                await eval_js("window.confirm = () => true;")
+                print(f"[+] Clicking button: '{expected_from}'...")
+                await eval_js("""(() => {
+                    const btn = document.querySelector('td.script-installer-ibx button, #script-installer-main-install, .script-installer-button');
+                    if (btn) btn.click();
+                })()""")
+
+                # Wait for state change
+                for _ in range(20):
+                    await asyncio.sleep(0.5)
+                    txt = await eval_js("""(() => {
+                        const btn = document.querySelector('td.script-installer-ibx button, #script-installer-main-install, .script-installer-button');
+                        return btn ? btn.innerText.trim() : null;
+                    })()""")
+                    if txt and txt != expected_from and "..." not in txt and "ing" not in txt.lower():
+                        return txt
+                return None
+
+            # First click
+            new_state = await click_button_and_wait(current_state)
+            if not new_state:
+                print("[-] Failed: Button text did not transition after click.")
+                return 1
+
+            print(f"[✓] Transition 1 Successful: [{current_state}] -> [{new_state}]")
+
+            # Check common.js via API
+            common_check = await eval_js("""(async () => {
+                try {
+                    const api = new mw.Api();
+                    const res = await api.get({
+                        action: 'query',
+                        prop: 'revisions',
+                        titles: 'User:' + mw.config.get('wgUserName') + '/common.js',
+                        rvslots: '*',
+                        rvprop: 'content',
+                        formatversion: 2
+                    });
+                    const content = res.query.pages[0].revisions[0].slots.main.content;
+                    return { hasRefdiff: content.includes('refdiff.js') };
+                } catch(e) {
+                    return { error: String(e) };
+                }
+            })()""")
+            print(f"    common.js refdiff pointer present: {common_check.get('hasRefdiff')}")
+
+            if args.toggle_roundtrip:
+                print("\n[+] Performing roundtrip: clicking button again to restore original state...")
+                restored_state = await click_button_and_wait(new_state)
+                if not restored_state:
+                    print("[-] Failed: Button text did not restore after second click.")
+                    return 1
+
+                print(f"[✓] Transition 2 Successful: [{new_state}] -> [{restored_state}]")
+                assert restored_state.lower() == current_state.lower(), f"Expected return to {current_state}, got {restored_state}"
+                print(f"[✓] ROUNDTRIP VERIFIED: ScriptInstaller button cleanly toggled and restored!")
+
+        return 0
+
 
 def main():
-    code = asyncio.run(check_installer_button())
+    parser = argparse.ArgumentParser(description="Toolpage ScriptInstaller Button Inspector & Tester")
+    parser.add_argument("--press", action="store_true", help="Press the button once and verify state transition")
+    parser.add_argument("--toggle-roundtrip", action="store_true", help="Press button, verify transition, then press again to restore original state")
+    args = parser.parse_args()
+
+    code = asyncio.run(run_toolpage_check(args))
     sys.exit(code)
 
 

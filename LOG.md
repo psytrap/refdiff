@@ -109,7 +109,7 @@ This log records the rationale, architectural decisions, completed milestones, a
     - [x] **Deployment Release Gate (`node tests/test_deployment.js`):** 10/10 deployment integrity checks passing.
     - [x] **Live Browser Verification (`npm run test:live`):** 8/8 checks passed in Chromium CDP.
     - [x] **Live Benchmark Suite (`npm run test:bench`):** 6/6 canonical diffs verified with byte-for-byte Memento roundtrip (Bihar, Odoacer, Zagreb 114 refs, Cosmic Inflation, Donnie Brasco, Leonardo Torres Quevedo).
-    - [x] **Zero Deployment Automation Invariant:** Rollout is strictly manual (zero automated on-wiki write actions or deployment scripts); post-shipment parity audited exclusively via read-only API inspection (`npm run check:deploy`).
+    - [x] **Zero Deployment Automation & Sole Read-Write Exception:** All deployment, on-wiki publishing, and git pushing are strictly manual under maintainer control. The sole and only exception is `scripts/check_toolpage_installer.py` (`npm run check:installer --press` or `--toggle-roundtrip`), which is explicitly authorized to interactively press the Install/Uninstall button on `User:Powercycler/RefDiff` to test that ScriptInstaller triggers proper `common.js` state transitions in the browser DOM.
   * **On-Wiki Rollout Protocol Execution (Pending Ring 1 Sign-Off):**
     - [ ] **Ring 0 (Release Baseline):** Commit and tag `v1.5.4`.
     - [ ] **Ring 1 (Meta-Wiki Script Lead):** Update `m:User:Powercycler/refdiff.js` upon user sign-off.

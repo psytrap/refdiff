@@ -49,8 +49,9 @@ npm run check:deploy                            # Post-shipment live audit acros
 
 ## 3. Rollout Rings
 
-### Ring 0: Local Release Tagging & Baseline (Cleared)
-- **Release Tag & Baseline:** Tag release candidate: `git tag -a v<version> -m "Release v<version>" && git push origin v<version>`. Verify clean working tree and release SHA-1 (`refdiff.js`) before on-wiki deployment.
+- **Release Tag & Baseline:** Tag release candidate locally: `git tag -a v<version> -m "Release v<version>"`. Verify clean working tree and release SHA-1 (`refdiff.js`) before on-wiki deployment. Automated `git push` is strictly forbidden; all pushing to remotes is 100% manual.
+- **Strict Zero Deployment Automation Policy:** All deployments, on-wiki edits, loader uprevs, and git pushes are performed manually by the maintainer. Automated scripts must never write to remote Wikimedia targets or push git commits.
+- **Sole Read-Write Automation Exception (`check_toolpage_installer.py`):** The **single and only exception** to the zero-write rule is [`scripts/check_toolpage_installer.py`](scripts/check_toolpage_installer.py) (`npm run check:installer --press` or `--toggle-roundtrip`). This script is explicitly authorized to interactively press the `Install` / `Uninstall` button on the toolpage (`User:Powercycler/RefDiff`) via Chromium CDP to test that ScriptInstaller triggers proper common.js state transitions in the browser DOM.
 
 ### Mandatory Pre-Deployment Gate: Live Human Interactive Review
 Before advancing to Ring 1, the release candidate must be interactively inspected and approved by the human reviewer in a live browser (Chromium on port 9222 via `scripts/run_persistent_cdp_patch.py`). Automated test passes and visual captures alone do not authorize deployment.

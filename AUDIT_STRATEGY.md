@@ -289,3 +289,8 @@ All criteria must pass before merging or tagging releases:
 | **CI Execution Budget** | **< 250 ms across all 15 test suites** | `npm run ci` |
 | **Stress Benchmark Budget** | **< 50 ms on 114-reference table** | `node tests/test_benchmarks.js` |
 | **DOM Memento Invariance** | **Byte-for-byte table restoration** | `node tests/test_jsdom.js` |
+
+### 5.1 Deployment Governance & Sole Automation Exception
+* **Zero Automated Pushing & Zero Deployment Automation:** Code publication, git pushes to upstream remotes, and on-wiki updates to Wikimedia script leads or user scripts are strictly reserved for manual execution by the maintainer.
+* **Sole Read-Write Exception:** The single, strictly bounded exception to this zero-automation rule is [`scripts/check_toolpage_installer.py`](scripts/check_toolpage_installer.py) (`npm run check:installer --press` or `--toggle-roundtrip`), which is authorized to interactively press the `Install` / `Uninstall` button on the toolpage (`User:Powercycler/RefDiff`) via Chromium CDP to test that ScriptInstaller triggers proper `common.js` state transitions in the browser DOM.
+
