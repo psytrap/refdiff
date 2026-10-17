@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         RefDiff
 // @namespace    https://github.com/m-k/einzelnachweise
-// @version      1.5.3
+// @version      1.5.4
 // @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
 // @author       RefDiff Contributors
 // @match        https://*.wikipedia.org/*diff=*
@@ -59,7 +59,7 @@
   /**
    * Current RefDiff semantic version.
    */
-  const VERSION = '1.5.3';
+  const VERSION = '1.5.4';
 
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.
@@ -671,6 +671,15 @@
     res = res.replace(/(?<!\})\}(<(?:del|ins)[^>]*>)\}(?!\})/gi, '}}$1');
     // 7. Merge adjacent diffchange spans of identical type separated only by whitespace:
     res = res.replace(/<\/(ins|del)>(\s*)<\1\b[^>]*>/gi, '$2');
+    // 7b. Normalize diff boundary shift where wikidiff2 matched a closing ref tag
+    // from a later citation instead of the earlier one, placing the closing tag inside
+    // <ins>/<del> at the start, and leaving the later closing tag outside </ins>/</del>.
+    // Example (Leonardo Torres Quevedo diff=1380356173):
+    // ... 2020<ins class="...">.&lt;/ref&gt; In 1919 ... October 2008</ins>.&lt;/ref&gt;
+    // -> ... 2020.&lt;/ref&gt;<ins class="..."> In 1919 ... October 2008.&lt;/ref&gt;</ins>
+    res = res.replace(/<(ins|del)([^>]*)>([.,;:\s]*&lt;\/ref&gt;)((?:(?!<\/\1>)[\s\S])*?)<\/\1>([.,;:\s]*&lt;\/ref&gt;)/gi, function(match, tag, attrs, startToken, body, endToken) {
+      return startToken + '<' + tag + attrs + '>' + body + endToken + '</' + tag + '>';
+    });
     // 8. Clean up any empty diffchange spans created by boundary normalization: <del class="..."></del>
     res = res.replace(/<(ins|del)\b[^>]*><\/\1>/gi, '');
     return res;

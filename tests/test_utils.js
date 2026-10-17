@@ -65,6 +65,16 @@ suite('src/utils.js - Text Utilities & Normalization', () => {
     assert.strictEqual(normalizeDiffTags(splitDelSpans), '<del class="diffchange">part1   part2</del>', 'Should merge adjacent del spans preserving whitespace');
   });
 
+  test('normalizeDiffTags shifts closing ref tag boundary displacement across diffchange spans (Leonardo Torres Quevedo diff=1380356173)', () => {
+    const raw = '... 2020<ins class="diffchange diffchange-inline">.&lt;/ref&gt; In 1919 ... October 2008</ins>.&lt;/ref&gt;';
+    const normalized = normalizeDiffTags(raw);
+    assert.strictEqual(
+      normalized,
+      '... 2020.&lt;/ref&gt;<ins class="diffchange diffchange-inline"> In 1919 ... October 2008.&lt;/ref&gt;</ins>',
+      'Should shift closing ref boundary so both the preceding and trailing citations are properly balanced'
+    );
+  });
+
   test('sanitizeAnchor sanitizes strings into valid DOM ID tokens', () => {
     assert.strictEqual(sanitizeAnchor('AlicanteRyanair'), 'AlicanteRyanair', 'Alphanumeric anchors remain untouched');
     assert.strictEqual(sanitizeAnchor('exyu_240625'), 'exyu_240625', 'Underscore-separated alphanumeric tokens remain untouched');

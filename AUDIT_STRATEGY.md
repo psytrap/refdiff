@@ -200,11 +200,11 @@ In standard human solo programming, architectural assumptions and regression pre
 1. **Specification as Single Source of Truth:**
    All features, heuristics, and invariants are pre-defined in formal documentation ([`ARCHITECTURE.md`](ARCHITECTURE.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`AUDIT_STRATEGY.md`](AUDIT_STRATEGY.md), [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md)). The AI agent does not generate spontaneous ad-hoc implementations; it translates verified specifications into code and tests.
 2. **Deterministic Multi-Tier Test Anchors:**
-   Rapid agentic generation is bounded by an exhaustive four-tier test pyramid (121 unit/DOM tests, JSDOM headless fixtures, live Chromium CDP browser verification, and live monkey patching). If a proposed code edit introduces a subtle syntax slip, DOM leak, or heuristic drift, automated test gates immediately reject the change before it reaches the working tree.
+   Rapid agentic generation is bounded by an exhaustive four-tier test pyramid (140 unit/DOM tests, JSDOM headless fixtures, live Chromium CDP browser verification, and live monkey patching). If a proposed code edit introduces a subtle syntax slip, DOM leak, or heuristic drift, automated test gates immediately reject the change before it reaches the working tree.
 3. **Cross-File Synchronization & Drift Prevention:**
    Agentic coding excels at systemic cross-artifact synchronization (e.g. updating version tokens, API exports, test assertions, and on-wiki wikitext simultaneously). Strict pre-flight gates ([`tests/test_deployment.js`](tests/test_deployment.js)) enforce that manifest files, documentation stats, and code exports remain 100% in sync.
 4. **Human Editorial & Architectural Authority:**
-   The human engineer operates as chief architect and release authority—directing scope, approving critical changes, scrutinizing git diffs, and signing off on on-wiki deployments—while the agent executes implementation, regression testing, and verification.
+   The human engineer operates as chief architect and release authority—directing scope, approving critical changes, scrutinizing git diffs, interactively inspecting candidate releases in a live browser, and signing off on all on-wiki deployments—while the agent executes implementation, regression testing, and verification. Automated captures support, but never substitute for, live human review.
 5. **Concise, Descriptive, and Professional Tone:**
    All project documentation, on-wiki pages ([`refdiff.wiki`](refdiff.wiki), [`userbox.wiki`](userbox.wiki)), docstrings, and commit artifacts must maintain a concise, descriptive, and professional tone. Avoid promotional language, buzzwords, or AI-generated boilerplate; prioritize technical precision, direct architectural rationale, and factual clarity.
 
@@ -256,7 +256,7 @@ flowchart LR
     Q1["1. Candidate Triage<br/>(TEST_PLAN.md)"] --> Q2["2. Raw HTML Capture<br/>(tests/fixtures/)"]
     Q2 --> Q3["3. JSDOM Reproduction<br/>(test_jsdom.js)"]
     Q3 --> Q4["4. Core Fix<br/>(refdiff.js)"]
-    Q4 --> Q5["5. Visual Capture & User Acknowledgment<br/>(capture_full_audit.py)"]
+    Q4 --> Q5["5. Visual Evidence & Live Review<br/>(capture & interactive browser)"]
     Q5 --> Q6["6. CDP Audit<br/>(test_live_cdp.py)"]
     Q6 --> Q7["7. Regression Lock & Rollout<br/>(ROLLOUT_PLAN.md)"]
 ```
@@ -265,7 +265,9 @@ flowchart LR
 2. **Raw HTML Capture:** Raw MediaWiki diff HTML saved into test fixtures.
 3. **JSDOM Reproduction:** Failing test added without mocks to `test_jsdom.js`.
 4. **Core Fix:** `refdiff.js` patched following modular standards.
-5. **Visual Capture & User Acknowledgment Gate (Rollout Default):** Automated capture of all citation change cases (pure additions, pure deletions, intra-line modifications, template refs across Vector 2022 Light and Dark themes) via [`scripts/capture_full_audit.py`](scripts/capture_full_audit.py) (`npm run capture`). The high-resolution visual evidence gallery is presented to the user for explicit review and sign-off before advancing to automated CDP regression runs and rollout rings.
+5. **Visual Evidence & Mandatory Live Human Review Gate:**
+   - **Automated Visual Capture:** Automated capture of all citation change cases (pure additions, pure deletions, intra-line modifications, template refs across Vector 2022 Light and Dark themes) via [`scripts/capture_full_audit.py`](scripts/capture_full_audit.py) (`npm run capture`). Generates permanent visual regression artifacts.
+   - **Mandatory Live Human Interactive Review:** Prior to any update to `refdiff.js` on Meta-Wiki, an interactive browser session is provided via Chromium remote debugging (CDP port 9222 via `scripts/run_persistent_cdp_patch.py`). The human reviewer interactively tests real Wikipedia diffs (mode switcher, reference previews, layout stability, Memento roundtrip). Meta-Wiki deployment is strictly blocked without explicit human sign-off.
 6. **CDP Browser Audit:** Live browser testing on port 9222 verifies switcher, themes, and popups (`test_live_cdp.py`).
 7. **Regression Lock & Rollout:** Diff marked `Verified` in `TEST_PLAN.md`, pre-flight CI locked, and phased rollout executed per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md).
 
@@ -277,11 +279,11 @@ All criteria must pass before merging or tagging releases:
 
 | Quality Gate | Invariant / Threshold | Verification Command |
 |:---|:---|:---|
-| **Test Suite Pass Rate** | **121 / 121 passing tests across 15 suites** | `npm test` |
+| **Test Suite Pass Rate** | **140 / 140 passing tests across 15 suites** | `npm test` |
 | **Code Style & Linting** | **0 errors, 0 ESLint warnings** | `npm run lint` |
 | **Clean Code & Test Smells** | **AAA pattern, descriptive assertions, 0 global leaks** | `npm test && npm run lint` |
 | **Deployment Pre-Flight** | **10 checks: zero BOM, nowiki, version sync, rollback, deployment consistency** | `node tests/test_deployment.js` |
-| **Visual Capture & User Gate** | **Rollout default: captures across all change cases in Light/Dark acknowledged by user** | `npm run capture` |
+| **Visual Evidence & Human Gate** | **Automated capture in Light/Dark & mandatory live human sign-off before Ring 1 Meta update** | `npm run capture` + browser review |
 | **Live On-Wiki Deployment** | **All release targets verified & synchronized across Wikimedia APIs** | `npm run check:deploy` |
 | **Uprev Diff Audit Gate** | **Small changes between uprevs; zero debris, no orphaned references, concise hunks** | `git diff --stat && git diff` |
 | **CI Execution Budget** | **< 250 ms across all 15 test suites** | `npm run ci` |

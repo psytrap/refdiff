@@ -24,6 +24,7 @@ import asyncio
 import json
 import os
 import sys
+import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Tuple
 import websockets
@@ -56,6 +57,11 @@ BENCHMARKS = [
         "name": "Donnie Brasco",
         "diff": 1380017400,
         "desc": "unclosed quote in ref name"
+    },
+    {
+        "name": "Leonardo Torres Quevedo",
+        "diff": 1380356173,
+        "desc": "closing ref tag boundary displacement across diffchange spans"
     }
 ]
 
@@ -106,7 +112,8 @@ async def test_single_benchmark(args: argparse.Namespace, bench: Dict[str, Any],
     print(f"\n[-] Testing: {bench['name']} (diff={bench['diff']}) - {bench['desc']}")
 
     # Open tab via CDP HTTP endpoint
-    req = urllib.request.Request(f"http://{args.host}:{args.port}/json/new?{url}", method="PUT")
+    encoded_url = urllib.parse.quote(url, safe='')
+    req = urllib.request.Request(f"http://{args.host}:{args.port}/json/new?{encoded_url}", method="PUT")
     with urllib.request.urlopen(req, timeout=5) as resp:
         tab = json.loads(resp.read().decode("utf-8"))
     tab_id = tab["id"]
@@ -134,18 +141,19 @@ async def test_single_benchmark(args: argparse.Namespace, bench: Dict[str, Any],
             data = await client.evaluate("""(() => {
                 const hasRefBtn = !!document.getElementById('refdiff-ooui-btn') || !!document.getElementById('refdiff-mode-bar');
                 const citRows = document.querySelectorAll('.refdiff-cit-row').length;
-                const isDecoupled = typeof RefDiff !== 'undefined' ? RefDiff.state.isDecoupled : false;
+                const rd = window.RefDiff;
+                const isDecoupled = !!rd && !!rd.state && !!rd.state.isDecoupled;
                 const hasErrors = document.querySelectorAll('.refdiff-error').length;
                 const interactiveBadges = document.querySelectorAll('.refdiff-ref a').length;
                 const totalBadges = document.querySelectorAll('.refdiff-ref').length;
                 
                 // Test switching back to wikitext mode (Memento restoration)
                 let roundtripSuccess = false;
-                if (typeof RefDiff !== 'undefined') {
+                if (rd && typeof rd.selectMode === 'function') {
                     const table = document.querySelector('table.diff');
-                    RefDiff.selectMode('wikitext', table);
+                    rd.selectMode('wikitext', table);
                     const afterWikitextCitRows = document.querySelectorAll('.refdiff-cit-row').length;
-                    RefDiff.selectMode('refdiff', table);
+                    rd.selectMode('refdiff', table);
                     const afterRefdiffCitRows = document.querySelectorAll('.refdiff-cit-row').length;
                     roundtripSuccess = (afterWikitextCitRows === 0 && afterRefdiffCitRows === citRows);
                 }

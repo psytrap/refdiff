@@ -1,10 +1,9 @@
-{{ai-generated|userscript page|reason=[[Special:AbuseLog/45390145|AbuseLog/45390145]]|date=October 2026}}
 {{Infobox user script
 | name        = RefDiff
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443 diff])
 | author      = [[User:Powercycler|Powercycler]]
 | status      = Beta
-| version     = 1.5.3
+| version     = 1.5.4
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
 | browsers    = Chromium, Firefox, Safari, Edge
@@ -28,10 +27,10 @@ When an article uses standard inline citations ({{tag|ref|content={{tlx|cite boo
 <span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> The atmosphere consists of carbon dioxide&lt;ref&gt;<nowiki>{{Cite book |author=Schmidt, Rainer |title=Planetary Atmospheres |year=2020 |pages=112–</nowiki><ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">125</ins><nowiki> |isbn=978-3-12-345678-9}}</nowiki>&lt;/ref&gt;, creating a <ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">runaway</ins> greenhouse effect.
 |}
 
-=== Why this is harmful: ===
-# '''Camouflaged Vandalism:''' Subtle vandalism (changing numbers, swapping years, altering names) hides inside the visual noise of untouched template parameters.
-# '''Misleading Diffs on Citation Fixes:''' Updating a dead URL or correcting a page number marks the entire surrounding paragraph as modified, misleading patrollers into thinking text was rewritten.
-# '''Reviewer Fatigue:''' Patrollers waste significant cognitive energy mentally filtering template syntax.
+=== Review Challenges in Standard Diffs ===
+# '''Obscured Text Modifications:''' Subtle prose changes (such as altered numbers, dates, or wording) can be difficult to spot when surrounded by extensive citation markup.
+# '''Prose and Citation Ambiguity:''' Routine citation maintenance (such as updating a URL or correcting a page number) marks the entire paragraph as modified, making it harder to distinguish source updates from rewritten text at a glance.
+# '''Visual Complexity:''' Reviewers must mentally filter verbose template parameters while evaluating edits to article prose.
 
 == How RefDiff Works ==
 
@@ -103,12 +102,27 @@ Here is the exact same edit rendered with RefDiff. The sentence is freed from bu
 <span style="font-weight: bold; color: #14866d; margin-right: 6px;">+</span> <span style="background: rgba(255, 215, 0, 0.25); color: #9a6700; font-weight: bold; padding: 1px 4px; border-radius: 2px; border: 1px solid rgba(218, 165, 32, 0.4);">⟨~ref1~⟩</span> &lt;ref&gt;<nowiki>{{Cite book |author=Schmidt, Rainer |title=Planetary Atmospheres |year=2020 |pages=112–</nowiki><ins style="background: #a3f0a3; color: #006600; font-weight: bold; text-decoration: none; padding: 1px 3px; border-radius: 2px;">125</ins><nowiki> |isbn=978-3-12-345678-9}}</nowiki>&lt;/ref&gt;
 |}
 
+=== Real-World Diff Showcase ===
+
+Real-world diffs illustrating specific edge cases handled by RefDiff:
+* [[Special:Diff/1379486498|Odoacer]] – Shortened footnotes ({{tlx|sfn}}) and author-year badges
+* [[Special:Diff/1379409916|Zagreb Airport]] – Extreme reference density (114 citations in 4 rows)
+* [[Special:Diff/1379491398|Kim Domingo]] – Split self-closing tags and single-sided additions
+* [[Special:Diff/1379470949|Cosmic inflation]] – Whitespace-only prose diff retention
+* [[Special:Diff/1379548357|Zipf's law]] – Explanatory footnote unwrapping ({{tlx|efn}}) and {{tlx|rp}} page suffixes
+* [[Special:Diff/1380017400|Donnie Brasco (film)]] – Tolerating unclosed quotation marks in tag attributes
+* [[Special:Diff/1380008554|Karl-Heinz Riedle]] – Clean non-citation prose formatting invariance
+* [[Special:Diff/1379207737|Bihar Legislative Assembly]] – Reference attributes with apostrophes and underscore anchors
+* [[Special:Diff/1380014667|Dwight D. Eisenhower]] – Replacing {{tlx|citation needed}} with references (CNfirmed)
+* [[Special:Diff/1380407169|Respiratory therapist]] – Identifier matching for Reference Previews on unnamed citations
+* [[Special:Diff/1380356173|Leonardo Torres Quevedo]] – Boundary-shift normalization across merged paragraphs
+
 == Installation ==
 
 To install with one click, enable [[User:Enterprisey/script-installer|Script Installer]] in [[Special:Preferences#mw-prefsection-gadgets|Special:Preferences → Gadgets]] by checking ''"Install scripts without having to manually edit JavaScript files"'' in the Advanced section. An '''Install''' button will appear in the infobox above.
 
 === Option 1: Global Installation (All Wikimedia Projects — Recommended) ===
-To enable RefDiff across all Wikimedia projects (English Wikipedia, Commons, Wikidata, and other language editions), add the following line to your central **[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]**:
+To enable RefDiff across all Wikimedia projects (English Wikipedia, Commons, Wikidata, and other language editions), add the following line to your central '''[[:m:Special:MyPage/global.js|global.js on Meta-Wiki]]''':
 
 <syntaxhighlight lang="javascript">
 // [[m:User:Powercycler/refdiff.js]] - Decouple citation templates on Special:Diff across all wikis
@@ -221,84 +235,24 @@ RefDiff is developed through '''agentic coding''' (specification-driven human–
 * '''Audit Strategy ({{mono|AUDIT_STRATEGY.md}}):''' Enforces gadget security (XSS-safe DOM creation, no {{mono|.innerHTML}} concatenation) and review workflows to eliminate template camouflage.
 * '''Rollout Plan ({{mono|ROLLOUT_PLAN.md}}):''' Governs version synchronization, file size limits (< 120&nbsp;KB), zero console logging, and automated live API checks before release.
 * '''Automated Testing ({{mono|TEST_PLAN.md}}):''' Backed by a four-level test pyramid:
-** ''100% Function Coverage:'' All functions verified across 15 test suites in Node.js (129 tests in ~250&nbsp;ms).
+** ''Unit & Integration Suites:'' Verified across 15 test suites in Node.js (140 tests in ~250&nbsp;ms).
 ** ''Memento Rollback:'' Verifies native MediaWiki diff tables restore byte-for-byte on mode toggles without losing event listeners.
 ** ''Citation Parsing:'' Validates standard {{tag|ref}} tags, shortened footnotes ({{tlx|sfn}}), explanatory notes ({{tlx|efn}}), and Harvard citations.
 ** ''Stress Benchmarking:'' Tested on complex diffs (e.g. 114 references) with execution under 50&nbsp;ms.
 ** ''Browser Automation (CDP):'' End-to-end testing in Chromium on real Wikipedia diffs (OOUI switcher, Dark Mode tokens, and reference hovercards).
 
+=== Scope and Known Limitations ===
 
-=== What Is Not Covered (Known Limitations & Gaps) ===
+The following edge cases and layout environments are outside current gadget functionality or subject to ongoing refinement:
 
-While 100% of internal codebase functions are verified, several external edge cases and layout environments are outside current test coverage (tracked in Section 5 of {{mono|TEST_PLAN.md}}):
+* '''Malformed Wikitext:''' Unclosed {{tag|ref}} tags, unclosed brackets, or invalid tag syntax are not parsed into citation rows and remain displayed in-place within the standard prose diff.
+* '''Complex wikidiff2 Token Splitting:''' MediaWiki's backend diff engine ({{mono|wikidiff2}}) can divide a single citation tag across multiple inline change spans (e.g. {{mono|<ins>&lt;ref name="x"</ins> <ins>/&gt;</ins>}}, as seen in [[Special:Diff/1379491398|Kim Domingo]]). While standard split patterns are normalized automatically, edge-case token segmentations continue to be refined.
+* '''Nested Footnote Templates:''' Footnotes defined through secondary templates such as {{tlx|refn}}, {{tlx|sfnp}}, or citations embedded within infobox parameters remain in the prose view rather than decoupling into separate citation rows.
+* '''Subtle Prose and Whitespace Edits:''' Non-printing characters or whitespace edits immediately adjacent to citation tags are preserved, with automated test coverage continually expanded to cover diverse real-world diff patterns.
+* '''Mobile Layouts (MinervaNeue):''' The single-column stacked diff interface used on the mobile web view is not currently supported; RefDiff is designed for desktop two-column and inline diff views.
+* '''Dynamic AJAX Diff Navigation:''' Interactive diff changes triggered via client-side scripts without a standard page navigation may require a manual page reload to re-initialize.
 
-* '''Malformed or Broken Wikitext:''' Unclosed {{tag|ref}} tags, tags missing closing brackets, or unusual multiline linebreaks inside tags are skipped by the parser and remain untouched in the prose diff without decoupling.
-* '''wikidiff2 Token Boundary & Split-Span Analysis:''' Wikipedia's backend {{mono|wikidiff2}} engine frequently breaks single citation tags into multiple disconnected {{tag|ins}} or {{tag|del}} spans separated by whitespace (e.g. {{mono|<ins>&lt;ref name="x"</ins> <ins>/&gt;</ins>}} as seen in [[Special:Diff/1379491398|Kim Domingo]]). While RefDiff automatically merges adjacent split spans and normalizes tag boundaries, comprehensive automated test analysis of arbitrary token segmentation patterns across diverse MediaWiki diff engines remains an ongoing gap.
-* '''Nested Transclusions:''' Footnotes wrapped inside complex secondary templates (such as {{tlx|refn}}, {{tlx|sfnp}}, or citations embedded inside infobox templates) are not yet decoupled into scholarly badges.
-* '''Differential Prose Invariance Fuzzing:''' While unit and browser integration tests now explicitly verify whitespace-only edits (such as [[Special:Diff/1379470949|Cosmic inflation]]), systematic differential fuzzing comparing arbitrary real-world {{mono|wikidiff2}} word/character split patterns against RefDiff's post-processing DOM is not yet automated. Very subtle non-character edits (e.g. zero-width spaces, punctuation adjustments, or whitespace directly abutting citation tags) require ongoing regression tracking.
-* '''Mobile Diff Layouts (MinervaNeue):''' Responsive single-column stacked diff tables on Wikipedia's mobile view are not currently part of the automated layout test suite (RefDiff is optimized primarily for desktop two-column diffs).
-* '''Dynamic AJAX Diff Pagination:''' Successive rapid diff updates fired by live script reloads or interactive history navigation without a full page refresh.
 
-<!--
-TODO: Review and update Complementary Tools & Proposals section
-== Complementary Tools & Proposals ==
-
-RefDiff is part of a broader ecosystem for citation management:
-
-{| class="wikitable"
-! Dimension !! Tool !! Target User !! What It Does
-|-
-| '''Reviewing / Diffs'''
-| '''RefDiff''' ({{mono|refdiff.js}})
-| Reviewers, patrollers, fact-checkers
-| Decouples citations in the {{mono|Special:Diff}} view.
-|-
-| '''Inline Diff Engine'''
-| [[:en:User:Cacycle/wikEdDiff|User:Cacycle/wikEdDiff]]
-| Reviewers, diff power-users
-| Improved inline diff engine featuring word- and character-level comparisons, moved text block detection, and syntax highlighting.
-|-
-| '''In-Diff Editing'''
-| [[:m:User:Jon Harald Søby/diffedit.js|User:Jon Harald Søby/diffedit]]
-| Reviewers, rapid-fixers
-| Allows editing article sections directly inside {{mono|Special:Diff}} without leaving the diff view. RefDiff isolates citation row classes to prevent line-number corruption and automatically restores raw wikitext mode during inline editing.
-|-
-| '''Writing / Editing'''
-| [[:en:User:PleaseStand/References segregator|User:PleaseStand/References segregator]]
-| Writers, copyeditors
-| Splits citations into a second pane in the edit window; re-inlines upon save.
-|-
-| '''In-Editor Ref Collapsing'''
-| [[:en:User:Guywan/Scripts/RefCruncher|User:Guywan/Scripts/RefCruncher]]
-| Writers, wikitext editors
-| Collapses ("crunches") verbose inline {{tag|ref}} tags into compact, clickable inline chips inside the wikitext editor to reduce clutter while writing.
-|-
-| '''Footnote Auditing'''
-| [[:en:User:Trappist the monk/HarvErrors|User:Trappist the monk/HarvErrors]]
-| Source auditors
-| Flags broken Harvard and shortened footnote citations ({{tlx|sfn}}) in red. RefDiff's footnote anchor discovery mirrors its anchor rules.
-|-
-| '''AI Claim Verification'''
-| [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]]
-| Fact-checkers, citation auditors
-| In-browser LLM evaluation (Gemini, Claude, GPT) checking whether cited sources actually support article claims, helping detect hallucinations and misattributed citations.
-|-
-| '''Citation Discovery'''
-| [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]]
-| Source finders, editors
-| Discovers and verifies candidate references for {{tlx|citation needed}} claims via Internet Archive APIs and AI evaluation.
-|-
-| '''GUI Citation Editing'''
-| [[:en:Wikipedia:ProveIt|ProveIt]] ({{mono|Gadget-ProveIt.js}})
-| Source editors, authors
-| Adds a graphical dock and form UI in the wikitext editor to add, edit, and Citoid-autofill references. Complements RefDiff by streamlining reference creation in wikitext.
-|-
-| '''Storage Concepts'''
-| '''Section-Scoped References''' ({{tag|references|params=hidden}} / {{tag|ref|params=hidden}})
-| Proposed Wikitext syntax
-| Concepts for section-scoped reference definitions in raw wikitext.
-|}
--->
 
 == Feedback & Bug Reports ==
 
@@ -317,3 +271,6 @@ RefDiff is in active Beta testing. If you encounter any unexpected diff renderin
 * [[:en:User:Guywan/Scripts/RefCruncher|User:Guywan/Scripts/RefCruncher]] – Wikitext editor script that collapses inline citations into compact chips
 * [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
 * [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]] – Automated source discovery and verification tool
+
+[[Category:Wikipedia scripts|RefDiff]]
+[[Category:Wikipedia citation/link tools|RefDiff]]

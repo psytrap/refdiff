@@ -116,7 +116,7 @@ All checks can be run locally or in continuous integration using standard npm sc
 # 1. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit, component & real DOM test suite (121 tests in ~250ms)
+# 2. Run the fast headless unit, component & real DOM test suite (138 tests in ~250ms)
 npm test
 
 # 3. Run combined CI verification
@@ -170,5 +170,6 @@ npm run capture
 | [Donnie Brasco (film)](https://en.wikipedia.org/w/index.php?title=Donnie_Brasco_(film)&curid=1995696&diff=1380017400&oldid=1380012354) | `1380017400` | Unclosed quote attribute (`<ref name="mojo_2>`) tolerated; correct badge `⟨+mojo_2+⟩` & anchor discovery verified | ✅ Verified | [`LOG.md#donnie-brasco`](LOG.md#donnie-brasco-film-diff1380017400) |
 | [Karl-Heinz Riedle](https://en.wikipedia.org/w/index.php?title=Karl-Heinz_Riedle&diff=1380008554&oldid=1335846068) | `1380008554` | Prose bold markup edit (`"'''Kalle'''"`) adjacent to context rows; clean non-citation diff invariance | ✅ Verified | [`LOG.md#riedle`](LOG.md#karl-heinz-riedle-diff1380008554) |
 | [Bihar Legislative Assembly](https://en.wikipedia.org/w/index.php?title=Bihar_Legislative_Assembly&diff=prev&oldid=1379207737) | `1379207737` | Quotation attribute truncation on embedded apostrophe (`name="...Speaker's..."`) & space-to-underscore anchor discovery | ✅ Verified | [`LOG.md#bihar`](LOG.md#bihar-legislative-assembly-diff1379207737) |
+| [Dwight D. Eisenhower](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667) | `1380014667` | Split `diffchange` alignment between deleted `{{citation needed}}` and added `<ref>` tags (Step R.21) | ✅ Verified | [`LOG.md#eisenhower`](LOG.md#dwight-d-eisenhower-diff1380014667) |
 
 

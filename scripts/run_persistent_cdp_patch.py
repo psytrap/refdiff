@@ -101,7 +101,7 @@ async def main():
 
         print("\n" + "=" * 65)
         print("PERSISTENT MONKEY PATCH RUNNING (WEBSOCKET HELD OPEN)")
-        print("All navigations and new diff tabs will automatically execute RefDiff v1.5.1.")
+        print("All navigations and new diff tabs will automatically execute RefDiff v1.5.3.")
         print("=" * 65 + "\n")
         sys.stdout.flush()
 

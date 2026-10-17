@@ -207,6 +207,45 @@ async def main():
             if second_bihar_row:
                 await capture_element(cdp, f'[id="{second_bihar_row}"]', os.path.join(ARTIFACTS_DIR, f"audit_bihar_added2_{theme}.png"), pad=15, include_prev=True)
 
+        # ==========================================================
+        # PART 3: Dwight D. Eisenhower Diff (1380014667 - Step R.21)
+        # Covers:
+        # - {{citation needed|...}} replaced with citations (CNfirmed workflow)
+        # ==========================================================
+        eisenhower_url = "https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667"
+        print(f"\n[3/3] Loading Eisenhower Diff (1380014667)...")
+        await cdp.send("Page.navigate", {"url": eisenhower_url})
+        await asyncio.sleep(4.0)
+
+        print("Injecting refdiff.js...")
+        await cdp.send("Runtime.evaluate", {"expression": refdiff_code})
+        await asyncio.sleep(1.0)
+        await cdp.send("Runtime.evaluate", {
+            "expression": """(() => {
+                const btn = document.querySelector('#refdiff-mode-btn');
+                if (btn && btn.click) btn.click();
+                else if (window.RefDiff && window.RefDiff.applyDecoupling) {
+                    window.RefDiff.applyDecoupling(document.querySelector('table.diff'));
+                }
+            })()"""
+        })
+        await asyncio.sleep(1.2)
+
+        res_ike = await cdp.send("Runtime.evaluate", {
+            "expression": """(() => {
+                const rows = Array.from(document.querySelectorAll('.refdiff-cit-row')).map(r => r.id);
+                return rows;
+            })()""",
+            "returnByValue": True
+        })
+        ike_rows = res_ike.get('result', {}).get('value', [])
+        first_ike_row = ike_rows[0] if ike_rows else None
+
+        for theme in ['dark', 'light']:
+            await set_theme(cdp, theme)
+            if first_ike_row:
+                await capture_element(cdp, f'[id="{first_ike_row}"]', os.path.join(ARTIFACTS_DIR, f"audit_eisenhower_cn_{theme}.png"), pad=15, include_prev=True)
+
     print("\nVisual audit capture complete!")
 
 

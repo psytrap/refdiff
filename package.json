@@ -1,6 +1,6 @@
 {
   "name": "refdiff",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Zero-loss citation decoupling gadget and diff driver for Wikipedia / MediaWiki Special:Diff",
   "main": "refdiff.js",
   "scripts": {
@@ -10,6 +10,8 @@
     "test:bench": "python3 tests/test_live_benchmarks.py",
     "preflight": "npm run ci && node tests/test_deployment.js && npm run test:live && npm run test:bench",
     "check:deploy": "node scripts/check_live_deployment.js",
+    "check:env": "python3 scripts/check_clean_user_env.py",
+    "test:lifecycle": "python3 scripts/test_full_user_lifecycle.py",
     "bump": "node scripts/bump_version.js",
     "inspect": "python3 scripts/inspect_diff.py",
     "capture": "python3 scripts/capture_full_audit.py",

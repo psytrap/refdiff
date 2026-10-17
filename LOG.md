@@ -43,12 +43,13 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 #### RefDiff Checklist & Status Dashboard
 
-##### Shipped Release: v1.4.3 | Active Development: v1.5.3
+##### Shipped Releases: v1.5.3, v1.5.4 | Active Development: Post-Shipment & Community Feedback (Phase 1)
 
 | Step | Milestone / Action Item | Priority | Status | Target / Deliverable |
 | :---: | :--- | :---: | :---: | :--- |
 | **R.8** | On-Wiki Phased Rollout (v1.4.3) | **P0** | ✅ **Completed** | Rollout verified 100% synchronized across Meta-Wiki and en.WP (`npm run check:deploy`) |
-| **R.20** | Phased Rollout of Recent Updates (v1.5.3) | **P0** | ⏳ **TODO (Pre-Flight Passed ✅)** | Deploy `v1.5.3` (Visual Diff dimming/disabling, Wikitext-first switching, OOUI inline toggle, Step R.21 inter-template diff alignment, Step R.23 DOI/PMID/ISBN identifier matching & template list preview). Pre-flight gates passed 100% (138 unit/JSDOM tests, 10 deployment checks, 8 CDP browser tests, 5 benchmarks, 14 visual audit captures). Rings 0–2 on-wiki deployment pending per `ROLLOUT_PLAN.md` |
+| **R.20** | Phased Rollout of Recent Updates (v1.5.3) | **P0** | ✅ **Completed** | Deployed `v1.5.3` across all rings: Ring 0 tagged (`fa9e7f2`), Live User Inspection signed off, Ring 1 Meta Script Lead (`m:User:Powercycler/refdiff.js` rev 31176975), Ring 2 en.WP pointer (`en:User:Powercycler/refdiff.js` rev 1380681839), early testing on `common.js` (rev 1380682062), and en.WP lead docs (`en:User:Powercycler/RefDiff` rev 1380682190). Showcase diff update deferred to future release cycle. |
+| **R.26** | Phased Rollout of Paragraph Merge Fix (v1.5.4) | **P0** | ⏳ **In Progress** | Release candidate `v1.5.4` addressing Leonardo Torres Quevedo `wikidiff2` paragraph-merge boundary shift (Step R.22). All 140 unit/DOM tests, 10 deployment gates, and 6 live CDP benchmarks verified green. Preparing on-wiki deployment across rings. |
 
 ##### Immediate Pre-Pilot Priority (P0 — Higher than Tier 1)
 
@@ -56,6 +57,7 @@ This log records the rationale, architectural decisions, completed milestones, a
 | :---: | :--- | :---: | :---: | :--- |
 | **Step R.15** | On-Wiki Documentation, Meta Redirect & Userbox Polish | **P0** | ✅ **Finished** | Polished on-wiki documentation (en.WP doc lead `refdiff.wiki` & `en:User:Powercycler/RefDiff`, Meta tools page `meta_refdiff.wiki` & `m:User:Powercycler/RefDiff`, and userbox `User:Powercycler/Userbox RefDiff`): documented agentic coding methodology & formal QA governance in `AUDIT_STRATEGY.md` and `refdiff.wiki`, added script installer hint, dynamic version in button tooltip, synced 122 tests, and established 100% parity with live on-wiki deployment |
 | **Step R.21** | Inter-Template Diff Alignment (`{{citation needed}}` & `{{cn}}`) | **P0** | ✅ **Finished** | Strictly scoped to `{{citation needed}}` and `{{cn}}` (parameterized or bare): normalized split diffchange boundaries when MediaWiki aligns tokens (`{{`, `&#124;date=`, `}}`) between deleted `{{citation needed}}` / `{{cn}}` and added `<ref>` citations for key customer CNfirmed ([Dwight D. Eisenhower diff=1380014667](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667)). Fully verified across unit, pipeline, JSDOM, and live CDP tests (129 tests passing). |
+| **Step R.22** | Paragraph Merge Diff Entanglement (`Leonardo Torres Quevedo`) | **P0** | ✅ **Finished** | Normalized `wikidiff2` boundary-shifted trailing closing ref tags across merged paragraphs (`Rule 7b` in `normalizeDiffTags`) for [Leonardo Torres Quevedo (diff=1380356173)](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173). Fully verified across unit tests, JSDOM, and live CDP benchmarks (10 cit rows, 26 badges, Memento roundtrip). |
 | **Step R.23** | DOM-Identifier-Matching & Vorlagen-Listenformat-Preview | **P0** | ✅ **Finished** | Zweistufige Architektur: Deterministisches DOM-Identifier-Matching (DOI/PMID/PMC/ISBN/URL) für MediaWikis native Reference Previews (`mw.popups`) bei bestehenden Quellen sowie automatische Listenformat-Preview (`parseTemplateList` mit `• key: val` Tooltip & schwebender `.refdiff-preview-card`) bei Nicht-Treffern/neuen Quellen. 138/138 Tests bestanden, 0 ESLint-Warnungen. |
 
 ##### Tier 1: Early Adopter Pilot & Stability (10-User Milestone)
@@ -67,7 +69,8 @@ This log records the rationale, architectural decisions, completed milestones, a
 | **Step R.17** | Streamline Rollout & Version Bump Process | Normal | 🔮 Future | TODO: Streamline rollout runbook, version bump cadence, and deployment checklist (simplify, do not over-automate) |
 | **Step R.18** | Automated Showcase Test in Rollout Protocol | Normal | 🔮 Future | TODO: Add automated Showcase diff test (`m:User:Powercycler/RefDiff/Show_case` powered by `tests/comprehensive_{old,new}.wiki`) to rollout gates and deployment auditor |
 | **Step R.19** | Test Timeout Hardening & Watchdog Architecture | High | 🔮 Future | TODO: Implement strict multi-tier timeouts across all live integration & benchmark suites (`tests/test_live_benchmarks.py`, `tests/test_live_cdp.py`) to prevent unbounded WebSocket receives and infinite test hangs |
-| **Step R.22** | Paragraph Merge Diff Entanglement (`Leonardo Torres Quevedo`) | High | ⏳ TODO | Pre-normalize `wikidiff2` paragraph-merge diffchange boundaries where deleted newlines wrap trailing references across merged paragraphs ([diff=1380356173](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173)) |
+| **Step R.24** | Complementary Tools Ecosystem Review (`AI Source Verification`, `CNfirmed`) | Normal | ⏳ TODO (Next Step) | Curate and publish complementary tools directory (AI claim verification, citation discovery, diffedit) once on-wiki documentation stabilizes |
+| **Step R.25** | Clean Suffix Binding (`{{rp}}`) & Deterministic Brace Tokenizer | Normal | ⏳ TODO | Transition from regex exclusion of `rp` and lookaround assertions to formal suffix token binding and a deterministic, stack-based brace scanner for nested footnote templates (`{{efn}}`, `{{refn}}`, `{{sfnp}}`) (Zipf's law diff=1379548357 follow-up) |
 
 ##### Tier 2: Community Reviewer Scale (50-User Opt-In — Post-Pilot)
 
@@ -91,31 +94,55 @@ This log records the rationale, architectural decisions, completed milestones, a
 
 #### RefDiff Action Items (Detail)
 
-##### Active Release Action Item
-- [ ] **Step R.20: Phased Rollout of Recently Completed Updates (`v1.5.3`) (P0 — Active Release — Pre-Flight Passed ✅ | Deployment Pending ⏳)**
+##### Recent Release Action Items (Completed & Active Rollout)
+- [ ] **Step R.26: Phased Rollout of Paragraph Merge Fix (`v1.5.4`) (P0 — Active Rollout ⏳)**
+  * **Focus Area:** Production Rollout of v1.5.4 Release Candidate
+  * **Scope of Updates Rolled Out:**
+    - Paragraph merge boundary normalization (Step R.22): MediaWiki `wikidiff2` suffix matching artifact resolved via Rule 7b in `normalizeDiffTags`, properly balancing closing `&lt;/ref&gt;` tokens across merged paragraphs without affecting prose text or Memento restoration.
+    - Wikipedia tone refinements: Updated `refdiff.wiki` Section 1.1 (`Review Challenges in Standard Diffs`) and Section 7 (`Scope and Known Limitations`) with objective, neutral phrasing.
+    - Test suite expansion: 140/140 tests passing (including new unit test and JSDOM DOM test) and 6/6 canonical live CDP benchmarks passing (including Leonardo Torres Quevedo `diff=1380356173`).
+    - Clean user environment automation: Scripted verification for clean `common.js` baseline and automated logout verification at the conclusion of rollout testing.
+  * **Pre-Flight Quality Gate Execution (Cleared ✅):**
+    - [x] **Version Manifest Synchronization:** Bumper executed (`node scripts/bump_version.js patch`), synchronizing `v1.5.4` across `package.json`, `package-lock.json`, `refdiff.js`, and `refdiff.wiki`.
+    - [x] **Lint & Static Hygiene (`npm run lint`):** 0 ESLint errors, 0 warnings across all sources, tests, and deployment scripts.
+    - [x] **Unit & DOM Test Suites (`npm test`):** 140/140 tests passing across all 15 suites in ~250ms.
+    - [x] **Deployment Release Gate (`node tests/test_deployment.js`):** 10/10 deployment integrity checks passing.
+    - [x] **Live Browser Verification (`npm run test:live`):** 8/8 checks passed in Chromium CDP.
+    - [x] **Live Benchmark Suite (`npm run test:bench`):** 6/6 canonical diffs verified with byte-for-byte Memento roundtrip (Bihar, Odoacer, Zagreb 114 refs, Cosmic Inflation, Donnie Brasco, Leonardo Torres Quevedo).
+    - [x] **Full User Lifecycle Test (`npm run test:lifecycle`):** 8/8 steps passing including clean environment baseline, installation, live diff execution, uninstallation, and logout verification.
+  * **On-Wiki Rollout Protocol Execution (Pending Ring 1 Sign-Off):**
+    - [ ] **Ring 0 (Release Baseline):** Commit and tag `v1.5.4`.
+    - [ ] **Ring 1 (Meta-Wiki Script Lead):** Update `m:User:Powercycler/refdiff.js` upon user sign-off.
+    - [ ] **Ring 2 (en.WP SHA Pointer Uprev & Lead Docs):** Update `en:User:Powercycler/refdiff.js` SHA pointer and publish `refdiff.wiki` to `en:User:Powercycler/RefDiff`.
+    - [ ] **Post-Shipment Live Parity Audit:** Run `npm run check:deploy`.
+
+- [x] **Step R.20: Phased Rollout of Recently Completed Updates (`v1.5.3`) (P0 — Released & Deployed ✅)**
   * **Focus Area:** Production Rollout of v1.5.3 Release Candidate
-  * **Scope of Updates to Roll Out:**
+  * **Scope of Updates Rolled Out:**
     - Visual Diff mode isolation: button visually dimmed (`oo-ui-widget-disabled`, `aria-disabled="true"`, `tabindex="-1"`) and click events suppressed in Visual Diff mode.
     - Wikitext-first mode transition invariant: direct switches from Visual mode to RefDiff halted; requires switching to Wikitext first.
     - Zero vertical shift inline toggle: pixel-perfect CSS alignment between OOUI switcher and native inline diff checkbox across light and dark themes.
     - Inter-template diff alignment (Step R.21): bounded normalization of split diffchange tokens for `{{citation needed|...}}` and `{{cn|...}}` (Eisenhower diff 1380014667).
-    - Comprehensive showcase integration: Section 6 added to canonical fixtures `tests/comprehensive_{old,new}.wiki` and `refdiff.wiki`.
+    - DOM-identifier matching & template list preview format (Step R.23): deterministic DOI/PMID/PMC/ISBN/URL matching for native Reference Previews and formatted list preview card for new/unmatched references.
+    - Comprehensive showcase integration: Section 6 added to canonical fixtures `tests/comprehensive_{old,new}.wiki` and `refdiff.wiki` (on-wiki showcase page update deferred).
   * **Pre-Flight Quality Gate Execution (Cleared ✅):**
     - [x] **Version Manifest Synchronization:** Bumper script executed (`node scripts/bump_version.js patch`), synchronizing `v1.5.3` across `package.json`, `package-lock.json`, `refdiff.js`, and `refdiff.wiki`.
     - [x] **Lint & Static Hygiene (`npm run lint`):** 0 ESLint errors, 0 warnings across all sources, tests, and deployment scripts.
-    - [x] **Unit & DOM Test Suites (`npm test`):** 129/129 tests passing across all 15 suites in ~250ms.
+    - [x] **Unit & DOM Test Suites (`npm test`):** 138/138 tests passing across all 15 suites in ~250ms.
     - [x] **Deployment Release Gate (`node tests/test_deployment.js`):** 10/10 deployment integrity checks passing (BOM, nowiki, zero console.log, budget < 120 KB, userbox syntax, rollback Memento fidelity, artifact consistency).
     - [x] **Live Browser Verification (`npm run test:live`):** 8/8 checks passed in Chromium CDP (Odoacer diff=1379486498) covering mode switching, visual disabling, inline lock, and dark mode tokens.
     - [x] **Live Benchmark Suite (`npm run test:bench`):** 5/5 canonical diffs verified with byte-for-byte Memento roundtrip (Bihar, Odoacer, Zagreb 114 refs, Cosmic Inflation, Donnie Brasco).
     - [x] **Full Preflight Master Run (`npm run preflight`):** 100% green pass.
-  * **On-Wiki Rollout Protocol Execution (Pending per [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md)):**
-    - [ ] **Ring 0 (Release Baseline):** Commit clean working tree and tag release `v1.5.3` (`git commit -am "chore(release): v1.5.3" && git tag -a v1.5.3 -m "Release v1.5.3"`).
-    - [ ] **Ring 1 (Meta-Wiki Script Lead):** Update `m:User:Powercycler/refdiff.js` with local [`refdiff.js`](refdiff.js) (`v1.5.3`).
-    - [ ] **Ring 2 (en.WP Early Testing & SHA Pointer Uprev):**
-      - Early-test via `en:User:Powercycler/common.js` on live benchmark diffs.
-      - Update SHA pointer on `en:User:Powercycler/refdiff.js` with new immutable revision ID and SHA-1.
-      - Update `| version = 1.5.3` on `en:User:Powercycler/RefDiff`.
-      - Run `npm run check:deploy` to verify 100% SHA-1 parity across all Wikimedia endpoints.
+  * **On-Wiki Rollout Protocol Execution (Completed ✅):**
+    - [x] **Ring 0 (Release Baseline):** Tagged release `v1.5.3` (`commit fa9e7f2`, tag `v1.5.3`) with clean git baseline.
+    - [x] **Live User Visual Inspection Gate:** Dedicated interactive Chromium browser environment launched via CDP (`scripts/run_persistent_cdp_patch.py`), reviewed and signed off by user on live diffs (Dwight D. Eisenhower, Showcase, Bihar).
+    - [x] **Ring 1 (Meta-Wiki Script Lead):** Updated `m:User:Powercycler/refdiff.js` with local `refdiff.js` (`v1.5.3`, SHA-1: `46c5f070`, Rev `31176975`).
+    - [x] **Ring 2 (en.WP Early Testing, SHA Pointer Uprev & Lead Docs):**
+      - Verified on `en:User:Powercycler/common.js` (Rev `1380682062`).
+      - Updated SHA pointer on `en:User:Powercycler/refdiff.js` (Rev `1380681839`) pinned to Meta-Wiki Rev `31176975`.
+      - Updated documentation lead on `en:User:Powercycler/RefDiff` (Rev `1380682190`, `| version = 1.5.3`).
+      - Verified 100% synchronized across all Wikimedia targets via `node scripts/check_live_deployment.js`.
+      - Showcase diff update (`en:User:Powercycler/RefDiff/Show_case`) deferred to future release cycle.
 
 - [x] **Step R.8: Phased Rollout Protocol Execution (v1.4.3 Release — Completed)**
   * Executed [`ROLLOUT_PLAN.md`](ROLLOUT_PLAN.md) through Ring 0 (cleared), Ring 1 (Meta script lead updated), Ring 2 (Early testing verified on en.WP, SHA pointer published, lead docs published, user space userbox published), and verified 100% synchronized via `npm run check:deploy`.
@@ -203,20 +230,56 @@ This log records the rationale, architectural decisions, completed milestones, a
     2. **Condition Polling Watchdog:** Replace bare polling loops with bounded condition waiters (`wait_cond()`, default 5.0s ceiling) that automatically capture and dump URL, readyState, and DOM error state upon expiration.
     3. **Per-Test / Per-Benchmark Deadlines:** Enforce a strict maximum deadline (e.g. 10.0s per benchmark diff, 15.0s per integration scenario) so single slow revisions cannot block test runs.
     4. **Global Suite Timeout:** Wrap master entry points (`npm run test:live`, `npm run test:bench`, `npm run preflight`) in a hard outer timeout (e.g. 60.0s) guaranteeing deterministic process termination.
-- [ ] **Step R.22: Unbalanced wikidiff2 Paragraph Merge Entanglement (`Leonardo Torres Quevedo diff=1380356173`) (Tier 1 — High)**
+- [x] **Step R.22: Unbalanced wikidiff2 Paragraph Merge Entanglement (`Leonardo Torres Quevedo diff=1380356173`) (P0 — Immediate Pre-Pilot — Finished ✅)**
   * **Focus Area:** Diff Pre-Normalization & Tag Entanglement Prevention
   * **Target Revision:** [Leonardo Torres Quevedo (diff=1380356173)](https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173)
-  * **Reported Defect:** "This looks broken" — the diff rendering is visibly corrupted or fails to cleanly decouple references after an editor merges two consecutive paragraphs.
+  * **Reported Defect:** "Incomplete ref handling" — the diff rendering left raw wikitext citation tags in prose and failed to decouple citations after an editor merged two consecutive paragraphs ending in `.&lt;/ref&gt;`.
   * **Diagnosis & Root Cause:**
-    - An editor deleted the blank newline separator (`\n\n`) between two paragraphs, merging them into one block. Both paragraphs originally ended with `<ref>...</ref>` citations.
-    - MediaWiki's `wikidiff2` C++ engine computed word/token-level diffs across the merged line. Instead of seeing the newline deletion as a paragraph boundary shift, it matched the trailing `</ref>` from paragraph 2 with the trailing `</ref>` from paragraph 1.
-    - Consequently, `wikidiff2` wrapped the entire second paragraph (including multiple intermediate `<ref>` definitions) inside an inline `<ins class="diffchange diffchange-inline">` span placed *between* the body of the first reference and its closing `</ref>`:
-      `...No. 90, 2020<ins class="diffchange diffchange-inline">.</ref> In 1919... <ref>...</ref> ... 2008</ins>.</ref>`
-    - RefDiff's parser sees unbalanced diffchange boundaries crossing `<ref>` and `</ref>` tag markers. The `hasBalancedDiffTags` check detects the split `<ins>` / `</ins>` and rejects parsing, which prevents decoupling and leaves the raw entangled tags visible in prose.
-  * **TODO / Remediation Plan:**
-    1. **Pre-normalization in `normalizeDiffTags`:** Detect `wikidiff2` paragraph-merge artifacts where an inline `<ins>` or `<del>` begins with punctuation followed by `</ref>` (`<ins class="diffchange diffchange-inline">.</ref>`) and ends before a trailing unclosed `</ref>`.
-    2. **Tag Boundary Realignment:** Rebalance the diffchange boundaries so that the first citation's `</ref>` closes cleanly outside the diff span, allowing the merged prose text to be marked as an addition while preserving subsequent `<ref>` tags as distinct, parseable citation units.
-    3. **Automated Test Coverage:** Create unit fixtures and regression assertions in `tests/test_utils.js`, `tests/test_parser.js`, and `tests/test_pipeline.js`. Verify with JSDOM and live CDP testing.
+    - An editor deleted the blank newline separator (`\n\n`) between two paragraphs, merging them into one block. Both paragraphs originally ended with `.&lt;/ref&gt;` citations.
+    - MediaWiki's `wikidiff2` C++ diff engine computed word/token-level diffs across the merged line. Instead of seeing the newline deletion as a paragraph boundary shift, it matched the trailing suffix `.&lt;/ref&gt;` of the second paragraph with the first paragraph's trailing suffix.
+    - Consequently, `wikidiff2` placed `.&lt;/ref&gt;` at the beginning of the inline `<ins class="diffchange diffchange-inline">` span and left `.&lt;/ref&gt;` outside `</ins>` at the end:
+      `...No. 90, 2020<ins class="diffchange diffchange-inline">.&lt;/ref&gt; In 1919... &lt;ref&gt;...&lt;/ref&gt; ... October 2008</ins>.&lt;/ref&gt;`
+    - RefDiff's tag balancing validator `hasBalancedDiffTags` correctly detected that `<ref>` and `</ref>` tags were split across `<ins>` boundaries and rejected parsing both the preceding and trailing citations to avoid DOM corruption. This left raw wikitext visible in prose and broke citation row decoupling.
+  * **Completed Remediation:**
+    1. **Rule 7b in `normalizeDiffTags`:** Added targeted boundary-shift normalization in `src/utils.js`:
+       ```javascript
+       res = res.replace(/<(ins|del)([^>]*)>([.,;:\s]*&lt;\/ref&gt;)((?:(?!<\/\1>)[\s\S])*?)<\/\1>([.,;:\s]*&lt;\/ref&gt;)/gi, function(match, tag, attrs, startToken, body, endToken) {
+         return startToken + '<' + tag + attrs + '>' + body + endToken + '</' + tag + '>';
+       });
+       ```
+       This safely realigns the boundary-shifted closing tag token without modifying inner prose text or corrupting Memento snapshot fidelity.
+    2. **Automated Unit & Real DOM Test Coverage:**
+       - Added unit test in `tests/test_utils.js` verifying the normalization of boundary-shifted `&lt;/ref&gt;` tokens across diffchange spans.
+       - Added full DOM test in `tests/test_jsdom.js` verifying real DOM decoupling of the Leonardo Torres Quevedo diff (10 citations decoupled into citation rows, badges created, byte-for-byte Memento roundtrip).
+    3. **Canonical Live CDP Benchmark Suite:**
+       - Added Leonardo Torres Quevedo (`1380356173`) as Benchmark #6 in `tests/test_live_benchmarks.py`.
+       - Verified live in Chromium CDP (10 citation rows decoupled, 26 badges rendered, zero raw wikitext, 100% Memento roundtrip).
+    4. **Full Test & Release Gate Pass:**
+       - 140/140 unit and DOM tests passing (`npm test`).
+       - 0 ESLint errors and 0 warnings (`npm run lint`).
+       - 10/10 deployment pre-flight checks passing (`node tests/test_deployment.js`).
+       - 6/6 live CDP benchmarks passing (`npm run test:bench`).
+       - 8/8 live CDP integration steps passing (`npm run test:live`).
+- [ ] **Step R.24: Complementary Citation Tools & Ecosystem Review (Tier 1 — Normal — ⏳ Next Step)**
+  * **Focus Area:** Ecosystem Integration & Companion Tools Short List
+  * **Tools Short List:**
+    - **wikEdDiff** ([`en:User:Cacycle/wikEdDiff`](https://en.wikipedia.org/wiki/User:Cacycle/wikEdDiff)): Inline diff engine with moved-block detection.
+    - **diffedit** ([`m:User:Jon Harald Søby/diffedit.js`](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit.js)): In-diff section editing on `Special:Diff`.
+    - **References segregator** ([`en:User:PleaseStand/References segregator`](https://en.wikipedia.org/wiki/User:PleaseStand/References_segregator)): Edit window citation pane splitter.
+    - **RefCruncher** ([`en:User:Guywan/Scripts/RefCruncher`](https://en.wikipedia.org/wiki/User:Guywan/Scripts/RefCruncher)): In-editor ref chip collapsing.
+    - **ProveIt** ([`en:Wikipedia:ProveIt`](https://en.wikipedia.org/wiki/Wikipedia:ProveIt)): Graphical citation editing dock.
+    - **HarvErrors** ([`en:User:Trappist the monk/HarvErrors`](https://en.wikipedia.org/wiki/User:Trappist_the_monk/HarvErrors)): Shortened footnote and Harvard citation error auditing.
+    - **AI Source Verification** ([`en:User:Alaexis/AI Source Verification.js`](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js)): In-browser LLM evaluation of citations against claims.
+    - **CNfirmed** ([`en:User:Alaexis/CNfirmed.js`](https://en.wikipedia.org/wiki/User:Alaexis/CNfirmed.js)): Citation discovery for `{{citation needed}}` tags.
+  * **TODO:** Verify companion tool compatibility (`diffedit.js`, `wikEdDiff`), test synergies, and curate into an on-wiki guide once documentation stabilizes.
+- [ ] **Step R.25: Clean Architecture for Citation Page Suffixes (`{{rp}}`) & Nested Template Tokenization (Tier 1 — Normal — ⏳ TODO)**
+  * **Focus Area:** Citation Suffix Tokenization & Deterministic Brace Scanning
+  * **Origin & Background:** [Zipf's law (`diff=1379548357`)](https://en.wikipedia.org/w/index.php?title=Zipf%27s_law&diff=prev&oldid=1379548357). Unwrapping an explanatory footnote (`{{efn}}`) caused page suffixes (`{{rp|546}}`) to be misidentified as standalone references (producing phantom `⟨~546~⟩` badges) and merged adjacent braces into `}}}`.
+  * **Current Heuristic:** Handled by excluding `rp` from `TEMPLATE_REF_REGEX` and adding regex lookarounds `(?<!\{)` and `(?!\})` in `normalizeDiffTags`. While verified green by existing regression tests, the heuristic could be cleaner and more architectural.
+  * **Refactoring Goals (Could Be Cleaner):**
+    1. **Formal Suffix Attachment:** Formally model `{{rp|...}}` as a citation page-suffix token bound to its preceding citation unit (`<ref>` or `{{sfn}}`) rather than treating it as ambient prose text or relying on regex exclusion.
+    2. **Deterministic Brace Scanner:** Replace brittle regex lookarounds and multi-brace matching with a clean, stack-based brace/template tokenizer. This eliminates edge cases with nested footnote templates (`{{efn}}`, `{{refn}}`, `{{sfnp}}`) and prevents synthetic brace-merge corruption (`}}}`).
+    3. **Pipeline Layer Decoupling:** Establish a distinct tokenization stage in `src/parser.js` that outputs an AST-like representation of `(prose_segment | ref_unit[anchor, suffix] | template_unit)` before passing to `pipeline.js`.
 
 ##### Tier 2 Action Items: Community Reviewer Scale & Hardening (50-User Milestone)
 - [ ] **Step R.2: Dynamic AJAX / SPA Lifecycle Re-entrancy & Memory Isolation (Tier 2 — High)**
@@ -495,6 +558,7 @@ This register serves as the authoritative system of record for all real-world Wi
   3. Preceding template braces to merge into triple braces `}}}`.
 * **Remediation:** Removed `rp` from `TEMPLATE_REF_REGEX` so it remains attached to the preceding prose badge. Added 2-level nested template brace matching. Implemented lookaround assertions `(?<!\{)` and `(?!\})` in `normalizeDiffTags`. Added `hasBalancedDiffTags` check.
 * **Verification:** Suite of 4 regression tests in `tests/test_constants.js`, `tests/test_parser.js`, and `tests/test_pipeline.js`.
+* **Architectural Follow-Up (Step R.25 — Could Be Cleaner):** While the current remediation passes all unit and DOM tests, excluding `rp` from the ref regex and relying on lookarounds `(?<!\{)` is a heuristic patch. Tracked in Step R.25 to replace this with a formal tokenizer: bind citation page suffixes (`{{rp}}`) directly to their parent citation token and parse nested footnote templates with a deterministic stack-based brace scanner.
 
 ---
 
@@ -2209,6 +2273,40 @@ This register serves as the authoritative system of record for all real-world Wi
   - **Live Browser CDP Tests (`npm run test:live`):** **8/8 checks passed** in live Chromium on Odoacer diff (Visual Diff disabling, Wikitext-first switching, badge href anchor discovery, Memento roundtrip, inline switch lock, dark mode tokens).
   - **Live CDP Benchmarks (`npm run test:bench`):** **5/5 canonical diffs passed** with byte-for-byte Memento roundtrip (Bihar, Odoacer, Zagreb Airport 114 refs, Cosmic Inflation, Donnie Brasco).
 * **Release Gate Status:** Pre-Flight Quality Gate is **100% COMPLETE & CLEARED**. Candidate `v1.5.3` is ready for Ring 0–2 rollout per `ROLLOUT_PLAN.md`.
+
+### 2026-10-17: Production Release & Cross-Wiki Rollout of RefDiff v1.5.3 (Rings 0–2 Fully Deployed)
+* **Ring 0 (Release Baseline & Git Tagging):**
+  - Git working tree committed clean and tagged: `git tag -a v1.5.3 -m "Release v1.5.3"` (`commit fa9e7f2`).
+  - Release SHA-1 for [`refdiff.js`](refdiff.js) (`v1.5.3`, 117.9 KB): `46c5f070399d89dc1f330dafeea0c58bb46901a2` (Short: `46c5f070`).
+  - Full test suite verified green: 138/138 unit/JSDOM tests and 10/10 deployment integrity checks passing.
+* **Live User Visual Inspection Gate (Interactive Sign-Off):**
+  - Replaced automated visual capture shortcuts with live human inspection in Chromium on port 9222 via persistent CDP daemon (`scripts/run_persistent_cdp_patch.py`).
+  - User directly reviewed live interactive diffs in browser:
+    - [Dwight D. Eisenhower (`diff=1380014667`)](https://en.wikipedia.org/w/index.php?title=Dwight_D._Eisenhower&diff=prev&oldid=1380014667): Verified Step R.21 boundary decoupling of `{{citation needed}}` from `<ref>` tags, zero prose swallowed, and Memento restoration.
+    - [RefDiff Showcase (`diff=1380240829`)](https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443): Verified zero-shift inline toggle alignment, Visual Diff mode disabling/dimming (Step R.11), and Wikitext-first switching.
+    - [Bihar Legislative Assembly (`diff=1379207737`)](https://en.wikipedia.org/w/index.php?diff=1379207737): Verified apostrophe attribute parsing and underscore anchor discovery.
+* **Ring 1 (Meta-Wiki Script Lead Deployment):**
+  - Updated `m:User:Powercycler/refdiff.js` with local `refdiff.js` (`v1.5.3`, SHA-1: `46c5f070`).
+  - Live Meta-Wiki Revision ID: **`31176975`** (Saved 2026-10-17 06:17 UTC).
+* **Ring 2 (English Wikipedia Early Testing, SHA Pointer Uprev & Documentation):**
+  - Early-tested and verified via `en:User:Powercycler/common.js` (Rev **`1380682062`**).
+  - Updated canonical SHA pointer on `en:User:Powercycler/refdiff.js` (Rev **`1380681839`**):
+    ```javascript
+    // [[m:User:Powercycler/refdiff.js]] (Release SHA-1: 46c5f070, oldid: 31176975)
+    mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&oldid=31176975&action=raw&ctype=text/javascript');
+    ```
+    *(Strictly omitted `<nowiki>` comment wrappers; enforced 2-line pure JS loader).*
+  - Updated authoritative documentation lead on `en:User:Powercycler/RefDiff` (Rev **`1380682190`**): updated version badge to `1.5.3`, documented identifier matching for native hovercards, and added template list preview specs.
+  - Showcase diff update deferred on-wiki: existing showcase diff (`diff=1380240829` covering sections 1–5) remains authoritative for current reviewer tours.
+* **Live Deployment Audit (`scripts/check_live_deployment.js`):**
+  - All 6 target endpoints verified 100% synchronized and in parity across Wikimedia APIs:
+    - `m:User:Powercycler/refdiff.js`: `Rev 31176975` (v1.5.3)
+    - `en:User:Powercycler/refdiff.js`: `Rev 1380681839` (Pinned to Meta `31176975`)
+    - `en:User:Powercycler/common.js`: `Rev 1380682062` (Production install)
+    - `en:User:Powercycler/RefDiff`: `Rev 1380682190` (v1.5.3 Lead docs)
+    - `m:User:Powercycler/RefDiff`: `Rev 31167426` (Soft redirect)
+    - `en:User:Powercycler/Userbox RefDiff`: `Rev 1380238970` (User space userbox)
+
 
 
 
