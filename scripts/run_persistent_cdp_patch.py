@@ -79,25 +79,25 @@ async def main():
             }
         }))
 
-        # Open / navigate to User:Powercycler/RefDiff
-        print("[3] Ensuring https://en.wikipedia.org/wiki/User:Powercycler/RefDiff is active...")
-        doc_url = "https://en.wikipedia.org/wiki/User:Powercycler/RefDiff"
+        # Open / navigate to Leonardo Torres Quevedo diff and User:Powercycler/RefDiff
+        print("[3] Ensuring Leonardo Torres Quevedo diff tab is active...")
+        diff_url = "https://en.wikipedia.org/w/index.php?title=Leonardo_Torres_Quevedo&diff=prev&oldid=1380356173"
         
         # Check existing tabs
         tabs_req = urllib.request.urlopen("http://127.0.0.1:9222/json/list")
         tabs = json.loads(tabs_req.read().decode("utf-8"))
-        doc_tab = next((t for t in tabs if "User:Powercycler/RefDiff" in t.get("url", "") and "diff=" not in t.get("url", "")), None)
+        diff_tab = next((t for t in tabs if "Leonardo_Torres_Quevedo" in t.get("url", "") and "diff=" in t.get("url", "")), None)
 
-        if doc_tab:
-            urllib.request.urlopen(f"http://127.0.0.1:9222/json/activate/{doc_tab['id']}")
-            print(f"[✓] Activated existing documentation tab: {doc_tab['id']}")
+        if diff_tab:
+            urllib.request.urlopen(f"http://127.0.0.1:9222/json/activate/{diff_tab['id']}")
+            print(f"[✓] Activated existing Leonardo diff tab: {diff_tab['id']}")
         else:
-            new_url = f"http://127.0.0.1:9222/json/new?{urllib.parse.quote(doc_url, safe='')}"
+            new_url = f"http://127.0.0.1:9222/json/new?{urllib.parse.quote(diff_url, safe='')}"
             req_new = urllib.request.Request(new_url, method="PUT")
             with urllib.request.urlopen(req_new) as resp:
                 new_tab = json.loads(resp.read().decode("utf-8"))
                 urllib.request.urlopen(f"http://127.0.0.1:9222/json/activate/{new_tab['id']}")
-                print(f"[✓] Created and activated documentation tab: {new_tab['id']}")
+                print(f"[✓] Created and activated Leonardo diff tab: {new_tab['id']}")
 
         print("\n" + "=" * 65)
         print("PERSISTENT MONKEY PATCH RUNNING (WEBSOCKET HELD OPEN)")
