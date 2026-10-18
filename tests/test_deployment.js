@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { assert, suite, test, finishStandalone } = require('./harness.js');
+const { build, MODULES } = require('../scripts/build.js');
 
 const rootDir = path.join(__dirname, '..');
 const refdiffPath = path.join(rootDir, 'refdiff.js');
@@ -117,6 +118,24 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     // Sanity check: Size must remain under 120 KB unminified to prevent bloated distribution
     assert.strictEqual(sizeKb < 120, true, `refdiff.js size (${sizeKb.toFixed(1)} KB) must be within the 120 KB unminified budget`);
     assert.strictEqual(sizeKb > 10, true, 'refdiff.js must be greater than 10 KB to ensure it is not an empty stub');
+  });
+
+  test('validates build synchronization: zero drift between src/ modules and refdiff.js', () => {
+    // 1. Verify all canonical modules exist in src/
+    for (const mod of MODULES) {
+      const modPath = path.join(rootDir, 'src', mod);
+      assert.strictEqual(fs.existsSync(modPath), true, `Required source module 'src/${mod}' must exist`);
+    }
+
+    // 2. Build fresh bundle from src/
+    const freshBundle = build(false);
+
+    // 3. Strict byte-for-byte identity check
+    assert.strictEqual(
+      refdiffSrc,
+      freshBundle,
+      'refdiff.js on disk must match fresh build output from src/ with zero drift. Run "npm run build" to update.'
+    );
   });
 
   test('validates public API exports and absence of global scope pollution', () => {

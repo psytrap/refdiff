@@ -25,6 +25,18 @@
       "env": {
         "node": true
       }
+    },
+    {
+      "files": ["src/**/*.js"],
+      "parserOptions": {
+        "ecmaFeatures": {
+          "globalReturn": true
+        }
+      },
+      "rules": {
+        "no-unused-vars": "off",
+        "no-undef": "off"
+      }
     }
   ]
 }

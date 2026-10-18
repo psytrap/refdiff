@@ -4,7 +4,8 @@
   "description": "Zero-loss citation decoupling gadget and diff driver for Wikipedia / MediaWiki Special:Diff",
   "main": "refdiff.js",
   "scripts": {
-    "lint": "eslint refdiff.js tests/**/*.js scripts/**/*.js",
+    "build": "node scripts/build.js",
+    "lint": "eslint refdiff.js src/**/*.js tests/**/*.js scripts/**/*.js",
     "test": "node tests/runner.js",
     "test:live": "python3 tests/test_live_cdp.py",
     "test:bench": "python3 tests/test_live_benchmarks.py",
