@@ -13,7 +13,6 @@ This document provides a live dashboard and structured overview of all open tick
 | Ticket | Title | Priority | Phase / Milestone | Scope & Deliverables |
 | :---: | :--- | :---: | :--- | :--- |
 | [**T-018**](open/T-018-phased-rollout-v1-5-6.md) | Phased Production Rollout of RefDiff v1.5.6 | 🔴 **P0** | 🟡 Release Ring 2 / Pilot | Safe promotion to en.WP & Meta with verification |
-| [**T-048**](open/T-048-publish-to-github-remote-and-tag.md) | Publish RefDiff Baseline and Release Tags to GitHub Remote | 🟠 **High** | 🔵 Tier 1 / Pilot | Final release commit, annotated tag v1.5.6, and GitHub remote publication |
 
 ---
 
