@@ -480,27 +480,27 @@ If an edge-case syntax error occurs in unexpected wikitext markup, RefDiff autom
 
 ## 4. 📋 Contributor Quick Reference Map
 
-The following map links virtual source components to their respective functions in `refdiff.js` and their dedicated unit and integration tests under `tests/`:
+The following map links modular source components in `src/` to their primary symbols, physical source files, and dedicated unit and integration tests under `tests/`:
 
-| Phase / Virtual File | Primary Functions & Symbols | Physical Location (`refdiff.js`) | Test Suite (`tests/`) | Key Invariants Verified |
+| Component / Source Module | Primary Functions & Symbols | Source File (`src/`) | Test Suite (`tests/`) | Key Invariants Verified |
 | :--- | :--- | :--- | :--- | :--- |
-| **`src/constants.js`** | `VERSION`, `REF_REGEX`, `TEMPLATE_REF_REGEX`, `SELECTORS`, `CLASSES` | Lines 54–507 | [`tests/test_constants.js`](tests/test_constants.js) | Regex boundary safety, lookahead assertions, selector integrity. |
-| **`src/state.js`** | `state`, `isRefDiffPreferred`, `setRefDiffPreferred` | Lines 510–530 | [`tests/test_state.js`](tests/test_state.js) | Persistence in `localStorage`, `mw.storage`, and `?refdiff=0/1` URL flags. |
-| **`src/utils.js`** | `stripHtml`, `escapeRegex`, `normalizeDiffTags`, `hasBalancedDiffTags`, `extractSfnInfo`, `normalizeCnDiffPair` | Lines 533–880 | [`tests/test_utils.js`](tests/test_utils.js) | Tag boundary repair, entity decoding, shortened footnote parsing. |
-| **`src/parser.js`** | `parseRefs` | Lines 883–980 | [`tests/test_parser.js`](tests/test_parser.js) | Sequential document order, `<ref>` and template parsing, unclosed tag protection. |
-| **`src/pairing.js`** | `pairReferences` | Lines 983–1076 | [`tests/test_pairing.js`](tests/test_pairing.js) | 3-pass heuristic matching (name $\to$ content $\to$ position), appearance sort. |
-| **`src/anchor.js`** | `findCiteNoteAnchor`, `sanitizeAnchor` | Lines 1079–1268 | [`tests/test_anchor.js`](tests/test_anchor.js) | Identifier matching (DOI, PMID, PMC, ISBN, URL), `#cite_note-*` resolution. |
-| **`src/renderer.js`** | `el`, `createProseBadgeElement`, `createCitRow`, `parseTemplateList`, `showBadgePreview` | Lines 1271–1717 | [`tests/test_renderer.js`](tests/test_renderer.js) | Safe DOM construction (M1), mathematical angle badges, preview cards. |
-| **`src/memento.js`** | `captureRowSnapshot`, `restoreRowSnapshot` | Lines 1720–1782 | [`tests/test_memento.js`](tests/test_memento.js) | In-place snapshot and byte-for-byte restoration without node detachment. |
-| **`src/pipeline.js`** | `applyDecoupling`, `restoreOriginal`, `transformProseCells`, `insertCitationRows`, `onTableClick` | Lines 1785–2095 | [`tests/test_pipeline.js`](tests/test_pipeline.js) | Prose badge substitution, citation row injection, click jump animations. |
-| **`src/dom_helpers.js`** | `getDiffBodyRows`, `notifyBodyUpdate` | Lines 2098–2142 | [`tests/test_dom_helpers.js`](tests/test_dom_helpers.js) | Row categorization and firing `wikipage.diff.wikitextBodyUpdate`. |
-| **`src/mode_coordinator.js`** | `selectMode`, `updateButtonState`, `setInlineSwitchDisabled`, `isVisualDiffActive` | Lines 2145–2628 | [`tests/test_mode_coordinator.js`](tests/test_mode_coordinator.js) | 3-way mode switching (visual/wikitext/refdiff), inline toggle switch lock. |
-| **`src/init.js`** | `isDiffPage`, `createRefDiffButton`, `createFallbackModeBar`, `init` | Lines 2631–2986 | [`tests/test_init.js`](tests/test_init.js) | URL/DOM detection, OOUI button mounting, retry mechanics. |
-| **`src/exports.js`** | UMD export definition (`module.exports` / `root.RefDiff`) | Lines 2989–3054 | [`tests/test_deployment.js`](tests/test_deployment.js) | Module export hygiene, zero global pollution, package verification. |
-| **Full DOM Suite** | Real MediaWiki DOM integration across all change permutations | Entire pipeline | [`tests/test_jsdom.js`](tests/test_jsdom.js) | Full table decoupling, Memento roundtrip, OOUI interactions in real DOM. |
-| **Benchmarks** | High-density changesets (100+ citations) | Entire pipeline | [`tests/test_benchmarks.js`](tests/test_benchmarks.js) | Sub-50ms execution budget, zero memory leaks across dense tables. |
+| **Constants & Configuration** | `VERSION`, `REF_REGEX`, `TEMPLATE_REF_REGEX`, `SELECTORS`, `CLASSES` | [`src/constants.js`](src/constants.js) | [`tests/test_constants.js`](tests/test_constants.js) | Regex boundary safety, lookahead assertions, selector integrity. |
+| **State Management** | `state`, `isRefDiffPreferred`, `setRefDiffPreferred` | [`src/state.js`](src/state.js) | [`tests/test_state.js`](tests/test_state.js) | Persistence in `localStorage`, `mw.storage`, and `?refdiff=0/1` URL flags. |
+| **Text Utilities** | `stripHtml`, `escapeRegex`, `normalizeDiffTags`, `hasBalancedDiffTags`, `extractSfnInfo`, `normalizeCnDiffPair` | [`src/utils.js`](src/utils.js) | [`tests/test_utils.js`](tests/test_utils.js) | Tag boundary repair, entity decoding, shortened footnote parsing. |
+| **Reference Parser** | `parseRefs` | [`src/parser.js`](src/parser.js) | [`tests/test_parser.js`](tests/test_parser.js) | Sequential document order, `<ref>` and template parsing, unclosed tag protection. |
+| **Reference Pairing** | `pairReferences` | [`src/pairing.js`](src/pairing.js) | [`tests/test_pairing.js`](tests/test_pairing.js) | 3-pass heuristic matching (name $\to$ content $\to$ position), appearance sort. |
+| **Anchor Discovery** | `findCiteNoteAnchor`, `sanitizeAnchor` | [`src/anchor.js`](src/anchor.js) | [`tests/test_anchor.js`](tests/test_anchor.js) | Identifier matching (DOI, PMID, PMC, ISBN, URL), `#cite_note-*` resolution. |
+| **Badge & Row Renderer** | `el`, `createProseBadgeElement`, `createCitRow`, `parseTemplateList`, `showBadgePreview` | [`src/renderer.js`](src/renderer.js) | [`tests/test_renderer.js`](tests/test_renderer.js) | Safe DOM construction (M1), mathematical angle badges, preview cards. |
+| **Memento Manager** | `captureRowSnapshot`, `restoreRowSnapshot` | [`src/memento.js`](src/memento.js) | [`tests/test_memento.js`](tests/test_memento.js) | In-place snapshot and byte-for-byte restoration without node detachment. |
+| **Transformation Pipeline** | `applyDecoupling`, `restoreOriginal`, `transformProseCells`, `insertCitationRows`, `onTableClick` | [`src/pipeline.js`](src/pipeline.js) | [`tests/test_pipeline.js`](tests/test_pipeline.js) | Prose badge substitution, citation row injection, click jump animations. |
+| **DOM Query Helpers** | `getDiffBodyRows`, `notifyBodyUpdate` | [`src/dom_helpers.js`](src/dom_helpers.js) | [`tests/test_dom_helpers.js`](tests/test_dom_helpers.js) | Row categorization and firing `wikipage.diff.wikitextBodyUpdate`. |
+| **Mode Coordinator** | `selectMode`, `updateButtonState`, `setInlineSwitchDisabled`, `isVisualDiffActive` | [`src/mode_coordinator.js`](src/mode_coordinator.js) | [`tests/test_mode_coordinator.js`](tests/test_mode_coordinator.js) | 3-way mode switching (visual/wikitext/refdiff), inline toggle switch lock. |
+| **Lifecycle & Init** | `isDiffPage`, `createRefDiffButton`, `createFallbackModeBar`, `init` | [`src/init.js`](src/init.js) | [`tests/test_init.js`](tests/test_init.js) | URL/DOM detection, OOUI button mounting, retry mechanics. |
+| **Module Exports (UMD)** | UMD export definition (`module.exports` / `root.RefDiff`) | [`src/exports.js`](src/exports.js) | [`tests/test_deployment.js`](tests/test_deployment.js) | Module export hygiene, zero global pollution, package verification. |
+| **Full DOM Suite** | Real MediaWiki DOM integration across all change permutations | [`src/*.js`](src/) (Entire pipeline) | [`tests/test_jsdom.js`](tests/test_jsdom.js) | Full table decoupling, Memento roundtrip, OOUI interactions in real DOM. |
+| **Benchmarks** | High-density changesets (100+ citations) | [`src/*.js`](src/) (Entire pipeline) | [`tests/test_benchmarks.js`](tests/test_benchmarks.js) | Sub-50ms execution budget, zero memory leaks across dense tables. |
 | **Deployment Gate** | Quality checks, packaging, version sync, ticket registry parity | Repository-wide | [`tests/test_deployment.js`](tests/test_deployment.js) | BOM check, `<nowiki>` encapsulation, Gate 11 ticket synchronization. |
-| **Live Browser CDP** | Live Chromium DevTools Protocol suite (port 9222) | Entire gadget | [`tests/test_live_cdp.py`](tests/test_live_cdp.py) | End-to-end browser automation, hovercards, dark mode verification. |
+| **Live Browser CDP** | Live Chromium DevTools Protocol suite (port 9222) | [`refdiff.js`](refdiff.js) (Entire gadget) | [`tests/test_live_cdp.py`](tests/test_live_cdp.py) | End-to-end browser automation, hovercards, dark mode verification. |
 
 ---
 
@@ -512,7 +512,7 @@ When contributing changes to RefDiff:
    ```bash
    npm test
    ```
-   Ensures all 141 modular tests pass (including Gate 11 bidirectional ticket parity).
+   Ensures all 142 modular tests pass (including Gate 11 bidirectional ticket parity).
 2. **Run ESLint Style & Code Quality Checks:**
    ```bash
    npm run lint

@@ -23,7 +23,9 @@ Backlog tickets in `tickets/open/` are structured and scheduled strictly accordi
 ### 2.1 🟡 Immediate Pre-Pilot (`P0 — Higher than Tier 1`)
 *Focus: Author self-testing on `en:User:Powercycler/common.js`, on-wiki documentation lead (`refdiff.wiki`), userbox readiness, language standards, and P0 real-world diff parser hardening.*
 
-*All foundational Pre-Pilot tickets are currently complete. See [**T-041**](done/T-041-restore-pre-pilot-stage-in-roadmap.md), [**T-042**](done/T-042-codify-ticket-first-default-rule.md), [**T-043**](done/T-043-purge-buzzwords-and-jargon.md), and [**T-051**](done/T-051-document-github-repository-in-refdiff-wiki.md) in [`DONE.md`](DONE.md).*
+| Ticket | Title | Priority | Scope & Deliverables |
+| :---: | :--- | :---: | :--- |
+| [**T-056**](open/T-056-coordinator-evaluation-and-multi-subagent-dispatch.md) | Codify Coordinator Ticket Evaluation and Multi-Subagent Dispatch Architecture | 🟠 **High** | Pre-dispatch scope evaluation and multi-subagent concurrency patterns |
 
 ---
 
@@ -36,6 +38,7 @@ Backlog tickets in `tickets/open/` are structured and scheduled strictly accordi
 | [**T-019**](open/T-019-surface-live-deployment-drift.md) | Surface Live Deployment Drift in Version Bumps & Pre-Flight Checks | 🟠 **High** | Surface hash discrepancies between local bundle and live Wikipedia endpoints |
 | [**T-022**](open/T-022-fail-open-crash-boundary.md) | Fail-Open Crash Isolation & Top-Level Boundary | 🟠 **High** | Top-level try-catch fail-open wrapper preventing script crashes from breaking diffs |
 | [**T-026**](open/T-026-test-timeout-hardening-and-watchdog.md) | Test Timeout Hardening & Watchdog Architecture | 🟠 **High** | Watchdog timer and execution timeout bounds across test runner & CDP scripts |
+| [**T-054**](open/T-054-jsdoc-type-specifications-and-ts-check.md) | JSDoc Type Specifications, `// @ts-check`, and Static Type Verification | 🟠 **High** | Formal `@typedef` models, `// @ts-check` validation, and zero-overhead static typing |
 | [**T-020**](open/T-020-complementary-tools-ecosystem-review.md) | Complementary Citation Tools & Ecosystem Review | 🔵 **Normal** | Ecosystem assessment against ProveIt, VisualEditor, and CitationStyle1 tools |
 | [**T-023**](open/T-023-pilot-cohort-validation.md) | Pilot Group Validation & Stability (10-User Milestone) | 🔵 **Normal** | Formal verification and feedback loop across first 10 active Wikipedia patrollers |
 | [**T-024**](open/T-024-streamline-rollout-and-bump-process.md) | Streamline Rollout Protocol & Version Bump Process | 🔵 **Normal** | Automated single-step version bump script synchronizing all distribution files |

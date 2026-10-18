@@ -21,6 +21,7 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📋 **[tickets/INDEX.md](tickets/INDEX.md)** – Live index of active (`in_progress/`) and prioritized backlog (`backlog/`) tickets categorized by project phase.
 * ✅ **[tickets/DONE.md](tickets/DONE.md)** – Historical register of completed and archived tickets (`done/`).
 * 📁 **[tickets/](tickets/)** – Project work items directory organized by project phase (`tickets/backlog/` for upcoming tasks, `tickets/in_progress/` for active work, `tickets/done/` for completed tickets with execution notes).
+* 📦 **[src/](src/)** – Modular source directory containing discrete single-responsibility ES modules compiled into the production bundle [`refdiff.js`](refdiff.js).
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
 * 🗃️ **[userbox.wiki](userbox.wiki)** – Userbox template and documentation (`{{User:Powercycler/Userbox RefDiff}}`).
 
@@ -61,26 +62,52 @@ RefDiff is engineered for zero-collision interoperability with Wikipedia's editi
 
 Together with RefDiff on `Special:Diff`, these scripts form a complete, non-destructive citation audit and editing workflow.
 
-### 3. Automated Testing & Verification
+### 3. Modular Source Architecture & Build Pipeline
+
+RefDiff source code is physically authored in discrete, single-responsibility modules under [`src/`](src/):
+
+| Module | Responsibility |
+| :--- | :--- |
+| [`src/constants.js`](src/constants.js) | Centralized regex patterns, selectors, CSS classes, hook names, and inline styles |
+| [`src/state.js`](src/state.js) | Runtime state management, memento snapshot registry, and preference persistence |
+| [`src/utils.js`](src/utils.js) | Tag repair, entity decoding, boundary normalization, and string sanitization |
+| [`src/parser.js`](src/parser.js) | Unified reference parser for `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, etc.) |
+| [`src/pairing.js`](src/pairing.js) | 3-pass heuristic pairing engine correlating deleted and added references |
+| [`src/anchor.js`](src/anchor.js) | Footnote anchor discovery (`#cite_note-*`) and Reference Previews popup binding |
+| [`src/renderer.js`](src/renderer.js) | Mathematical badge generation and citation diff row construction |
+| [`src/memento.js`](src/memento.js) | Non-destructive DOM row snapshots and byte-for-byte in-place restoration |
+| [`src/pipeline.js`](src/pipeline.js) | Decoupling transformation pipeline, citation row injection, and click handling |
+| [`src/dom_helpers.js`](src/dom_helpers.js) | DOM categorization and MediaWiki synchronization hook dispatch |
+| [`src/mode_coordinator.js`](src/mode_coordinator.js) | 3-way mode switching (visual/wikitext/refdiff) and inline toggle switch locks |
+| [`src/init.js`](src/init.js) | Page view detection, OOUI button mounting, and gadget lifecycle auto-start |
+| [`src/exports.js`](src/exports.js) | Universal Module Definition (UMD) exports and public API surface |
+
+* **Compilation (`npm run build`):** Compiles all modules in `src/` via [`scripts/build.js`](scripts/build.js) into the standalone production bundle [`refdiff.js`](refdiff.js), wrapping them with user-script metadata, UMD packaging, and on-wiki `<nowiki>` delimiters.
+* **Zero-Drift CI Gate:** A dedicated pre-flight check in `npm test` validates byte-for-byte identity between `src/` modules and `refdiff.js`, ensuring that uncompiled source changes can never be committed or deployed.
+
+### 4. Automated Testing & Verification
 
 RefDiff enforces a 100% test pass rate across 15 modular unit, component, deployment, and real DOM test suites, benchmark stress tests, and live browser automation (see [**TESTING.md**](TESTING.md) and [**REVIEW_GUIDE.md**](REVIEW_GUIDE.md)):
 
 ```bash
-# 1. Run ESLint code quality & style checks (0 warnings allowed)
+# 1. Build the production bundle from src/ modules
+npm run build
+
+# 2. Run ESLint code quality & style checks (0 warnings allowed)
 npm run lint
 
-# 2. Run the fast headless unit, component, deployment & JSDOM test suite (140 tests in ~250ms)
+# 3. Run the fast headless unit, component, deployment & JSDOM test suite (142 tests in ~250ms)
 npm test
 
-# 3. Run combined CI checks
+# 4. Run combined CI checks
 npm run ci
 
-# 4. Run an individual test file in isolation (e.g. deployment checks, parser, or real DOM)
+# 5. Run an individual test file in isolation (e.g. deployment checks, parser, or real DOM)
 node tests/test_deployment.js
 node tests/test_parser.js
 node tests/test_jsdom.js
 
-# 5. Run live Chromium CDP browser integration suite (port 9222)
+# 6. Run live Chromium CDP browser integration suite (port 9222)
 npm run test:live
 ```
 

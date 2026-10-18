@@ -25,7 +25,7 @@
  *
  * Repository: https://github.com/psytrap/refdiff
  *
- * Virtual File Hierarchy:
+ * Source Module Architecture (`src/`):
  *  1. [src/anchor.js]           (first line: 624)  - Live DOM footnote anchor discovery and popup integration
  *  2. [src/constants.js]        (first line: 53)   - Centralized regex patterns, selectors, CSS classes, hook names, inline styles
  *  3. [src/dom_helpers.js]      (first line: 1146) - DOM query, categorization, and hook notification helpers
