@@ -69,7 +69,7 @@ flowchart LR
 
 ## 2. 🏛️ Upstream `<ref def>` Strategy Roadmap
 
-While RefDiff resolves diff noise client-side on existing wikitext, the long-term architectural resolution to citation-induced merge conflicts is native MediaWiki storage tier support for section-modular reference definitions (`<ref def name="...">`). Complete technical specifications are detailed in [**`proposal/CONCEPT.md`**](proposal/CONCEPT.md) and [**`proposal/PROPOSAL.md`**](proposal/PROPOSAL.md).
+While RefDiff resolves diff noise client-side on existing wikitext, the long-term architectural resolution to citation-induced merge conflicts is native MediaWiki storage tier support for section-modular reference definitions (`<ref def name="...">`). The complete proposal documentation dossier is indexed in [**`proposal/README.md`**](proposal/README.md) (comprising [**`proposal/PROPOSAL.md`**](proposal/PROPOSAL.md), [**`proposal/CONCEPT.md`**](proposal/CONCEPT.md), and [**`proposal/POST.md`**](proposal/POST.md)).
 
 ```mermaid
 flowchart TD

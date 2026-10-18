@@ -10,8 +10,6 @@ This project introduces a model that decouples **Source Organization** (section-
 
 ## Documentation & Project Governance
 
-* 💡 **[PROPOSAL.md](proposal/PROPOSAL.md)** – Ready-to-submit Phabricator task proposal (clean feature focus, visual diff table, mechanics).
-* 📄 **[CONCEPT.md](proposal/CONCEPT.md)** – Comprehensive architecture document with detailed technical pathways, AST analyses, and ecosystem impact.
 * 🏛️ **[ARCHITECTURE.md](ARCHITECTURE.md)** – Technical architecture and design document (subsystems, state machine, Memento pattern, algorithms, and §10 ADR).
 * 🧭 **[CODE_WALKTHROUGH.md](CODE_WALKTHROUGH.md)** – Step-by-step architectural code walkthrough for contributors and reviewers tracing a representative diff execution case from page detection to DOM rollback.
 * 🎨 **[DESIGN.md](DESIGN.md)** – Product UX, visual design, and reviewer specification for **RefDiff** (*The Ref-Differentiator*), mathematical badge ergonomics, and reviewer interaction workflows.
@@ -25,7 +23,6 @@ This project introduces a model that decouples **Source Organization** (section-
 * 📁 **[tickets/](tickets/)** – Project work items directory organized by project phase (`tickets/backlog/` for upcoming tasks, `tickets/in_progress/` for active work, `tickets/done/` for completed tickets with execution notes).
 * 🌐 **[refdiff.wiki](refdiff.wiki)** – Publication-ready on-wiki documentation page (Wikitext) for creating `User:YourUsername/RefDiff` on Wikipedia (installation, visual walkthrough, badge legend).
 * 🗃️ **[userbox.wiki](userbox.wiki)** – Userbox template and documentation (`{{User:Powercycler/Userbox RefDiff}}`).
-* 📝 **[POST.md](proposal/POST.md)** – Ready-to-use Wiki post Anschreiben for English Wikipedia ([Wikipedia talk:Citing sources](https://en.wikipedia.org/wiki/Wikipedia_talk:Citing_sources)).
 
 ## Tooling: RefDiff (The Ref-Differentiator)
 
