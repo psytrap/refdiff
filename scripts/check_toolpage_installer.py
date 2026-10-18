@@ -13,7 +13,7 @@ Toolpage ScriptInstaller Button Verifier & Interactive Tester:
    that ScriptInstaller properly updates common.js via real UI interaction.
 
 GOVERNANCE & PERMISSION NOTE:
-Per repository deployment governance (ROLLOUT_PLAN.md & AUDIT_STRATEGY.md),
+Per repository deployment governance (RELEASE_RUNBOOK.md & REVIEW_GUIDE.md),
 automated pushing to remotes and automated deployment edits are strictly
 forbidden. This script is the SOLE AND ONLY EXCEPTION authorized to perform
 read-write UI actions by pressing the ScriptInstaller Install/Uninstall button

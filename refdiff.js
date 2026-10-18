@@ -1,8 +1,8 @@
 /* <nowiki> */
 // ==UserScript==
 // @name         RefDiff
-// @namespace    https://github.com/m-k/einzelnachweise
-// @version      1.5.4
+// @namespace    https://github.com/psytrap/refdiff
+// @version      1.5.6
 // @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
 // @author       RefDiff Contributors
 // @match        https://*.wikipedia.org/*diff=*
@@ -23,7 +23,7 @@
  * Preserves 100% of Wikipedia's native diff table (revision headers, line numbers,
  * context lines, diff hunks) while decoupling citation templates from prose lines.
  *
- * Repository: https://github.com/m-k/einzelnachweise
+ * Repository: https://github.com/psytrap/refdiff
  *
  * Virtual File Hierarchy:
  *  1. [src/anchor.js]           (first line: 624)  - Live DOM footnote anchor discovery and popup integration
@@ -59,7 +59,7 @@
   /**
    * Current RefDiff semantic version.
    */
-  const VERSION = '1.5.4';
+  const VERSION = '1.5.6';
 
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.

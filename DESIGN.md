@@ -1,4 +1,4 @@
-# RefDiff: Architecture & Tool Design Specification
+# RefDiff: Product UX, Visual Design & Reviewer Specification
 *Subtitled: The Ref-Differentiator*
 
 A zero-loss diff-decoupling engine and visualization gadget for MediaWiki `Special:Diff` that eliminates "template camouflage" by separating prose edits from citation metadata changes.
@@ -6,7 +6,7 @@ A zero-loss diff-decoupling engine and visualization gadget for MediaWiki `Speci
 * **Tool Name:** `RefDiff`
 * **User Script / Gadget:** `refdiff.js` (for MediaWiki `Special:Diff`)
 * **Conceptual Subtitle:** *Ref-Differentiator*
-* **Repository Role:** Reviewer companion and diff-inspection gadget for citation decoupling and the Section-Scoped References (`<references hidden>`) ecosystem.
+* **Repository Role:** Reviewer companion and diff-inspection gadget for citation decoupling and the Section-Scoped References (`<ref def>` / `<references hidden>`) ecosystem.
 
 > [!NOTE]
 > For the comprehensive engineering specification, state machine diagrams, DOM Memento pattern, and subsystem class definitions, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
@@ -80,14 +80,14 @@ Line 42:
 `RefDiff` is built as an in-place client-side diff-decoupling gadget for MediaWiki `Special:Diff`. It runs directly in the browser via `common.js`, `global.js`, or user script extensions on English Wikipedia, Meta-Wiki, and all Wikimedia projects.
 
 ### 4.1 Placement & UI Integration
-* Integrates directly into Wikipedia's native OOUI diff mode switcher (`.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget`) alongside Wikitext and Visual Diff: `[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ] [ ] Inline modified refs`.
+* Integrates directly into Wikipedia's native OOUI diff mode switcher (`.ve-init-mw-diffPage-diffMode .oo-ui-buttonSelectWidget`) alongside Wikitext and Visual Diff: `[ ] Inline modified refs  [ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ]`.
 * Strictly adheres to native Wikipedia design with no extraneous banners or non-native status bars.
 * Preserves native inline diff toggle (`Inline ( )`) and full Vector 2022 light/dark theme responsiveness (`clientpref`).
 
 ### 4.2 Mechanism & Core Capabilities
 1. **Zero-Loss Native Diff Table:** Operates directly on Wikipedia's native 2-column diff table (`table.diff`), preserving 100% of revision metadata headers, line numbers (`Line 101:`), and context rows.
 2. **In-Place DOM Memento (No Closure Detachment):** Avoids destructive `.innerHTML` replacement by updating table cells in-place and capturing a lightweight DOM snapshot. This ensures MediaWiki's `inlineFormatToggle.js` closures remain bound to live DOM nodes across mode transitions.
-3. **3-Way Seamless Mode Switching:** Full bidirectional switching between `Visual`, `Wikitext`, and `RefDiff`. When switching to `Visual`, diff rows are cleanly hidden via `oo-ui-element-hidden` and synchronized with VisualEditor via `wikipage.diff.wikitextBodyUpdate` to prevent row leakage.
+3. **Three-Way Mode Switching:** Full bidirectional switching between `Visual`, `Wikitext`, and `RefDiff`. When Visual Diff is active, the RefDiff button is dimmed/disabled; switching from Visual to Wikitext un-dims RefDiff for instant decoupling. When switching to `Visual`, diff rows are cleanly hidden via `oo-ui-element-hidden` and synchronized with VisualEditor via `wikipage.diff.wikitextBodyUpdate` to prevent row leakage.
 4. **"Inline modified refs" Mode Toggle:** Provides an intuitive in-toolbar toggle checkbox (`[ ] Inline modified refs`) allowing reviewers to choose between full decoupling (all citation changes placed in separate rows below, default unchecked) and inline modified references (modified references kept directly in prose with prepended `⟨~label~⟩` badges, added/deleted citations always separated).
 5. **3-Pass Reference Pairing Engine:** Correlates deleted and added references using (1) explicit `name="..."` matching, (2) content-addressed string equality, and (3) positional order fallback. Anonymous citations count sequentially (`⟨ref1⟩`, `⟨ref2⟩`, `⟨ref3⟩`) in natural document reading order.
 6. **Context Line Auto-Conversion:** If 100% of differences on a line are citations, the prose row automatically converts to neutral context appearance (`diff-context`), eliminating false text diff alerts.
@@ -99,10 +99,10 @@ Line 42:
 ### 4.3 Upstream MediaWiki Integration Vision (Parsoid / `wikidiff2`)
 * In the future, MediaWiki's native PHP diff engine (`wikidiff2`) or Parsoid can adopt this pipeline natively as an official diff tab on `Special:Diff`:  
   `[ Standard Diff | Prose Only | Citation Audit ]`.
-* For detailed analysis on client-side regex parsing vs. native preloaded MediaWiki libraries, see [**ARCHITECTURE.md**](ARCHITECTURE.md#91-evaluating-regex-parsing-vs-preloaded-mediawiki--meta-wiki-libraries) and [**LOG.md**](LOG.md#task-evaluate-regex-based-citation-parsing-vs-preloaded-mediawiki--meta-wiki-libraries).
+* For detailed analysis on client-side regex parsing vs. native preloaded MediaWiki libraries, see [**ARCHITECTURE.md**](ARCHITECTURE.md#91-evaluating-regex-parsing-vs-preloaded-mediawiki--meta-wiki-libraries).
 
 ### 4.4 Ecosystem Interoperability & Supplementing Tools
-RefDiff is engineered for seamless coexistence with other widely used Wikipedia user scripts:
+RefDiff is designed to operate reliably alongside other widely used Wikipedia user scripts:
 * ⚡ [**diffedit**](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit) ([`m:User:Jon Harald Søby/diffedit.js`](https://meta.wikimedia.org/wiki/User:Jon_Harald_S%C3%B8by/diffedit.js)): Injects an inline "Edit" link next to section headers on `Special:Diff` allowing editors to edit sections directly without leaving the diff view.
   * **Line-Enumeration Protection:** RefDiff assigns isolated CSS classes (`refdiff-cit-addedline`, `refdiff-cit-context`) to decoupled citation rows instead of native `diff-addedline` / `diff-context`, guaranteeing that `diffedit`'s line scanner (`enumerateLines()`) completely skips injected citation rows and maintains 100% accurate wikitext line numbering.
   * **Automatic Raw Wikitext Restoration:** When an editor clicks `[ Edit ]` or when `table.diff` gains `.diff-editmode`, RefDiff automatically restores native wikitext mode so the user edits raw wikitext instead of mathematical badges.
@@ -113,6 +113,7 @@ RefDiff is engineered for seamless coexistence with other widely used Wikipedia 
 * 🤖 [**AI Source Verification**](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js) ([`User:Alaexis/AI Source Verification.js`](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js)): In-browser LLM evaluation (Gemini, Claude, GPT) of citations against article claims. By isolating prose from citation markup, RefDiff provides a clean claim baseline for human patrollers evaluating AI verification verdicts and flagging hallucinations.
 * 🔎 [**CNfirmed**](https://en.wikipedia.org/wiki/User:Alaexis/CNfirmed.js) ([`User:Alaexis/CNfirmed.js`](https://en.wikipedia.org/wiki/User:Alaexis/CNfirmed.js)): Discovers and verifies candidate references for `{{citation needed}}` claims via the Internet Archive books API and LLM judges, supplementing RefDiff's citation audit workflow.
 * 🛠️ [**ProveIt**](https://en.wikipedia.org/wiki/Wikipedia:ProveIt) ([`MediaWiki:Gadget-Global-ProveIt.js`](https://www.mediawiki.org/wiki/MediaWiki:Gadget-Global-ProveIt.js)): Graphical reference manager gadget for the 2010 wikitext source editor. It parses `<ref>` tags in the active edit textarea and provides an interactive form backed by TemplateData and Citoid. By keeping citations organized locally in section definition blocks or cleanly decoupled in diff reviews, RefDiff and ProveIt jointly streamline citation authoring and auditing.
+* 🔗 [**SmartDiff**](https://en.wikipedia.org/wiki/User:Nardog/SmartDiff) ([`User:Nardog/SmartDiff.js`](https://en.wikipedia.org/wiki/User:Nardog/SmartDiff.js)): Browser extension / script that turns wikilinks, external links, and template calls in diff cells into clickable links on `Special:Diff`. RefDiff and SmartDiff mutually respect the diff DOM: RefDiff extracts reference tags into independent citation rows and injects non-colliding `<sup class="reference refdiff-ref">` badges, while SmartDiff operates on the remaining inline wikitext links without corrupting badge structure or Memento restoration.
 
 ---
 
@@ -170,7 +171,7 @@ The tool compares `RawRefsA` against `RawRefsB`:
 <div style="background: #0d1117; padding: 20px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #c9d1d9; border: 1px solid #30363d; margin: 16px 0;">
 
 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding-bottom: 10px; margin-bottom: 15px;">
-  <span style="font-weight: bold; color: #eaecf0;">MediaWiki Native Diff Toolbar: [ 👁 Visual ] [ [[]] Wikitext ] <span style="background: #1f4070; color: #ffffff; padding: 2px 8px; border-radius: 3px; font-weight: bold;">[ ⧉ RefDiff ]</span> [ ] Inline modified refs</span>
+  <span style="font-weight: bold; color: #eaecf0;">MediaWiki Native Diff Toolbar: [ ] Inline modified refs  [ 👁 Visual ] [ [[]] Wikitext ] <span style="background: #1f4070; color: #ffffff; padding: 2px 8px; border-radius: 3px; font-weight: bold;">[ ⧉ RefDiff ]</span></span>
 </div>
 
 <div style="margin-bottom: 20px;">
@@ -193,11 +194,11 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ---
 
-## 7. Synergy with `<references hidden>`
+## 7. Integration with `<ref def>` / `<references hidden>`
 
-`RefDiff` and the native `<references hidden>` proposal form a powerful, bidirectional ecosystem:
+`RefDiff` and the native `<ref def>` / `<references hidden>` proposal form a powerful, bidirectional ecosystem:
 
-1. **When an article adopts `<references hidden>`:**
+1. **When an article adopts `<ref def>` / `<references hidden>`:**
    * The wikitext is already separated in database storage.
    * `RefDiff` renders instantly with 0 parsing overhead, simply highlighting the prose hunk and the `<references hidden>` hunk as distinct logical cards.
 2. **When an article still uses legacy inline citations:**
@@ -215,7 +216,7 @@ The tool compares `RawRefsA` against `RawRefsB`:
 * [x] **Phase 3: MediaWiki User Script / Gadget (`refdiff.js`)**
   * **Zero-Loss DOM Manipulation:** Operates directly on MediaWiki's native diff table (`table.diff`), preserving 100% of revision metadata headers, line numbers (`Line 101:`), and context lines.
   * **Memento DOM Snapshot Pattern:** In-place cell updates preserve DOM node references, ensuring MediaWiki's `inlineFormatToggle.js` and VisualEditor closures remain active.
-  * **3-Way OOUI Diff Mode Switcher:** Integrated directly into native OOUI diff mode button switcher next to Wikitext: `[ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ] [ ] Inline modified refs`.
+  * **3-Way OOUI Diff Mode Switcher:** Integrated directly into native OOUI diff mode button switcher next to Wikitext: `[ ] Inline modified refs  [ 👁 Visual ] [ [[]] Wikitext ] [ ⧉ RefDiff ]`.
   * **"Inline modified refs" Mode Toggle:** In-toolbar toggle for switching between full citation row decoupling (default) and inline modified references with prepended `⟨~label~⟩` badges.
   * **Native Reference Previews & List-Format Fallback:** Badges act as interactive `<sup class="reference">` links triggering MediaWiki's standard Reference Preview hovercards (`Extension:Popups`) via DOM identifier matching (DOI, PMID, PMC, ISBN, URL), falling back to clean template parameter list previews (`• key: value` / floating `.refdiff-preview-card`) for newly added citations without DOM footnote anchors.
   * **Visual Diff Synchronization:** Prevents row leakage by hiding rows (`oo-ui-element-hidden`) and notifying VisualEditor via `wikipage.diff.wikitextBodyUpdate`.
@@ -224,8 +225,8 @@ The tool compares `RawRefsA` against `RawRefsB`:
   * **Cognitive Load Color Ergonomics:** Subtle secondary styling for unmodified references (zero blue highlight, normal font weight); amber gold for edits.
   * **Prefixed Citation Diff Rows:** Injects citation diff rows directly underneath each prose line, prefixed with matching badges.
   * **Clean-Code Modular Architecture:** Centralized state object, CSS selector/class registries, and single-responsibility helper decomposition (see [**`ARCHITECTURE.md`**](ARCHITECTURE.md)).
-  * **Rigorous Automated Verification:** 115/115 tests across 15 modular suites in `tests/` running in ~250ms with 100% headless function coverage and JSDOM real DOM testing (see [**`TEST_PLAN.md`**](TEST_PLAN.md)) and live browser automation in `tests/test_live_cdp.py`.
-  * **On-Wiki Deployment:** Canonical release on English Wikipedia ([`en:User:Powercycler/refdiff.js`](https://en.wikipedia.org/wiki/User:Powercycler/refdiff.js)) and global cross-wiki loader stub on Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)).
+  * **Rigorous Automated Verification:** 140/140 tests across 15 modular suites in `tests/` running in ~250ms with 100% headless function coverage and JSDOM real DOM testing (see [**`TESTING.md`**](TESTING.md)) and live browser automation in `tests/test_live_cdp.py`.
+  * **On-Wiki Deployment:** Canonical script lead on Meta-Wiki ([`m:User:Powercycler/refdiff.js`](https://meta.wikimedia.org/wiki/User:Powercycler/refdiff.js)) and revision-pinned SHA pointer on English Wikipedia ([`en:User:Powercycler/refdiff.js`](https://en.wikipedia.org/wiki/User:Powercycler/refdiff.js)).
 * [ ] **Phase 4: Upstream Phabricator Feature Request**
   * Submit RFC to Wikimedia Phabricator for native Parsoid/`wikidiff2` integration.
 
@@ -233,34 +234,26 @@ The tool compares `RawRefsA` against `RawRefsB`:
 
 ## 9. Quick Start & Installation
 
-### Option A: English Wikipedia (Canonical Stable Lead)
-Add the following line to your local **[`Special:MyPage/common.js`](https://en.wikipedia.org/wiki/Special:MyPage/common.js)** on English Wikipedia to load the verified, stable production release:
+### Option A: Global Installation via Meta-Wiki Script Lead (All Wikis)
+To enable RefDiff across all Wikimedia projects (or locally on any wiki), add the following line to your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)** or local `Special:MyPage/common.js`:
 
 ```javascript
-// [[User:Powercycler/refdiff.js]] - RefDiff: Decoupled citation diffs for Special:Diff (Stable)
-mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
-```
-
-### Option B: Meta-Wiki (`m.WM`) Beta Channel (Tracking Latest Changes)
-To beta test RefDiff and track the latest development changes, bleeding-edge improvements, and pre-release bug fixes across all Wikimedia projects at once, add the following line to your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)** (or your local `common.js`):
-
-```javascript
-// [[m:User:Powercycler/refdiff.js]] - RefDiff Beta: Tracking latest changes across all wikis (m.WM)
+// [[m:User:Powercycler/refdiff.js]] - Decoupled citation diffs for Special:Diff across all wikis
 mw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 ```
 
-### Option C: Global Stable (All Wikimedia Wikis at Once)
-If you want the battle-tested stable release active across all Wikimedia wikis without tracking beta changes, load the canonical English Wikipedia release from your central **[`Special:MyPage/global.js` on Meta-Wiki](https://meta.wikimedia.org/wiki/Special:MyPage/global.js)**:
+### Option B: English Wikipedia SHA-Pinned Loader
+To install on English Wikipedia via release-pinned SHA pointer, add the following line to your local **[`Special:MyPage/common.js`](https://en.wikipedia.org/wiki/Special:MyPage/common.js)** (or click "Install" via the One-Click Script Installer on [**`User:Powercycler/RefDiff`**](https://en.wikipedia.org/wiki/User:Powercycler/RefDiff)):
 
 ```javascript
-// [[User:Powercycler/refdiff.js]] - RefDiff Stable across all wikis
+// [[en:User:Powercycler/refdiff.js]] - RefDiff SHA-pinned loader on English Wikipedia
 mw.loader.load('https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript');
 ```
 
-### Option D: Browser Extension (Tampermonkey / Violentmonkey)
+### Option C: Browser Extension (Tampermonkey / Violentmonkey)
 Install `refdiff.js` directly as a user script in Tampermonkey, Violentmonkey, or Greasemonkey:
-* **Stable Release:** `https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
-* **Beta Channel (Latest Changes):** `https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
+* **Meta-Wiki Script Lead:** `https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
+* **English Wikipedia SHA Pointer:** `https://en.wikipedia.org/w/index.php?title=User:Powercycler/refdiff.js&action=raw&ctype=text/javascript`
 
 
 

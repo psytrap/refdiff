@@ -1,0 +1,41 @@
+# ✅ RefDiff Completed Tickets Register
+
+This document serves as the historical archive and completion register for all resolved tickets in the RefDiff project (`tickets/done/`).
+
+- 📋 For active and prioritized backlog tickets, see [**`tickets/INDEX.md`**](INDEX.md).
+- 📜 For ticket lifecycle rules and the 7-step execution protocol, see [**`tickets/README.md`**](README.md).
+- 🧭 For strategic scaling milestones, see [**`ROADMAP.md`**](../ROADMAP.md).
+
+---
+
+## 📋 Completed Tickets Register
+
+| Ticket | Title | Completed Date | Resolution Summary |
+| :---: | :--- | :---: | :--- |
+| ✅ [**T-001**](done/T-001-inception-and-two-tier-proposal.md) | Inception and Two-Tier Architecture Proposal | 2026-10-08 | Formulated Two-Tier architecture: client-side RefDiff user-script + upstream `<ref def>` native proposal. |
+| ✅ [**T-002**](done/T-002-shortened-footnotes-and-odoacer.md) | Shortened Footnotes Support and Odoacer Benchmark | 2026-10-10 | Added `{{sfn}}` parser support, sequential document order indexing, and performance benchmarking. |
+| ✅ [**T-003**](done/T-003-virtual-file-bundle-and-modular-tests.md) | Virtual File Bundle and Modular Test Suite | 2026-10-10 | Decoupled monolithic codebase into modular virtual source files (`src/`) with automated build & concat. |
+| ✅ [**T-004**](done/T-004-inline-modified-mode-and-diffedit-compat.md) | Inline-Modified Mode, Whitespace Preservation, and diffedit Interoperability | 2026-10-11 | Added checkbox mode for inline modified references, preserved pure prose whitespace diffs, ensured diffedit compatibility. |
+| ✅ [**T-005**](done/T-005-proveit-locality-and-companion-tools.md) | ProveIt Section Locality and Companion Tools Analysis | 2026-10-12 | Analyzed ProveIt UI locality vs. MediaWiki diff constraints; documented non-interference boundaries. |
+| ✅ [**T-006**](done/T-006-unwrapped-footnotes-and-unclosed-quotes.md) | Unwrapped Footnotes, Unclosed Quotes, and Bold Markup Invariance | 2026-10-13 | Guarded against unwrapped template delimiters across diff changes, unclosed quotes, and bold formatting artifacts. |
+| ✅ [**T-007**](done/T-007-audit-strategy-and-security-remediations.md) | Audit Strategy and Security Remediations (K1, M1, M6, M7) | 2026-10-14 | Remediated K1 (JSDOM real DOM harness), M1 (XSS-safe DOM builder), M6 (SHA CDN pinning), M7 (`<nowiki>` packaging). |
+| ✅ [**T-008**](done/T-008-bihar-apostrophe-and-anchor-matching.md) | Bihar Assembly Embedded Apostrophe and Anchor Normalization | 2026-10-14 | Sanitized footnote anchor matching for embedded attribute quotes and underscore normalization. |
+| ✅ [**T-009**](done/T-009-phased-rollout-v1-4-3.md) | Phased Rollout Infrastructure and v1.4.3 Release | 2026-10-14 | Executed Ring 0–3 staged rollout for RefDiff v1.4.3 with automated pre-flight checks and rollback guarantees. |
+| ✅ [**T-010**](done/T-010-visual-diff-isolation-wikitext-first.md) | Visual Diff Isolation and Wikitext-First Mode Switching | 2026-10-14 | Disabled decoupling under Parsoid visual diffs to prevent DOM collision; enforced wikitext-first diff view. |
+| ✅ [**T-011**](done/T-011-comprehensive-visual-inspection.md) | Comprehensive Visual Inspection Across All Change Cases | 2026-10-14 | Verified side-by-side rendering, diffchange highlights, and Memento restoration across all 8 diff permutation cases. |
+| ✅ [**T-012**](done/T-012-on-wiki-docs-meta-redirect-userbox.md) | On-Wiki Documentation, Meta Redirect, and Userbox Polish | 2026-10-14 | Authored `refdiff.wiki` documentation page, userbox template (`userbox.wiki`), and Meta-Wiki redirect stub. |
+| ✅ [**T-013**](done/T-013-inter-template-cn-diff-alignment.md) | Inter-Template Diff Fragment Alignment (Citation Needed & cn) | 2026-10-14 | Aligned split diff fragments where `{{citation needed}}` or `{{cn}}` is replaced by a real citation (`diff=1380014667`). |
+| ✅ [**T-014**](done/T-014-dom-identifier-matching-and-list-preview.md) | Two-Tier DOM Identifier Matching and List-Format Preview | 2026-10-15 | Implemented list-format preview cards (`key: value`) and robust anchor discovery across DOM footnotes. |
+| ✅ [**T-015**](done/T-015-phased-rollout-v1-5-3.md) | Phased Production Rollout of RefDiff v1.5.3 | 2026-10-17 | Successfully promoted v1.5.3 to English Wikipedia with verified byte-for-byte in-place Memento rollback. |
+| ✅ [**T-016**](done/T-016-paragraph-merge-boundary-shift-fix.md) | Paragraph-Merge and Sentence-Append Boundary Shift Normalization (Rule 7b) | 2026-10-17 | Normalized `wikidiff2` boundary shift artifacts where trailing ref tag brackets leak across lines (`diff=1380356173`). |
+| ✅ [**T-017**](done/T-017-documentation-cleanup-and-regex-audit.md) | Documentation Synchronization, CDP Reconnection Hardening, and Regex Audit | 2026-10-17 | Hardened CDP browser runner and performed formal architectural audit on regex heuristics vs. string matcher. |
+| ✅ [**T-039**](done/T-039-retire-log-md-and-restructure-docs.md) | Retire Misleading LOG.md and Restructure Project Documentation | 2026-10-17 | Retired monolithic `LOG.md`; created `ROADMAP.md`, `REVIEW_GUIDE.md`, `RELEASE_RUNBOOK.md`, `DESIGN.md`, `TESTING.md`. |
+| ✅ [**T-040**](done/T-040-backlog-rename-and-ticket-index-docs.md) | Streamline Ticket State Machine to tickets/open and tickets/done with T-NNN Taxonomy | 2026-10-17 | Streamlined ticket architecture to `tickets/open/` and `tickets/done/`, standardized on `T-NNN-slug.md`, created `INDEX.md` & `DONE.md`. |
+| ✅ [**T-041**](done/T-041-restore-pre-pilot-stage-in-roadmap.md) | Restore Immediate Pre-Pilot Stage Before Tiers 1–3 in ROADMAP.md | 2026-10-17 | Restored Immediate Pre-Pilot (`P0 — Higher than Tier 1`) in `ROADMAP.md` (diagram, table, and detailed narrative). |
+| ✅ [**T-042**](done/T-042-codify-ticket-first-default-rule.md) | Codify "Ticket-Only by Default" Rule and Phase-Based Backlog Sorting | 2026-10-17 | Created `.agent/rules/ticket-first-workflow.md` and codified Golden Rule and Phase-Based Backlog Sorting in `tickets/README.md`. |
+| ✅ [**T-043**](done/T-043-purge-buzzwords-and-jargon.md) | Purge Corporate Buzzwords and Tech Jargon Across Repository Documentation | 2026-10-17 | Purged colloquial buzzwords (`dogfood`, `cohort`, `synergies`, `leverage`, `seamless`) across all docs in favor of clear, natural technical English. |
+| ✅ [**T-044**](done/T-044-automated-ticket-registry-parity-audit.md) | Automated Ticket Registry Parity & Integrity Verification | 2026-10-18 | Added Gate 11 to `tests/test_deployment.js` enforcing bidirectional parity between ticket files and `INDEX.md`/`DONE.md`. |
+| ✅ [**T-046**](done/T-046-document-agent-environment-settings-and-cdp-skill.md) | Document Agent Environment Settings & CDP Browser Skill | 2026-10-18 | Codified agent environment invariants in `REVIEW_GUIDE.md` and documented `chromium-remote-debug` procedure & persistent CDP runner across `REVIEW_GUIDE.md` and `TESTING.md`. |
+| ✅ [**T-047**](done/T-047-delegate-ticket-execution-to-subagents.md) | Delegate Ticket Execution Exclusively to Subagents | 2026-10-18 | Codified operational mandate that root coordinator delegates all ticket execution to autonomous subagents across `.agent/rules/ticket-first-workflow.md`, `tickets/README.md`, and `REVIEW_GUIDE.md`. |
+| ✅ [**T-045**](done/T-045-prepare-for-github-publication.md) | Prepare Repository Baseline for GitHub Publication | 2026-10-18 | Aligned repository URLs to psytrap/refdiff, codified Ring 0 in RELEASE_RUNBOOK.md, purged user paths/emails, and validated baseline. |
+| ✅ [**T-049**](done/T-049-architectural-code-walkthrough.md) | Architectural Code Walkthrough with Representative Execution Case | 2026-10-18 | Authored pedagogical code walkthrough based on representative diff case across all 7 phases with Mermaid sequence diagram & quick reference map. |

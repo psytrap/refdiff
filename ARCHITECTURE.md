@@ -2,6 +2,9 @@
 
 This document provides a comprehensive architectural and engineering specification for **RefDiff** (*The Ref-Differentiator*) and the section-modular citation decoupling ecosystem.
 
+> [!TIP]
+> **New Contributor Onboarding:** For an accessible, step-by-step code walkthrough tracing a concrete diff execution case across all virtual modules (Detection $\to$ Memento $\to$ Parsing $\to$ Pairing $\to$ Pipeline $\to$ Rendering $\to$ Rollback), see [**CODE_WALKTHROUGH.md**](CODE_WALKTHROUGH.md).
+
 ---
 
 ## 1. Executive Summary & Architectural Goals
@@ -9,7 +12,7 @@ This document provides a comprehensive architectural and engineering specificati
 Traditional inline citations (`<ref>{{Cite ...}}</ref>`) interleave prose assertions with verbose bibliographic metadata. On MediaWiki and Git, this creates **severe diff noise**, **artificial merge conflicts**, and **cognitive fatigue during reviews**.
 
 The project resolves this through a **two-tier architecture**:
-1. **Storage Tier (Wikitext / Git):** Section-modular storage where citations are defined in section-scoped blocks (`<references hidden>`).
+1. **Storage Tier (Wikitext / Git):** Section-modular storage where citations are defined in section-scoped blocks (`<ref def>` / `<references hidden>`).
 2. **Review & Presentation Tier (`RefDiff.js`):** A client-side gadget that provides a **virtual decoupling lens** directly on MediaWiki `Special:Diff`, transforming monolithic diff tables into clean, decoupled prose rows paired with isolated citation diff rows.
 
 ```mermaid
@@ -104,7 +107,7 @@ classDiagram
     DOMRenderer --> ModeCoordinator
 ```
 
-### 2.1 Virtual File Architecture (Single-File Modularization)
+### 2.2 Virtual File Architecture (Single-File Modularization)
 
 Although physically maintained and deployed as a **single file** (`refdiff.js`) to satisfy MediaWiki's user-script runtime constraints without requiring an external bundler, the internal architecture is explicitly delineated into **multiple virtual files** using standardized region boundaries (`/* === [VIRTUAL FILE: src/...] === */`).
 
@@ -112,13 +115,13 @@ This provides the architectural separation of a multi-file project while preserv
 
 | Virtual File | Primary Symbols / Scope | Responsibility |
 | :--- | :--- | :--- |
-| **`src/constants.js`** | `REF_REGEX`, `TEMPLATE_REF_REGEX`, `STORAGE_KEY`, `SELECTORS`, `CLASSES`, `HOOKS`, `BADGE_STYLES` | Centralizes regex patterns, storage keys, DOM selectors, CSS classes, hook names, and inline badge styles. |
+| **`src/constants.js`** | `VERSION`, `REF_REGEX`, `TEMPLATE_REF_REGEX`, `STORAGE_KEY`, `SELECTORS`, `CLASSES`, `HOOKS`, `BADGE_STYLES` | Centralizes regex patterns, storage keys, DOM selectors, CSS classes, hook names, and inline badge styles. |
 | **`src/state.js`** | `state` (`origTableHtml`, `isDecoupled`, `initRetries`, `modifiedRows`, etc.) | Encapsulates runtime state, lifecycle flags, and modified row snapshot mementos. |
-| **`src/utils.js`** | `stripHtml`, `escapeRegex`, `extractName`, `normalizeDiffTags`, `hasBalancedDiffTags`, `extractSfnInfo` | Preprocesses diff boundary splits, regex escaping, HTML stripping, name extraction, diffchange tag balance, and sfn parameter parsing. |
+| **`src/utils.js`** | `stripHtml`, `escapeRegex`, `extractName`, `normalizeDiffTags`, `hasBalancedDiffTags`, `extractSfnInfo`, `formatBadgeDisplayLabel`, `hasDeletedCn`, `normalizeCnDiffPair` | Preprocesses diff boundary splits, regex escaping, HTML stripping, name extraction, diffchange tag balance, and sfn parameter parsing. |
 | **`src/parser.js`** | `parseRefs` | Unified reference parser. Scans `<ref>` tags and footnote templates (`{{sfn}}`, `{{r}}`, `{{efn}}`, `{{harv}}`), filtering nested refs and preserving document order. |
 | **`src/pairing.js`** | `pairReferences` | 3-pass heuristic matching associating deleted citations with added citations (name, content equality, positional alignment). |
 | **`src/anchor.js`** | `sanitizeAnchor`, `findCiteNoteAnchor` | Scans live article preview for matching footnote IDs (`cite_note-*`, `cite_note-FOOTNOTE*`) and binds native `Extension:Popups`. |
-| **`src/renderer.js`** | `createProseBadge`, `createCitRow`, `replaceRefInHtml` | Constructs mathematical angle bracket badges (`⟨ref1⟩`, `⟨~mod~⟩`) and decoupled citation diff rows (`<tr class="refdiff-cit-row">`). |
+| **`src/renderer.js`** | `el`, `createProseBadge`, `createProseBadgeElement`, `createCitRow`, `replaceRefInHtml`, `parseTemplateList`, `showBadgePreview`, `hideBadgePreview` | Constructs mathematical angle bracket badges (`⟨ref1⟩`, `⟨~mod~⟩`) and decoupled citation diff rows (`<tr class="refdiff-cit-row">`). |
 | **`src/memento.js`** | `captureRowSnapshot`, `restoreRowSnapshot` | Non-destructive DOM row snapshots preserving native MediaWiki event closures in-place. |
 | **`src/pipeline.js`** | `applyDecoupling`, `restoreOriginal`, `transformProseCells`, `insertCitationRows`, `onTableClick` | Orchestrates prose badge substitution, citation row injection, click handling, jump target flashing, and restoration. |
 | **`src/dom_helpers.js`** | `getDiffBodyRows`, `notifyBodyUpdate` | Categorizes diff body rows and fires MediaWiki synchronization hooks (`wikipage.diff.wikitextBodyUpdate` & `wikipage.content`). |
@@ -375,7 +378,7 @@ In earlier prototypes, unchanged reference badges were colored blue. Reviewers r
 
 ### 6.3 Interactive Reference Badges & Native Extension:Popups Integration
 
-RefDiff seamlessly bridges the diff table with Wikipedia's native reading infrastructure via a two-tier preview architecture:
+RefDiff connects the diff table with Wikipedia's native reading infrastructure via a two-tier preview architecture:
 
 1. **Native Reference Previews (`Extension:Popups`):**
    * Badges with resolved live anchors are wrapped in standard MediaWiki footnote markup:
@@ -437,7 +440,7 @@ RefDiff seamlessly bridges the diff table with Wikipedia's native reading infras
 
 ### 7.2 Source Integrity & AI Verification Ecosystem (`AI Source Verification` & `CNfirmed`)
 RefDiff isolates and clarifies citation diffs on `Special:Diff`. In production user configurations (such as `User:Johnjbarton/common.js`), editors pair RefDiff with AI-assisted verification and citation discovery tools:
-1. **AI Source Verification** ([`User:Alaexis/AI Source Verification.js`](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js)): Leverages LLMs (Gemini, Claude, GPT) to evaluate citations in-browser, verifying whether cited references factually support article claims. RefDiff complements this by separating prose from citation clutter, giving human reviewers an unambiguous claim baseline when inspecting AI-flagged citation discrepancies.
+1. **AI Source Verification** ([`User:Alaexis/AI Source Verification.js`](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification.js)): Uses LLMs (Gemini, Claude, GPT) to evaluate citations in-browser, verifying whether cited references factually support article claims. RefDiff complements this by separating prose from citation clutter, giving human reviewers an unambiguous claim baseline when inspecting AI-flagged citation discrepancies.
 2. **CNfirmed** ([`User:Alaexis/CNfirmed.js`](https://en.wikipedia.org/wiki/User:Alaexis/CNfirmed.js)): Discovers and verifies candidate references for `{{citation needed}}` tags using Internet Archive APIs and LLM judges.
 
 Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `HarvErrors` for anchor integrity, these tools form a layered, end-to-end citation quality ecosystem.
@@ -445,7 +448,7 @@ Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `Harv
 ### 7.3 Source Editing & Form Interfaces: ProveIt and Section-Scoped Locality
 [**ProveIt**](https://en.wikipedia.org/wiki/Wikipedia:ProveIt) (`Gadget-ProveIt.js`) is Wikipedia's widely adopted graphical citation manager for the wikitext editor, providing a form-based UI driven by `TemplateData` and `Citoid` auto-filling:
 1. **The Section-Editing Barrier (Community Wishlist W190 / Phabricator T356471):** ProveIt parses and modifies references strictly within the wikitext loaded into `#wpTextbox1`. When an editor edits a single section, citations defined outside that section—either in earlier sections or in global List-Defined Reference blocks (`{{reflist|refs=...}}`)—only appear as self-closing stubs (`<ref name="foo" />`). Because the full definition is absent from the section textarea, ProveIt cannot display or edit the source parameters, and MediaWiki's section-save architecture prevents writing to other sections.
-2. **Synergy with `<references hidden>`:** By organizing source definitions in section-scoped blocks (`<references hidden>`), reference definitions reside locally within the section where they are cited. ProveIt can immediately discover, edit, and auto-fill complete citation templates directly within section editing mode, resolving the W190 barrier without requiring complex cross-section API orchestration.
+2. **Integration with `<references hidden>`:** By organizing source definitions in section-scoped blocks (`<references hidden>`), reference definitions reside locally within the section where they are cited. ProveIt can immediately discover, edit, and auto-fill complete citation templates directly within section editing mode, resolving the W190 barrier without requiring complex cross-section API orchestration.
 3. **Role in the Citation Lifecycle:** While ProveIt simplifies citation creation and modification during *authoring* (`Special:Edit`), RefDiff isolates and visualizes citation changes during *review* (`Special:Diff`), forming complementary bookends of the citation workflow.
 
 ### 7.4 Similar & Complementary Diff Tools: wikEdDiff
@@ -457,22 +460,23 @@ Together with RefDiff on `Special:Diff`, `diffedit` for rapid editing, and `Harv
 While RefDiff addresses citation camouflage during **revision diff review** (`Special:Diff`), other community tools target the exact same cognitive overload during **wikitext editing** (`Special:Edit`):
 1. **References Segregator** (`User:PleaseStand/segregate-refs.js`): Splits the edit window into two vertical panes, hoisting citation definitions into a dedicated bottom pane while editing prose cleanly above.
 2. **RefCruncher** ([`User:Guywan/Scripts/RefCruncher.js`](https://en.wikipedia.org/wiki/User:Guywan/Scripts/RefCruncher)): Replaces bulky inline `<ref>...</ref>` spans with interactive, collapsed inline chips directly inside the wikitext textarea, expanding on-click when reference editing is required.
-3. **Synergy with `<references hidden>`:** Both editor scripts attempt to mitigate inline template sprawl client-side. The `<references hidden>` architecture natively solves this problem at the wikitext storage level, eliminating the need for client-side regex folding or artificial split panes.
+3. **Integration with `<references hidden>`:** Both editor scripts attempt to mitigate inline template sprawl client-side. The `<references hidden>` architecture natively solves this problem at the wikitext storage level, eliminating the need for client-side regex folding or artificial split panes.
 
 ---
 
 ## 8. Verification & Test Architecture
 
-RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test pyramid (see [**TEST_PLAN.md**](TEST_PLAN.md) for the comprehensive specification and [**AUDIT_STRATEGY.md**](AUDIT_STRATEGY.md) for the quality taxonomy and editorial audit strategy):
+RefDiff enforces a rigorous two-layer verification pipeline with a 5-level test pyramid (see [**TESTING.md**](TESTING.md) for the comprehensive specification and [**REVIEW_GUIDE.md**](REVIEW_GUIDE.md) for the quality taxonomy and editorial audit strategy):
 
 1. **Modular Unit, Component & Real DOM Testing (`tests/test_*.js` & `tests/runner.js`):**
-   * **115 tests** (100% headless function & DOM integration coverage) across **15 modular test files** covering virtual modules, real DOM integration, and deployment pre-flight checks.
+   * **140 tests** (100% headless function & DOM integration coverage) across **15 modular test files** covering virtual modules, real DOM integration, and deployment pre-flight checks.
    * Fast execution budget: entire suite executes in **~250 ms** via `node tests/runner.js` (`npm test`).
    * **Selective execution:** Any module can be tested in isolation (e.g. `node tests/test_parser.js`, `node tests/test_pairing.js`, or `node tests/test_jsdom.js`).
    * **Mock & JSDOM Sandboxing:** Safe `withMockEnvironment` harness guarantees restoration of global DOM mocks (`window`, `document`, `location`) even on assertion failures, supplemented by `tests/test_jsdom.js` running against real MediaWiki diff fixtures.
-   * **Parser & Templates (`tests/test_parser.js`, `tests/test_constants.js`):** XML entity decoding (`&quot;`), self-closing tags, nested `diffchange` spans, boundary split normalization, `TEMPLATE_REF_REGEX`, mixed sequential order, unclosed quotation attribute toleration (`name="foo>`), embedded apostrophe preservation in double quotes, and `extractSfnInfo` for 1, 2, 3, and 4+ authors.
+   * **Parser & Text Utilities (`tests/test_parser.js`, `tests/test_utils.js`, `tests/test_constants.js`):** XML entity decoding (`&quot;`), self-closing tags, nested `diffchange` spans, boundary split normalization, `hasDeletedCn`, `normalizeCnDiffPair`, `Rule 7b` paragraph-merge normalization, `TEMPLATE_REF_REGEX`, mixed sequential order, unclosed quotation attribute toleration (`name="foo>`), embedded apostrophe preservation in double quotes, and `extractSfnInfo` for 1, 2, 3, and 4+ authors.
+   * **Renderer & Badge Previews (`tests/test_renderer.js`):** Mathematical angle bracket badges, safe DOM construction via `el()`, `createProseBadgeElement`, `parseTemplateList`, and floating `.refdiff-preview-card` preview cards.
    * **Heuristic Pairing (`tests/test_pairing.js`):** 3-pass matching algorithm, insertions at front/end, surrounded edits, pure additions/deletions, self-closing identicals, and `{{sfn}}` pairing by label.
-   * **Anchor Discovery & Popups (`tests/test_anchor.js`):** Resolves explicit named footnotes (including space-to-underscore normalized IDs), anonymous URL matching, shortened `cite_note-FOOTNOTE*` anchors, and `sanitizeAnchor` tokenization.
+   * **Anchor Discovery & Popups (`tests/test_anchor.js`):** Resolves explicit named footnotes (including space-to-underscore normalized IDs), anonymous URL matching, DOI, PMID, PMC, and ISBN identifier matching for Reference Previews on unnamed citations, shortened `cite_note-FOOTNOTE*` anchors, and `sanitizeAnchor` tokenization.
    * **Memento & Pipeline (`tests/test_memento.js`, `tests/test_pipeline.js`):** In-place DOM snapshotting (`captureRowSnapshot` / `restoreRowSnapshot`), table decoupling mutation and clean round-trip restoration preserving native MediaWiki event closures.
    * **Mode Coordination & UI (`tests/test_mode_coordinator.js`, `tests/test_dom_helpers.js`):** 3-way mode switching (visual/wikitext/refdiff), row categorization, `wikitextBodyUpdate` hook firing, and locking `mw-diffPage-inline-toggle-switch`.
    * **Persistence (`tests/test_state.js`):** `localStorage`, `mw.storage`, and `?refdiff=0/1` URL parameter overrides.
@@ -481,7 +485,7 @@ RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test 
 
 2. **Live Browser Automation via CDP (`tests/test_live_cdp.py`):**
    * Uses Chrome DevTools Protocol over WebSocket port 9222.
-   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer `diff=1379486498`, Zagreb Airport `diff=1379409916`, Kim Domingo `diff=1379491398`, Cosmic inflation `diff=1379470949`, Zipf's law `diff=1379548357`, Donnie Brasco `diff=1380017400`, and Bihar Legislative Assembly `diff=1379207737`).
+   * Executes live end-to-end tests against real MediaWiki DOM (Meta-Wiki Special:Diff, local test fixtures, standalone stress fixtures, and live diffs such as Odoacer `diff=1379486498`, Zagreb Airport `diff=1379409916`, Kim Domingo `diff=1379491398`, Cosmic inflation `diff=1379470949`, Zipf's law `diff=1379548357`, Donnie Brasco `diff=1380017400`, Bihar Legislative Assembly `diff=1379207737`, Respiratory therapist `diff=1380407169`, and Leonardo Torres Quevedo `diff=1380356173`).
    * Verifies reference badge anchor discovery (114/114 links on stress fixture), native popup hovercards (`Extension:Popups`), visual diff transitions, inline toggle switch lock/unlock, dark mode tokens, and dense table parsing.
 
 ---
@@ -506,4 +510,23 @@ RefDiff enforces a rigorous two-layer verification pipeline with a 4-level test 
      * The current zero-dependency bundle runs anywhere (in-browser gadget, tampermonkey, and headless Node.js tests). Introducing hard dependencies on `mw.*` or `ve.*` would require mocking those frameworks in headless CI or maintaining separate parsing paths.
   4. **Hybrid Strategy Potential:**
      * A proposed candidate architecture is a **two-tier parsing model**: fast-path regex execution for standard citations (`<ref name="...">`, `{{Cite book}}`, `{{sfn}}`), with fallback to native MediaWiki parser libraries only when unclosed tags or nested template anomalies are encountered.
+
+---
+
+## 10. Architectural Decision Register (ADR)
+
+This register records the key architectural choices, trade-offs, and design rationales governing the RefDiff client-side architecture and integration model. Upstream storage-tier syntax decisions are maintained in [**`proposal/CONCEPT.md` (§6)**](proposal/CONCEPT.md#6-syntax-alternatives--evaluation).
+
+### 10.1 RefDiff Architecture Decision Summary
+
+| Decision | Choice | Rationale |
+| :--- | :--- | :--- |
+| **Decoupling Lens Model** | Virtual Presentation Tier (In-Memory DOM Transformation) | RefDiff acts purely as a client-side lens over standard MediaWiki diffs. Wikitext on disk and database representations remain completely standard and untouched. No changes to `wikidiff2` or server rendering pipelines are required. |
+| **State Preservation & Restoration** | In-Place DOM Memento Pattern (`table.innerHTML` snapshot) | Captures a byte-for-byte Memento of `table.diff` before applying transformations. Allows instantaneous, deterministic toggling between native diff and decoupled view with zero residual DOM nodes, memory leaks, or discarded event listeners ($\text{table.innerHTML}_{\text{initial}} \equiv \text{table.innerHTML}_{\text{restored}}$). |
+| **DOM Construction & XSS Immunity** | Native Element Builder `el()` | Replaced dynamic `.innerHTML` string interpolation with native `document.createElement()` and `document.createTextNode()` calls. Enforces rigorous attribute whitelisting, Boolean handling, and absolute immunity against script injection from untrusted wikitext diffs (M1). |
+| **Badge Visual Ergonomics** | Universal Mathematical Angle Brackets (`⟨...⟩`, `~`, `+`, `-`) | Badges use clean mathematical notation (`⟨Castritius 2005⟩`, `⟨~1~⟩`, `⟨+2+⟩`, `⟨-3-⟩`) to distinguish decoupled citation references from standard prose. High contrast, theme-aware styling guarantees accessibility across both Vector 2022 Light and Dark modes. |
+| **Two-Tier Preview Architecture** | Native Footnote Anchor First, Deterministic List Parser Fallback | **Tier 1:** Scans citation text for persistent identifiers (DOI, PMID, PMC, ISBN, URL) and links to `#cite_note-*` in the DOM, triggering native `Extension:Popups` hovercards. **Tier 2:** When no DOM anchor exists (newly added or unmatched citations), parses wikitext deterministically into an accessible multi-line list preview card (`role="tooltip"`), bypassing OS tooltip suppression. |
+| **Zero External Network Dependencies** | Self-Contained UMD Bundle with Bundled Polyfills | Runs entirely within standard MediaWiki ResourceLoader or UserScript environments. Zero runtime fetches to external CDNs or third-party libraries (M6). Ensures complete privacy compliance and resilience in restricted/offline environments. |
+| **RefDiff Internationalization (i18n)** | Deliberate Omission (Language-Agnostic Design) | RefDiff deliberately does not implement an i18n framework (`mw.messages`/`i18next`). The gadget UI has a negligible string footprint (~3 static strings: proper name `RefDiff`, `Inline modified refs`, `Diff view:`). Decoupled badges rely on universal mathematical notation (`⟨...⟩`, `~`, `+`, `-`) and verbatim citation metadata. Omitting i18n preserves the zero-dependency, single-file footprint (~40 KB) required for instant cross-wiki deployment via `m:Special:MyPage/global.js` without network overhead or translation bundle latency. |
+| **Fail-Open Error Boundary** | Top-Level Try/Catch with Automatic Memento Rollback | Any unexpected parsing or DOM exception in `init()` or `applyDecoupling()` automatically restores the original native diff table and logs a warning, guaranteeing editors are never blocked from reviewing diffs. |
 

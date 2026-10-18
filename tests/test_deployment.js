@@ -23,6 +23,11 @@ const packageJsonPath = path.join(rootDir, 'package.json');
 const refdiffWikiPath = path.join(rootDir, 'refdiff.wiki');
 const metaRefdiffWikiPath = path.join(rootDir, 'meta_refdiff.wiki');
 const userboxWikiPath = path.join(rootDir, 'userbox.wiki');
+const ticketsDir = path.join(rootDir, 'tickets');
+const openTicketsDir = path.join(ticketsDir, 'open');
+const doneTicketsDir = path.join(ticketsDir, 'done');
+const indexMdPath = path.join(ticketsDir, 'INDEX.md');
+const doneMdPath = path.join(ticketsDir, 'DONE.md');
 
 suite('Deployment & Release Pre-Flight Checks', () => {
   const refdiffSrc = fs.readFileSync(refdiffPath, 'utf8');
@@ -236,16 +241,16 @@ suite('Deployment & Release Pre-Flight Checks', () => {
   });
 
   test('validates deployment consistency: all artifacts, destinations, and loader URLs are synchronized', () => {
-    const rolloutPlanPath = path.join(rootDir, 'ROLLOUT_PLAN.md');
+    const rolloutPlanPath = path.join(rootDir, 'RELEASE_RUNBOOK.md');
     const postMdPath = path.join(rootDir, 'proposal', 'POST.md');
 
-    // 1. All deployment and rollout artifacts mapped in ROLLOUT_PLAN.md must exist on disk and be non-empty
+    // 1. All deployment and rollout artifacts mapped in RELEASE_RUNBOOK.md must exist on disk and be non-empty
     const requiredArtifacts = [
       { path: refdiffPath, name: 'refdiff.js' },
       { path: refdiffWikiPath, name: 'refdiff.wiki' },
       { path: metaRefdiffWikiPath, name: 'meta_refdiff.wiki' },
       { path: userboxWikiPath, name: 'userbox.wiki' },
-      { path: rolloutPlanPath, name: 'ROLLOUT_PLAN.md' },
+      { path: rolloutPlanPath, name: 'RELEASE_RUNBOOK.md' },
       { path: postMdPath, name: 'proposal/POST.md' }
     ];
 
@@ -258,27 +263,27 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     const rolloutPlanContent = fs.readFileSync(rolloutPlanPath, 'utf8');
     const wikiContent = fs.readFileSync(refdiffWikiPath, 'utf8');
     const userboxContent = fs.readFileSync(userboxWikiPath, 'utf8');
-    const testPlanContent = fs.readFileSync(path.join(rootDir, 'TEST_PLAN.md'), 'utf8');
+    const testPlanContent = fs.readFileSync(path.join(rootDir, 'TESTING.md'), 'utf8');
 
     // Title validation: in-text title must be "RefDiff: Rollout and Deployment Plan"
     assert.strictEqual(
       rolloutPlanContent.includes('# RefDiff: Rollout and Deployment Plan'),
       true,
-      'ROLLOUT_PLAN.md must be titled "RefDiff: Rollout and Deployment Plan" in text'
+      'RELEASE_RUNBOOK.md must be titled "RefDiff: Rollout and Deployment Plan" in text'
     );
 
     // 2. Unversioned filename and release channel policy (no versions in filenames)
-    assert.strictEqual(/refdiff-v[0-9]/.test(rolloutPlanContent), false, 'ROLLOUT_PLAN.md must not contain versioned filenames (policy: no versions in filenames)');
-    assert.strictEqual(/refdiff-canary/i.test(rolloutPlanContent), false, 'ROLLOUT_PLAN.md must not contain canary channel (policy: no canary, only uprev when ready)');
-    assert.strictEqual(rolloutPlanContent.includes('no canary needed'), true, 'ROLLOUT_PLAN.md must explicitly document no canary needed policy');
+    assert.strictEqual(/refdiff-v[0-9]/.test(rolloutPlanContent), false, 'RELEASE_RUNBOOK.md must not contain versioned filenames (policy: no versions in filenames)');
+    assert.strictEqual(/refdiff-canary/i.test(rolloutPlanContent), false, 'RELEASE_RUNBOOK.md must not contain canary channel (policy: no canary, only uprev when ready)');
+    assert.strictEqual(rolloutPlanContent.includes('no canary needed'), true, 'RELEASE_RUNBOOK.md must explicitly document no canary needed policy');
 
     // 3. Script lead (Meta), SHA pointer (en.WP), and early testing harness consistency
     const metaLeadTarget = 'm:User:Powercycler/refdiff.js';
     const enPointerTarget = 'en:User:Powercycler/refdiff.js';
     const enCommonTarget = 'en:User:Powercycler/common.js';
-    assert.strictEqual(rolloutPlanContent.includes(metaLeadTarget), true, `ROLLOUT_PLAN.md must list Meta script lead ${metaLeadTarget}`);
-    assert.strictEqual(rolloutPlanContent.includes(enPointerTarget), true, `ROLLOUT_PLAN.md must list en.WP SHA pointer ${enPointerTarget}`);
-    assert.strictEqual(rolloutPlanContent.includes(enCommonTarget), true, `ROLLOUT_PLAN.md must list early testing harness ${enCommonTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(metaLeadTarget), true, `RELEASE_RUNBOOK.md must list Meta script lead ${metaLeadTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(enPointerTarget), true, `RELEASE_RUNBOOK.md must list en.WP SHA pointer ${enPointerTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(enCommonTarget), true, `RELEASE_RUNBOOK.md must list early testing harness ${enCommonTarget}`);
     assert.strictEqual(wikiContent.includes('meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js'), true, 'refdiff.wiki must load from Meta-Wiki lead script');
     assert.ok(/\|\s*mainsource\s*=\s*User:Powercycler\/refdiff\.js/.test(wikiContent), 'refdiff.wiki infobox mainsource must point to User:Powercycler/refdiff.js for en.WP Script Installer');
 
@@ -286,28 +291,28 @@ suite('Deployment & Release Pre-Flight Checks', () => {
     const canonicalDocTarget = 'en:User:Powercycler/RefDiff';
     const metaDocTarget = 'm:User:Powercycler/RefDiff';
     const metaWikiContent = fs.readFileSync(metaRefdiffWikiPath, 'utf8');
-    assert.strictEqual(rolloutPlanContent.includes(canonicalDocTarget), true, `ROLLOUT_PLAN.md must list canonical doc target ${canonicalDocTarget}`);
-    assert.strictEqual(rolloutPlanContent.includes(metaDocTarget), true, `ROLLOUT_PLAN.md must list Meta soft redirect doc target ${metaDocTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(canonicalDocTarget), true, `RELEASE_RUNBOOK.md must list canonical doc target ${canonicalDocTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(metaDocTarget), true, `RELEASE_RUNBOOK.md must list Meta soft redirect doc target ${metaDocTarget}`);
     assert.strictEqual(userboxContent.includes('User:Powercycler/RefDiff'), true, 'userbox.wiki must link to canonical doc target');
     assert.strictEqual(metaWikiContent.includes('en:User:Powercycler/RefDiff'), true, 'meta_refdiff.wiki must link to canonical English Wikipedia documentation');
     assert.strictEqual(metaWikiContent.includes('User:Powercycler/refdiff.js'), true, 'meta_refdiff.wiki must link to Meta-Wiki script lead');
 
     // 5. Userbox template destination consistency (User space)
     const hasUserboxTarget = rolloutPlanContent.includes('en:User:Powercycler/Userbox RefDiff') || rolloutPlanContent.includes('en:User:Powercycler/User RefDiff');
-    assert.strictEqual(hasUserboxTarget, true, 'ROLLOUT_PLAN.md must list userbox in user space (en:User:Powercycler/Userbox RefDiff or User RefDiff)');
+    assert.strictEqual(hasUserboxTarget, true, 'RELEASE_RUNBOOK.md must list userbox in user space (en:User:Powercycler/Userbox RefDiff or User RefDiff)');
     const referencesUserbox = userboxContent.includes('User:Powercycler/Userbox RefDiff') || userboxContent.includes('User:Powercycler/User RefDiff');
     assert.strictEqual(referencesUserbox, true, 'userbox.wiki must reference User:Powercycler user space userbox');
 
     // 6. Outreach discussion destination consistency
     const canonicalTalkTarget = 'en:User talk:Powercycler/RefDiff';
-    assert.strictEqual(rolloutPlanContent.includes(canonicalTalkTarget), true, `ROLLOUT_PLAN.md must list ${canonicalTalkTarget}`);
+    assert.strictEqual(rolloutPlanContent.includes(canonicalTalkTarget), true, `RELEASE_RUNBOOK.md must list ${canonicalTalkTarget}`);
 
     // 7. Uprev cadence & diff audit trigger policy
-    assert.strictEqual(rolloutPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'ROLLOUT_PLAN.md must enforce uprev cadence and diff audit policy');
-    assert.strictEqual(rolloutPlanContent.includes('smaller, focused changes between uprevs'), true, 'ROLLOUT_PLAN.md must require small changes between uprevs');
+    assert.strictEqual(rolloutPlanContent.includes('Uprev Cadence & Diff Audit'), true, 'RELEASE_RUNBOOK.md must enforce uprev cadence and diff audit policy');
+    assert.strictEqual(rolloutPlanContent.includes('smaller, focused changes between uprevs'), true, 'RELEASE_RUNBOOK.md must require small changes between uprevs');
 
-    // 8. Tool compatibility check (Twinkle & Ultraviolet tracked in TEST_PLAN.md)
-    assert.strictEqual(testPlanContent.includes('Twinkle') && testPlanContent.includes('Ultraviolet'), true, 'TEST_PLAN.md must track Twinkle and Ultraviolet compatibility');
+    // 8. Tool compatibility check (Twinkle & Ultraviolet tracked in TESTING.md)
+    assert.strictEqual(testPlanContent.includes('Twinkle') && testPlanContent.includes('Ultraviolet'), true, 'TESTING.md must track Twinkle and Ultraviolet compatibility');
 
     // 9. Mandatory CDP testing invariant before any update to refdiff.js
     assert.strictEqual(
@@ -315,7 +320,7 @@ suite('Deployment & Release Pre-Flight Checks', () => {
       rolloutPlanContent.includes('CDP') &&
       rolloutPlanContent.includes('before any update to `refdiff.js`'),
       true,
-      'ROLLOUT_PLAN.md must enforce that we always run CDP before any update to refdiff.js'
+      'RELEASE_RUNBOOK.md must enforce that we always run CDP before any update to refdiff.js'
     );
 
     // 10. Mandatory pre-deployment uprev policy
@@ -323,7 +328,88 @@ suite('Deployment & Release Pre-Flight Checks', () => {
       rolloutPlanContent.includes('assure a formal version uprev is executed') &&
       rolloutPlanContent.includes('Assure version uprev before deployment'),
       true,
-      'ROLLOUT_PLAN.md must enforce mandatory pre-deployment uprev policy'
+      'RELEASE_RUNBOOK.md must enforce mandatory pre-deployment uprev policy'
+    );
+  });
+
+  test('validates ticket registry parity and directory synchronization', () => {
+    assert.strictEqual(fs.existsSync(openTicketsDir), true, 'tickets/open directory must exist');
+    assert.strictEqual(fs.existsSync(doneTicketsDir), true, 'tickets/done directory must exist');
+    assert.strictEqual(fs.existsSync(indexMdPath), true, 'tickets/INDEX.md must exist');
+    assert.strictEqual(fs.existsSync(doneMdPath), true, 'tickets/DONE.md must exist');
+
+    const ticketFilenamePattern = /^T-\d{3}-[a-z0-9]+(-[a-z0-9]+)*\.md$/;
+    const ticketIdPattern = /^(T-\d{3})/;
+
+    // 1. Open tickets parity against tickets/INDEX.md
+    const openFiles = fs.readdirSync(openTicketsDir).filter(f => f.endsWith('.md'));
+    const indexContent = fs.readFileSync(indexMdPath, 'utf8');
+    const indexLinkMatches = [...indexContent.matchAll(/open\/(T-[^)\s#]+\.md)/g)].map(m => m[1]);
+    const indexLinkedFiles = new Set(indexLinkMatches);
+
+    // Verify filename format for open tickets
+    for (const f of openFiles) {
+      assert.strictEqual(
+        ticketFilenamePattern.test(f),
+        true,
+        `Ticket in open directory has invalid filename: '${f}'. Must follow T-NNN-kebab-slug.md`
+      );
+    }
+
+    // Bidirectional open ticket sync
+    const unindexedOpen = openFiles.filter(f => !indexLinkedFiles.has(f));
+    assert.strictEqual(
+      unindexedOpen.length,
+      0,
+      `Unindexed ticket(s) in tickets/open/: ${unindexedOpen.join(', ')}. All open tickets must be registered in tickets/INDEX.md.`
+    );
+
+    const danglingIndexLinks = indexLinkMatches.filter(f => !openFiles.includes(f));
+    assert.strictEqual(
+      danglingIndexLinks.length,
+      0,
+      `Broken link(s) in tickets/INDEX.md: ${danglingIndexLinks.join(', ')} not found in tickets/open/.`
+    );
+
+    // 2. Done tickets parity against tickets/DONE.md
+    const doneFiles = fs.readdirSync(doneTicketsDir).filter(f => f.endsWith('.md'));
+    const doneContent = fs.readFileSync(doneMdPath, 'utf8');
+    const doneLinkMatches = [...doneContent.matchAll(/done\/(T-[^)\s#]+\.md)/g)].map(m => m[1]);
+    const doneLinkedFiles = new Set(doneLinkMatches);
+
+    // Verify filename format for done tickets
+    for (const f of doneFiles) {
+      assert.strictEqual(
+        ticketFilenamePattern.test(f),
+        true,
+        `Ticket in done directory has invalid filename: '${f}'. Must follow T-NNN-kebab-slug.md`
+      );
+    }
+
+    // Bidirectional done ticket sync
+    const unloggedDone = doneFiles.filter(f => !doneLinkedFiles.has(f));
+    assert.strictEqual(
+      unloggedDone.length,
+      0,
+      `Unregistered completed ticket(s) in tickets/done/: ${unloggedDone.join(', ')}. All completed tickets must be logged in tickets/DONE.md.`
+    );
+
+    const danglingDoneLinks = doneLinkMatches.filter(f => !doneFiles.includes(f));
+    assert.strictEqual(
+      danglingDoneLinks.length,
+      0,
+      `Broken link(s) in tickets/DONE.md: ${danglingDoneLinks.join(', ')} not found in tickets/done/.`
+    );
+
+    // 3. Disjointness between open and done tickets
+    const openIds = new Set(openFiles.map(f => f.match(ticketIdPattern)?.[1]).filter(Boolean));
+    const doneIds = new Set(doneFiles.map(f => f.match(ticketIdPattern)?.[1]).filter(Boolean));
+    const duplicateIds = [...openIds].filter(id => doneIds.has(id));
+
+    assert.strictEqual(
+      duplicateIds.length,
+      0,
+      `Duplicate ticket ID(s) found in both open and done directories: ${duplicateIds.join(', ')}.`
     );
   });
 });

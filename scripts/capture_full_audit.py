@@ -208,7 +208,7 @@ async def main():
                 await capture_element(cdp, f'[id="{second_bihar_row}"]', os.path.join(ARTIFACTS_DIR, f"audit_bihar_added2_{theme}.png"), pad=15, include_prev=True)
 
         # ==========================================================
-        # PART 3: Dwight D. Eisenhower Diff (1380014667 - Step R.21)
+        # PART 3: Dwight D. Eisenhower Diff (1380014667 - T-013)
         # Covers:
         # - {{citation needed|...}} replaced with citations (CNfirmed workflow)
         # ==========================================================

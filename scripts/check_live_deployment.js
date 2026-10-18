@@ -367,7 +367,7 @@ async function auditDeployment() {
     const oldidComment = metaRevId ? `, oldid: ${metaRevId}` : '';
     const pointerCode = `// [[m:User:Powercycler/refdiff.js]] (Release SHA-1: ${targetJsSha1.slice(0, 8)}${oldidComment})\nmw.loader.load('https://meta.wikimedia.org/w/index.php?title=User:Powercycler/refdiff.js${oldidParam}&action=raw&ctype=text/javascript');`;
     console.log('⚠️ DEPLOYMENT ACTION REQUIRED:');
-    console.log(' To complete the rollout according to ROLLOUT_PLAN.md (Rollout and Deployment Plan):');
+    console.log(' To complete the rollout according to RELEASE_RUNBOOK.md (Rollout and Deployment Plan):');
     console.log(`  1. Update m:User:Powercycler/refdiff.js (Meta-Wiki Script Lead):`);
     console.log(`     Copy refdiff.js (${targetTagLabel}) (${ (localJs.length / 1024).toFixed(1) } KB, SHA-1: ${targetJsSha1})`);
     console.log('  2. Early testing on en:User:Powercycler/common.js:');

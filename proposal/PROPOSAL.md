@@ -179,5 +179,5 @@ If a wiki community or the WMF decides to decommission `<ref def>`, all articles
 ### 6.2 Long-Term Legacy Support for Historical Revisions
 A core requirement for MediaWiki is that older revisions (`oldid=...`) and historical diffs must continue to render correctly for years after an article has been edited or a feature has been retired:
 * **Passive Fallback Hook:** Even if active authoring of `<ref def>` is disabled via configuration, `Extension:Cite` maintains a minimal, passive fallback check (~5 lines of code) as a multi-year LTS compatibility layer.
-* **Seamless Archive Rendering:** When rendering an older revision containing `<ref def>`, the legacy hook registers the `<ref>` definitions into the citation pool and suppresses in-situ HTML output.
+* **Archival Rendering Compatibility:** When rendering an older revision containing `<ref def>`, the legacy hook registers the `<ref>` definitions into the citation pool and suppresses in-situ HTML output.
 * **Zero Reader / Historical Breakage:** Historical permalinks and diff views continue to render footnotes cleanly with **zero red cite errors** (`cite_error_references_no_text`) and without raw unparsed tags spilling into prose.

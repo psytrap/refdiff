@@ -3,7 +3,7 @@
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443 diff])
 | author      = [[User:Powercycler|Powercycler]]
 | status      = Beta
-| version     = 1.5.4
+| version     = 1.5.6
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
 | browsers    = Chromium, Firefox, Safari, Edge
@@ -178,7 +178,7 @@ On Vector 2022 and Vector legacy, RefDiff adds a button directly to Wikipedia's 
 
 * '''In-Toolbar Inline Toggle:''' An {{mono|[ ] Inline modified refs}} checkbox is placed directly to the left of the mode bar (unchecked by default). Keeping it to the left prevents layout shift and UI jumps on page load. Checking it instantly keeps modified references inline in prose with a prepended {{mono|⟨~label~⟩}} badge without creating rows below, while added and deleted references always decouple into separate rows.
 * '''Three-Way Diff Mode Switching:''' Seamlessly switches between {{mono|Visual}} (native rich HTML diff), standard {{mono|Wikitext}} diff, and decoupled {{mono|RefDiff}} instantly, with no page reload.
-* '''Visual Diff Interoperability:''' Switching to {{mono|Visual}} cleanly dismisses citation diff rows and restores native diff markup; switching back to {{mono|RefDiff}} seamlessly re-engages citation decoupling.
+* '''Visual Diff Interoperability:''' In Visual Diff mode, RefDiff remains dormant and its button is dimmed; switching to Wikitext mode enables RefDiff for instant citation decoupling.
 * '''State Persistence:''' Remembers your latest mode selection across diff pages via {{mono|mw.storage}}. If you toggle back to Wikitext or open a diff in Visual mode, diffs remain in your chosen view until you click RefDiff again.
 * '''Inline Switch Inactive during RefDiff:''' The native {{mono|Inline}} toggle switch is automatically disabled and inactive while RefDiff is active to preserve two-column citation alignment, and automatically re-enabled when switching back to standard Wikitext diff.
 * '''Fallback Mode Bar:''' On older skins without the OOUI button container (e.g. Monobook), RefDiff displays a clean switcher bar above the diff table:
@@ -232,9 +232,9 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 RefDiff is developed through '''agentic coding''' (specification-driven human–AI pair programming). To ensure high reliability and eliminate regressions during rapid automated iteration, development is governed by formal architectural contracts, strict clean-code standards, and continuous multi-tier automated verification:
 
 * '''Architecture ({{mono|ARCHITECTURE.md}}):''' Modular design with fail-open error handling and byte-for-byte Memento rollback so diff viewing is never broken.
-* '''Audit Strategy ({{mono|AUDIT_STRATEGY.md}}):''' Enforces gadget security (XSS-safe DOM creation, no {{mono|.innerHTML}} concatenation) and review workflows to eliminate template camouflage.
-* '''Rollout Plan ({{mono|ROLLOUT_PLAN.md}}):''' Governs version synchronization, file size limits (< 120&nbsp;KB), zero console logging, and automated live API checks before release.
-* '''Automated Testing ({{mono|TEST_PLAN.md}}):''' Backed by a four-level test pyramid:
+* '''Review Guide ({{mono|REVIEW_GUIDE.md}}):''' Enforces gadget security (XSS-safe DOM creation, no {{mono|.innerHTML}} concatenation) and review workflows to eliminate template camouflage.
+* '''Release Runbook ({{mono|RELEASE_RUNBOOK.md}}):''' Governs version synchronization, file size limits (< 120&nbsp;KB), zero console logging, and automated live API checks before release.
+* '''Automated Testing ({{mono|TESTING.md}}):''' Backed by a five-level test pyramid:
 ** ''Unit & Integration Suites:'' Verified across 15 test suites in Node.js (140 tests in ~250&nbsp;ms).
 ** ''Memento Rollback:'' Verifies native MediaWiki diff tables restore byte-for-byte on mode toggles without losing event listeners.
 ** ''Citation Parsing:'' Validates standard {{tag|ref}} tags, shortened footnotes ({{tlx|sfn}}), explanatory notes ({{tlx|efn}}), and Harvard citations.
@@ -247,7 +247,7 @@ The following edge cases and layout environments are outside current gadget func
 
 * '''Malformed Wikitext:''' Unclosed {{tag|ref}} tags, unclosed brackets, or invalid tag syntax are not parsed into citation rows and remain displayed in-place within the standard prose diff.
 * '''Complex wikidiff2 Token Splitting:''' MediaWiki's backend diff engine ({{mono|wikidiff2}}) can divide a single citation tag across multiple inline change spans (e.g. {{mono|<ins>&lt;ref name="x"</ins> <ins>/&gt;</ins>}}, as seen in [[Special:Diff/1379491398|Kim Domingo]]). While standard split patterns are normalized automatically, edge-case token segmentations continue to be refined.
-* '''Nested Footnote Templates:''' Footnotes defined through secondary templates such as {{tlx|refn}}, {{tlx|sfnp}}, or citations embedded within infobox parameters remain in the prose view rather than decoupling into separate citation rows.
+* '''Nested Footnote Templates:''' Footnotes defined through secondary templates such as {{tlx|refn}} or citations embedded within infobox parameters remain in the prose view rather than decoupling into separate citation rows.
 * '''Subtle Prose and Whitespace Edits:''' Non-printing characters or whitespace edits immediately adjacent to citation tags are preserved, with automated test coverage continually expanded to cover diverse real-world diff patterns.
 * '''Mobile Layouts (MinervaNeue):''' The single-column stacked diff interface used on the mobile web view is not currently supported; RefDiff is designed for desktop two-column and inline diff views.
 * '''Dynamic AJAX Diff Navigation:''' Interactive diff changes triggered via client-side scripts without a standard page navigation may require a manual page reload to re-initialize.
@@ -271,6 +271,7 @@ RefDiff is in active Beta testing. If you encounter any unexpected diff renderin
 * [[:en:User:Guywan/Scripts/RefCruncher|User:Guywan/Scripts/RefCruncher]] – Wikitext editor script that collapses inline citations into compact chips
 * [[:en:User:Alaexis/AI Source Verification.js|User:Alaexis/AI Source Verification]] – In-browser AI citation verification script
 * [[:en:User:Alaexis/CNfirmed.js|User:Alaexis/CNfirmed]] – Automated source discovery and verification tool
+* [[:en:User:Nardog/SmartDiff|User:Nardog/SmartDiff]] – Turns wikilinks, external links, and template calls in diffs into clickable links
 
 [[Category:Wikipedia scripts|RefDiff]]
 [[Category:Wikipedia citation/link tools|RefDiff]]
