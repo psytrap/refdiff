@@ -23,7 +23,7 @@ Backlog tickets in `tickets/open/` are structured and scheduled strictly accordi
 ### 2.1 🟡 Immediate Pre-Pilot (`P0 — Higher than Tier 1`)
 *Focus: Author self-testing on `en:User:Powercycler/common.js`, on-wiki documentation lead (`refdiff.wiki`), userbox readiness, language standards, and P0 real-world diff parser hardening.*
 
-*All foundational Pre-Pilot tickets are currently complete. See [**T-041**](done/T-041-restore-pre-pilot-stage-in-roadmap.md), [**T-042**](done/T-042-codify-ticket-first-default-rule.md), and [**T-043**](done/T-043-purge-buzzwords-and-jargon.md) in [`DONE.md`](DONE.md).*
+*All foundational Pre-Pilot tickets are currently complete. See [**T-041**](done/T-041-restore-pre-pilot-stage-in-roadmap.md), [**T-042**](done/T-042-codify-ticket-first-default-rule.md), [**T-043**](done/T-043-purge-buzzwords-and-jargon.md), and [**T-051**](done/T-051-document-github-repository-in-refdiff-wiki.md) in [`DONE.md`](DONE.md).*
 
 ---
 

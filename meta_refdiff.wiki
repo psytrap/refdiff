@@ -31,4 +31,5 @@ Then bypass your browser cache (<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows/Linux, 
 
 * '''[[:en:User talk:Powercycler/RefDiff|Feedback & Bug Reports]]''' – Discussion page on English Wikipedia
 * '''[[User:Powercycler/refdiff.js|refdiff.js on Meta-Wiki]]''' – Production script distribution point
+* [https://github.com/psytrap/refdiff GitHub repository (psytrap/refdiff)] – Open-source repository and automated test suites
 

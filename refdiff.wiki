@@ -4,6 +4,7 @@
 | author      = [[User:Powercycler|Powercycler]]
 | status      = Beta
 | version     = 1.5.6
+| github      = psytrap/refdiff
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva
 | browsers    = Chromium, Firefox, Safari, Edge
@@ -229,13 +230,13 @@ RefDiff natively supports all major Wikipedia skins and color schemes:
 
 == Quality Assurance & Testing ==
 
-RefDiff is developed through '''agentic coding''' (specification-driven human–AI pair programming). To ensure high reliability and eliminate regressions during rapid automated iteration, development is governed by formal architectural contracts, strict clean-code standards, and continuous multi-tier automated verification:
+RefDiff is developed open-source on GitHub at [https://github.com/psytrap/refdiff psytrap/refdiff] through '''agentic coding''' (specification-driven human–AI pair programming). To ensure high reliability and eliminate regressions during rapid automated iteration, development is governed by formal architectural contracts, strict clean-code standards, and continuous multi-tier automated verification, with automated continuous integration (CI) on GitHub Actions across Node 22.x & 24.x:
 
 * '''Architecture ({{mono|ARCHITECTURE.md}}):''' Modular design with fail-open error handling and byte-for-byte Memento rollback so diff viewing is never broken.
 * '''Review Guide ({{mono|REVIEW_GUIDE.md}}):''' Enforces gadget security (XSS-safe DOM creation, no {{mono|.innerHTML}} concatenation) and review workflows to eliminate template camouflage.
 * '''Release Runbook ({{mono|RELEASE_RUNBOOK.md}}):''' Governs version synchronization, file size limits (< 120&nbsp;KB), zero console logging, and automated live API checks before release.
 * '''Automated Testing ({{mono|TESTING.md}}):''' Backed by a five-level test pyramid:
-** ''Unit & Integration Suites:'' Verified across 15 test suites in Node.js (140 tests in ~250&nbsp;ms).
+** ''Unit & Integration Suites:'' Verified across 15 test suites in Node.js (141 tests in ~250&nbsp;ms), with automated continuous integration (CI) on GitHub Actions across Node 22.x & 24.x.
 ** ''Memento Rollback:'' Verifies native MediaWiki diff tables restore byte-for-byte on mode toggles without losing event listeners.
 ** ''Citation Parsing:'' Validates standard {{tag|ref}} tags, shortened footnotes ({{tlx|sfn}}), explanatory notes ({{tlx|efn}}), and Harvard citations.
 ** ''Stress Benchmarking:'' Tested on complex diffs (e.g. 114 references) with execution under 50&nbsp;ms.
@@ -263,6 +264,7 @@ RefDiff is in active Beta testing. If you encounter any unexpected diff renderin
 == See Also ==
 * [[/Show case|/Show case]] – Live showcase diff page
 * [[User:Powercycler/Userbox RefDiff]] – Official userbox template for Wikipedian user pages
+* [https://github.com/psytrap/refdiff GitHub repository] – Source code, automated test suites, and CI workflows
 * [[Help:Diff]] – Help page for diff views
 * [[:en:Wikipedia:Citing sources|Wikipedia:Citing sources]] – Citation guidelines
 * [[:en:User:Cacycle/wikEdDiff|User:Cacycle/wikEdDiff]] – Improved inline diff engine with syntax highlighting and moved-text detection
