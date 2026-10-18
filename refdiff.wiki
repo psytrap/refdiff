@@ -3,7 +3,7 @@
 | desc        = Decouples inline citation templates from prose in MediaWiki's diff view ({{mono|Special:Diff}}) to eliminate '''template camouflage'''.<br />'''Showcase:''' [[/Show case|/Show case]] ([https://en.wikipedia.org/w/index.php?title=User:Powercycler/RefDiff/Show_case&diff=1380240829&oldid=1380240443 diff])
 | author      = [[User:Powercycler|Powercycler]]
 | status      = Beta
-| version     = 1.5.6
+| version     = 1.5.7
 | github      = psytrap/refdiff
 | mainsource  = User:Powercycler/refdiff.js
 | skins       = Vector 2022, Vector legacy (2010), Timeless, Monobook, Minerva

@@ -7,7 +7,7 @@
   /**
    * Current RefDiff semantic version.
    */
-  const VERSION = '1.5.6';
+  const VERSION = '1.5.7';
 
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.

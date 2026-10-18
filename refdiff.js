@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         RefDiff
 // @namespace    https://github.com/psytrap/refdiff
-// @version      1.5.6
+// @version      1.5.7
 // @description  Zero-loss citation decoupling gadget for Wikipedia / MediaWiki Special:Diff
 // @author       RefDiff Contributors
 // @match        https://*.wikipedia.org/*diff=*
@@ -59,7 +59,7 @@
   /**
    * Current RefDiff semantic version.
    */
-  const VERSION = '1.5.6';
+  const VERSION = '1.5.7';
 
   /**
    * Matches HTML-escaped wikitext <ref> tags as output by MediaWiki's diff engine.

@@ -5,8 +5,9 @@
  * Bumps the project version across:
  *  1. package.json
  *  2. package-lock.json
- *  3. refdiff.js (@version in UserScript header)
- *  4. refdiff.wiki (| version = X.Y.Z and | status = Stable (vX.Y.Z))
+ *  3. src/constants.js (const VERSION = 'X.Y.Z')
+ *  4. refdiff.js (rebuilt deterministically via scripts/build.js)
+ *  5. refdiff.wiki (| version = X.Y.Z and | status = Stable (vX.Y.Z))
  *
  * Usage:
  *   node scripts/bump_version.js patch
@@ -21,11 +22,12 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { build } = require('./build.js');
 
 const rootDir = path.join(__dirname, '..');
 const pkgPath = path.join(rootDir, 'package.json');
 const pkgLockPath = path.join(rootDir, 'package-lock.json');
-const refdiffJsPath = path.join(rootDir, 'refdiff.js');
+const srcConstantsPath = path.join(rootDir, 'src', 'constants.js');
 const refdiffWikiPath = path.join(rootDir, 'refdiff.wiki');
 
 function computeNextVersion(currentVersion, bumpType) {
@@ -83,25 +85,28 @@ function bumpVersion(bumpType, dryRun = false) {
     console.log(`  [✓] package-lock.json          -> ${nextVersion}`);
   }
 
-  // 3. refdiff.js
-  let jsSha1 = '';
-  if (fs.existsSync(refdiffJsPath)) {
-    const jsRaw = fs.readFileSync(refdiffJsPath, 'utf8');
-    const updatedJsRaw = jsRaw
-      .replace(
-        /(\/\/\s*@version\s+)[0-9]+\.[0-9]+\.[0-9]+/,
-        `$1${nextVersion}`
-      )
-      .replace(
-        /(const\s+VERSION\s*=\s*['"])[0-9]+\.[0-9]+\.[0-9]+(['"];)/,
-        `$1${nextVersion}$2`
-      );
-    if (!dryRun) fs.writeFileSync(refdiffJsPath, updatedJsRaw, 'utf8');
-    jsSha1 = crypto.createHash('sha1').update(updatedJsRaw, 'utf8').digest('hex');
-    console.log(`  [✓] refdiff.js                 -> @version ${nextVersion} (SHA-1: ${jsSha1.slice(0, 8)})`);
+  // 3. src/constants.js
+  if (fs.existsSync(srcConstantsPath)) {
+    const constRaw = fs.readFileSync(srcConstantsPath, 'utf8');
+    const updatedConstRaw = constRaw.replace(
+      /(const\s+VERSION\s*=\s*['"])[0-9]+\.[0-9]+\.[0-9]+(['"];)/,
+      `$1${nextVersion}$2`
+    );
+    if (!dryRun) fs.writeFileSync(srcConstantsPath, updatedConstRaw, 'utf8');
+    console.log(`  [✓] src/constants.js           -> ${nextVersion}`);
   }
 
-  // 4. refdiff.wiki
+  // 4. refdiff.js (rebuilt deterministically from modular src/ sources)
+  let jsSha1 = '';
+  if (!dryRun) {
+    const bundle = build(true);
+    jsSha1 = crypto.createHash('sha1').update(bundle, 'utf8').digest('hex');
+    console.log(`  [✓] refdiff.js                 -> @version ${nextVersion} (SHA-1: ${jsSha1.slice(0, 8)})`);
+  } else {
+    console.log(`  [✓] refdiff.js                 -> (rebuild skipped in dry run)`);
+  }
+
+  // 5. refdiff.wiki
   if (fs.existsSync(refdiffWikiPath)) {
     const wikiRaw = fs.readFileSync(refdiffWikiPath, 'utf8');
     const updatedWikiRaw = wikiRaw
