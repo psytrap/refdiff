@@ -35,13 +35,30 @@ Tickets remain at a stable file path inside `tickets/open/` during development�
 
 ---
 
-## 2. ⚙️ The 7-Step Ticket Protocol
+## 2. ⚙️ The 7-Step Ticket Protocol & Subagent Dispatch
 
-### Subagent Delegation Pattern
-The primary/root AI agent acts as an architectural coordinator, dispatcher, and reviewer. When explicitly authorized to work on a ticket (e.g., *"execute ticket T-019"* or *"work on T-019"*), the coordinator agent delegates implementation exclusively to an autonomous subagent (`invoke_subagent` with `TypeName: "self"` or dedicated worker), rather than performing modifications directly in the root session. The subagent executes the full 7-step lifecycle in an isolated context and reports back completion notes.
+### 2.1 🧭 Coordinator Pre-Dispatch Evaluation & Concurrency Sizing
+The primary/root AI agent acts as an architectural coordinator, dispatcher, and reviewer. When explicitly authorized to work on a ticket (e.g., *"execute ticket T-019"* or *"work on T-019"*), the coordinator agent does **not** modify codebase files directly in the root conversation session. Instead, it performs a mandatory **Pre-Dispatch Evaluation** across ticket scope, dependencies, and touched files to size the execution topology:
 
-### Execution Steps
-When dispatched to execute a ticket:
+1. 🔵 **Single-Subagent Execution (Default / Linear):**
+   - **Fit:** Sized for localized, cohesive, or sequential tasks (e.g., single `src/` module edits, focused bug fixes, documentation-only updates).
+   - **Topology:** A single autonomous subagent (`invoke_subagent` with `TypeName: "self"` or dedicated worker) encapsulates the full 7-step lifecycle from ticket activation to local git commit, reporting completion back to the coordinator.
+2. 🟣 **Multi-Subagent Execution (Parallel / Specialized):**
+   - **Fit:** Sized for multi-faceted tickets with decoupled, non-overlapping concerns that benefit from specialization or parallelization.
+   - **Topology Patterns:**
+     - *Implementation + Independent Verification:* Subagent A implements code changes in `src/`, while Subagent B prepares or executes headless browser test fixtures (CDP) or benchmarks.
+     - *Orthogonal Module Decomposition:* Multiple subagents concurrently edit non-overlapping files (e.g., Subagent A modifies `src/parser.js` while Subagent B modifies `src/renderer.js`), leveraging branched workspaces or independent paths to avoid git collisions.
+     - *Code + Documentation Split:* Subagent A performs source implementation and unit testing, while Subagent B concurrently updates architectural manuals and walkthrough guides.
+
+### 2.2 🔄 Coordinator Synthesis & Integration
+In a multi-subagent execution topology, the root coordinator agent orchestrates the lifecycle and serves as the synthesizing integrator:
+- 📋 **Decomposition & Work Packaging:** Partitions the ticket into discrete, bounded sub-tasks with explicit file boundaries to avoid concurrent edit conflicts.
+- 📬 **Progress Coordination:** Receives intermediate completion reports from each worker subagent via `send_message`.
+- 🛡️ **Conflict Reconciliation:** Resolves any merge collisions or working directory integration inconsistencies.
+- 🧪 **Unified Quality Gates:** Runs the complete verification suite (`npm test && npm run lint`) across the consolidated working tree before transitioning the ticket to `tickets/done/` and committing.
+
+### 2.3 📋 Execution Steps (The 7-Step Lifecycle)
+When dispatched to execute a ticket (or when synthesized by the coordinator):
 
 1. 🟡 **Activate ticket in open directory:**
    Open the ticket in `tickets/open/T-NNN-<slug>.md`, set `- **Status:** In Progress` in the header, and update [**`tickets/INDEX.md`**](INDEX.md) to reflect the active in-progress state. *(No file move is needed during active work, keeping all cross-references completely stable!)*
